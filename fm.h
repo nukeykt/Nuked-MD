@@ -7,7 +7,7 @@ enum {
 };
 
 typedef struct {
-    int chip_type;
+    // int chip_type;
 
     // input
     int ic;
@@ -32,6 +32,41 @@ typedef struct {
 
     int busy_cnt[2];
     int busy_latch[2];
+
+    int io_ic_latch[2];
+
+    int write_fm_address[2];
+    int fm_address[2];
+    int write_fm_data[2];
+
+    int write_mode_21[2];
+    int write_mode_22[2];
+    int write_mode_24[2];
+    int write_mode_25[2];
+    int write_mode_26[2];
+    int write_mode_27[2];
+    int write_mode_28[2];
+    int write_mode_2a[2];
+    int write_mode_2b[2];
+    int write_mode_2c[2];
+
+    int mode_test_21[2];
+    int mode_lfo_en[2];
+    int mode_lfo_freq[2];
+    int mode_timer_a_reg[2];
+    int mode_timer_b_reg[2];
+    int mode_ch3[2];
+    int mode_timer_a_load[2];
+    int mode_timer_a_enable[2];
+    int mode_timer_a_reset[2];
+    int mode_timer_b_load[2];
+    int mode_timer_b_enable[2];
+    int mode_timer_b_reset[2];
+    int mode_kon_operator[2];
+    int mode_kon_channel[2];
+    int mode_dac_data[2];
+    int mode_dac_en[2];
+    int mode_test_2c[2];
 
     // fsm
     int fsm_cnt1[2];
