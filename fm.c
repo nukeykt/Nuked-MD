@@ -12,7 +12,7 @@ void FM_SetIC(fm_t *chip, int ic)
 
 void FM_FSM1(fm_t *chip)
 {
-    int reset = (chip->ic_check_latch[1] & 16) != 0;;
+    int reset = (chip->ic_check_latch[1] & 16) != 0;
     chip->fsm_cnt1[0] = chip->fsm_cnt1[1] + 1;
     if (reset || (chip->fsm_cnt1[1] & 2) != 0)
         chip->fsm_cnt1[0] = 0;
@@ -25,8 +25,38 @@ void FM_FSM1(fm_t *chip)
 
 void FM_FSM2(fm_t *chip)
 {
+    int cnt_comb;
     chip->fsm_cnt1[1] = chip->fsm_cnt1[0] & 0x3;
     chip->fsm_cnt2[1] = chip->fsm_cnt2[0] & 0x7;
+
+    cnt_comb = (chip->fsm_cnt2[1] << 2) | chip->fsm_cnt1[1];
+
+    chip->fsm_out[0] = (cnt_comb & 30) == 30;
+    chip->fsm_out[1] = (cnt_comb & 28) == 0;
+    chip->fsm_out[2] = (cnt_comb & 30) == 4;
+    chip->fsm_out[3] = (cnt_comb & 30) == 22;
+    chip->fsm_out[4] = (cnt_comb & 28) == 24;
+    chip->fsm_out[5] = (cnt_comb & 30) == 28;
+    chip->fsm_out[6] = (cnt_comb & 30) == 14;
+    chip->fsm_out[7] = (cnt_comb & 28) == 16;
+    chip->fsm_out[8] = (cnt_comb & 30) == 20;
+    chip->fsm_out[9] = (cnt_comb & 30) == 6;
+    chip->fsm_out[10] = (cnt_comb & 28) == 8;
+    chip->fsm_out[11] = (cnt_comb & 30) == 12;
+    chip->fsm_out[12] = (cnt_comb & 30) == 30;
+    chip->fsm_out[13] = cnt_comb == 0;
+    chip->fsm_out[14] = cnt_comb == 1;
+    chip->fsm_out[15] = cnt_comb == 29;
+    chip->fsm_out[16] = (cnt_comb & 7) == 1;
+    chip->fsm_out[17] = (cnt_comb & 28) == 4;
+    chip->fsm_out[18] = cnt_comb == 8;
+    chip->fsm_out[19] = (cnt_comb & 15) == 14;
+    chip->fsm_out[20] = (cnt_comb & 15) == 4;
+    chip->fsm_out[21] = (cnt_comb & 15) == 9;
+    chip->fsm_out[22] = cnt_comb == 14;
+    chip->fsm_out[23] = (cnt_comb & 24) == 16;
+    chip->fsm_out[24] = (cnt_comb & 28) == 24;
+    chip->fsm_out[25] = (cnt_comb & 30) == 28;
 }
 
 void FM_Clock1(fm_t *chip)

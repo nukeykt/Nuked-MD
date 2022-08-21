@@ -8,6 +8,8 @@ typedef struct {
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
+    // fsm table output
+    int fsm_out[26]
 
     // clock
     int ic_latch[2]; // 12
