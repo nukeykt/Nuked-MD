@@ -75,6 +75,18 @@ typedef struct {
     int slot_rr[2][4][2];
     int slot_sl[2][4][2];
     int slot_ssg_eg[2][4][2];
+    // channel registers
+    int chan_fnum[11][2];
+    int chan_fnum_ch3[11][2];
+    int chan_block[3][2];
+    int chan_block_ch3[3][2];
+    int chan_a4[2];
+    int chan_ac[2];
+    int chan_connect[3][2];
+    int chan_fb[3][2];
+    int chan_pms[3][2];
+    int chan_ams[2][2];
+    int chan_pan[2][2];
 
     int reg_cnt1[2];
     int reg_cnt2[2];
