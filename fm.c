@@ -102,40 +102,9 @@ void FM_FSM2(fm_t *chip)
 
     cnt_comb = (chip->fsm_cnt2[1] << 2) | chip->fsm_cnt1[1];
 
-    //if (chip->chip_type == chip_type_ym2612)
-    //{
-    //    chip->fsm_out[0] = (cnt_comb & 30) == 30;
-    //    chip->fsm_out[1] = (cnt_comb & 28) == 0;
-    //    chip->fsm_out[2] = (cnt_comb & 30) == 4;
-    //    chip->fsm_out[3] = (cnt_comb & 30) == 22;
-    //    chip->fsm_out[4] = (cnt_comb & 28) == 24;
-    //    chip->fsm_out[5] = (cnt_comb & 30) == 28;
-    //    chip->fsm_out[6] = (cnt_comb & 30) == 14;
-    //    chip->fsm_out[7] = (cnt_comb & 28) == 16;
-    //    chip->fsm_out[8] = (cnt_comb & 30) == 20;
-    //    chip->fsm_out[9] = (cnt_comb & 30) == 6;
-    //    chip->fsm_out[10] = (cnt_comb & 28) == 8;
-    //    chip->fsm_out[11] = (cnt_comb & 30) == 12;
-    //    chip->fsm_out[12] = (cnt_comb & 30) == 30;
-    //    chip->fsm_out[13] = cnt_comb == 0;
-    //    chip->fsm_out[14] = cnt_comb == 1;
-    //    chip->fsm_out[15] = cnt_comb == 29;
-    //    chip->fsm_out[16] = (cnt_comb & 7) == 1;
-    //    chip->fsm_out[17] = (cnt_comb & 28) == 4;
-    //    chip->fsm_out[18] = cnt_comb == 8;
-    //    chip->fsm_out[19] = (cnt_comb & 15) == 14;
-    //    chip->fsm_out[20] = (cnt_comb & 15) == 4;
-    //    chip->fsm_out[21] = (cnt_comb & 15) == 9;
-    //    chip->fsm_out[22] = cnt_comb == 14;
-    //    chip->fsm_out[23] = (cnt_comb & 24) == 16;
-    //    chip->fsm_out[24] = (cnt_comb & 28) == 24;
-    //    chip->fsm_out[25] = (cnt_comb & 30) == 28;
-    //}
-    //else
-    {
-        chip->fsm_clock_eg = cnt_comb == 0;
-        chip->fsm_op4_sel = (cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6);
-    }
+    chip->fsm_clock_eg = cnt_comb == 0;
+    chip->fsm_op4_sel = (cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6);
+    chip->fsm_sel23 = cnt_comb == 30;
 }
 
 void FM_HandleIO1(fm_t *chip)
@@ -171,8 +140,58 @@ void FM_HandleIO2(fm_t *chip)
     chip->io_ic_latch[1] = chip->io_ic_latch[0] & 1;
 }
 
+void FM_DoShiftRegisters(fm_t *chip, int sel)
+{
+    int i, j;
+    int to = sel;
+    int from = sel ^ 1;
+    int rot = sel == 0 ? 0 : 1;
+#define SLOT_ROTATE(x) rot ? ((x << 1) | ((x >> 11) & 1)) : x
+#define CH_ROTATE(x) rot ? ((x << 1) | ((x >> 5) & 1)) : x
+    // slot registers
+    for (i = 0; i < 2; i++)
+    {
+        // multi
+        for (j = 0; j < 4; j++)
+            chip->slot_multi[i][j][to] = SLOT_ROTATE(chip->slot_multi[i][j][from]);
+        // dt
+        for (j = 0; j < 3; j++)
+            chip->slot_dt[i][j][to] = SLOT_ROTATE(chip->slot_dt[i][j][from]);
+        // tl
+        for (j = 0; j < 7; j++)
+            chip->slot_tl[i][j][to] = SLOT_ROTATE(chip->slot_tl[i][j][from]);
+        // ar
+        for (j = 0; j < 5; j++)
+            chip->slot_ar[i][j][to] = SLOT_ROTATE(chip->slot_ar[i][j][from]);
+        // ks
+        for (j = 0; j < 2; j++)
+            chip->slot_ks[i][j][to] = SLOT_ROTATE(chip->slot_ks[i][j][from]);
+        // dr
+        for (j = 0; j < 5; j++)
+            chip->slot_dr[i][j][to] = SLOT_ROTATE(chip->slot_dr[i][j][from]);
+        // am
+        for (j = 0; j < 1; j++)
+            chip->slot_am[i][j][to] = SLOT_ROTATE(chip->slot_am[i][j][from]);
+        // sr
+        for (j = 0; j < 5; j++)
+            chip->slot_sr[i][j][to] = SLOT_ROTATE(chip->slot_sr[i][j][from]);
+        // rr
+        for (j = 0; j < 4; j++)
+            chip->slot_rr[i][j][to] = SLOT_ROTATE(chip->slot_rr[i][j][from]);
+        // sl
+        for (j = 0; j < 4; j++)
+            chip->slot_sl[i][j][to] = SLOT_ROTATE(chip->slot_sl[i][j][from]);
+        // ssg eg
+        for (j = 0; j < 4; j++)
+            chip->slot_ssg_eg[i][j][to] = SLOT_ROTATE(chip->slot_ssg_eg[i][j][from]);
+    }
+#undef SLOT_ROTATE
+#undef CH_ROTATE
+}
+
 void FM_FMRegisters1(fm_t *chip)
 {
+    int i, j;
     int write_data_en = !chip->write_data_sr[1] && chip->write_data_dlatch;
     int write_addr_en = !chip->write_addr_sr[1] && chip->write_addr_dlatch;
     int bus = FM_GetBus(chip);
@@ -193,6 +212,13 @@ void FM_FMRegisters1(fm_t *chip)
         chip->fm_address[0] = chip->fm_address[1];
 
     chip->write_fm_data[0] = (chip->write_fm_address[1] && write_data_en) || (chip->write_fm_data[1] && !write_addr_en);
+
+    if (chip->ic)
+        chip->fm_data[0] = 0;
+    else if (chip->write_fm_address[1] && write_data_en)
+        chip->fm_data[0] = bus;
+    else
+        chip->fm_data[0] = chip->fm_data[1];
 
     if (write_addr_en)
     {
@@ -240,6 +266,43 @@ void FM_FMRegisters1(fm_t *chip)
         chip->mode_dac_data[0] = 0;
         chip->mode_dac_en[0] = 0;
         chip->mode_test_2c[0] = 0;
+        // slot registers
+        for (i = 0; i < 2; i++)
+        {
+            // multi
+            for (j = 0; j < 4; j++)
+                chip->slot_multi[i][j][0] = 0;
+            // dt
+            for (j = 0; j < 3; j++)
+                chip->slot_dt[i][j][0] = 0;
+            // tl
+            for (j = 0; j < 7; j++)
+                chip->slot_tl[i][j][0] = 0;
+            // ar
+            for (j = 0; j < 5; j++)
+                chip->slot_ar[i][j][0] = 0;
+            // ks
+            for (j = 0; j < 2; j++)
+                chip->slot_ks[i][j][0] = 0;
+            // dr
+            for (j = 0; j < 5; j++)
+                chip->slot_dr[i][j][0] = 0;
+            // am
+            for (j = 0; j < 1; j++)
+                chip->slot_am[i][j][0] = 0;
+            // sr
+            for (j = 0; j < 5; j++)
+                chip->slot_sr[i][j][0] = 0;
+            // rr
+            for (j = 0; j < 4; j++)
+                chip->slot_rr[i][j][0] = 0;
+            // sl
+            for (j = 0; j < 4; j++)
+                chip->slot_sl[i][j][0] = 0;
+            // ssg eg
+            for (j = 0; j < 4; j++)
+                chip->slot_ssg_eg[i][j][0] = 0;
+        }
     }
     else
     {
@@ -313,6 +376,61 @@ void FM_FMRegisters1(fm_t *chip)
         else
             chip->mode_test_2c[0] = chip->mode_test_2c[1];
     }
+    if (chip->write_fm_data[1] && (chip->fm_address[1]&3) == chip->reg_cnt1[1]
+        && ((chip->fm_address[1]>>2)&1) == ((chip->reg_cnt2[1]>>1)&1) && ((chip->fm_address[1]>>8)&1) == (chip->reg_cnt2[1]&1))
+    {
+        int bank = (chip->fm_address[1]>>3)&1;
+        switch (chip->fm_address[1] & 0xf0)
+        {
+            case 0x30:
+                // multi
+                for (j = 0; j < 4; j++)
+                    chip->slot_multi[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                // dt
+                for (j = 0; j < 3; j++)
+                    chip->slot_dt[bank][j][0] = (chip->fm_data[1] >> (j + 3)) & 1;
+                break;
+            case 0x40:
+                // tl
+                for (j = 0; j < 7; j++)
+                    chip->slot_tl[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                break;
+            case 0x50:
+                // ar
+                for (j = 0; j < 5; j++)
+                    chip->slot_ar[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                // ks
+                for (j = 0; j < 2; j++)
+                    chip->slot_ks[bank][j][0] = (chip->fm_data[1] >> (j + 6)) & 1;
+                break;
+            case 0x60:
+                // dr
+                for (j = 0; j < 5; j++)
+                    chip->slot_dr[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                // am
+                for (j = 0; j < 1; j++)
+                    chip->slot_am[bank][j][0] = (chip->fm_data[1] >> (j + 7)) & 1;
+                break;
+            case 0x70:
+                // sr
+                for (j = 0; j < 5; j++)
+                    chip->slot_sr[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                break;
+            case 0x80:
+                // rr
+                for (j = 0; j < 4; j++)
+                    chip->slot_rr[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                // sl
+                for (j = 0; j < 4; j++)
+                    chip->slot_sl[bank][j][0] = (chip->fm_data[1] >> (j + 4)) & 1;
+                break;
+            case 0x90:
+                // ssg eg
+                for (j = 0; j < 4; j++)
+                    chip->slot_ssg_eg[bank][j][0] = (chip->fm_data[1] >> (j + 0)) & 1;
+                break;
+        }
+    }
 }
 
 void FM_FMRegisters2(fm_t* chip)
@@ -320,6 +438,7 @@ void FM_FMRegisters2(fm_t* chip)
     chip->write_fm_address[1] = chip->write_fm_address[0];
     chip->write_fm_data[1] = chip->write_fm_data[0];
     chip->fm_address[1] = chip->fm_address[0];
+    chip->fm_data[1] = chip->fm_data[0];
     chip->write_mode_21[1] = chip->write_mode_21[0];
     chip->write_mode_22[1] = chip->write_mode_22[0];
     chip->write_mode_24[1] = chip->write_mode_24[0];
@@ -349,18 +468,44 @@ void FM_FMRegisters2(fm_t* chip)
     chip->mode_test_2c[1] = chip->mode_test_2c[0];
 }
 
+void FM_Misc1(fm_t *chip)
+{
+    chip->reg_cnt1[0] = chip->reg_cnt1[1] + 1;
+    chip->reg_cnt2[0] = chip->reg_cnt2[1];
+    if (chip->reg_cnt1[1] & 2)
+    {
+        chip->reg_cnt1[0] = 0;
+        chip->reg_cnt2[0]++;
+    }
+    if (chip->fsm_sel23 || chip->ic)
+    {
+        chip->reg_cnt1[0] = 0;
+        chip->reg_cnt2[0] = 0;
+    }
+}
+
+void FM_Misc2(fm_t *chip)
+{
+    chip->reg_cnt1[1] = chip->reg_cnt1[0] & 3;
+    chip->reg_cnt2[1] = chip->reg_cnt2[0] & 7;
+}
+
 void FM_Clock1(fm_t *chip)
 {
+    FM_DoShiftRegisters(chip, 0);
     FM_HandleIO1(chip);
     FM_FMRegisters1(chip);
     FM_FSM1(chip);
+    FM_Misc1(chip);
 }
 
 void FM_Clock2(fm_t *chip)
 {
+    FM_DoShiftRegisters(chip, 1);
     FM_HandleIO2(chip);
     FM_FMRegisters2(chip);
     FM_FSM2(chip);
+    FM_Misc2(chip);
 }
 
 void FM_Clock(fm_t *chip, int phi)
@@ -408,8 +553,6 @@ void main(void)
     fm_t fm;
     memset(&fm, 0, sizeof(fm));
 
-    //fm.chip_type = chip_type_ym3438;
-
     FM_SetCS(&fm, 1);
     FM_SetRead(&fm, 0);
     FM_SetWrite(&fm, 0);
@@ -451,7 +594,7 @@ void main(void)
     }
 
     FM_SetAddress(&fm, 0);
-    FM_SetData(&fm, 0x2a);
+    FM_SetData(&fm, 0x32);
     FM_SetWrite(&fm, 1);
     FM_SetWrite(&fm, 0);
     for (; i < 1000; i++)

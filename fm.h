@@ -1,14 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-enum {
-    chip_type_ym2612 = 0,
-    chip_type_ym3438,
-};
-
 typedef struct {
-    // int chip_type;
-
     // input
     int ic;
     int rd;
@@ -38,7 +31,9 @@ typedef struct {
     int write_fm_address[2];
     int fm_address[2];
     int write_fm_data[2];
+    int fm_data[2];
 
+    // mode registers
     int write_mode_21[2];
     int write_mode_22[2];
     int write_mode_24[2];
@@ -68,23 +63,29 @@ typedef struct {
     int mode_dac_en[2];
     int mode_test_2c[2];
 
+    // operator registers
+    int slot_multi[2][4][2];
+    int slot_dt[2][3][2];
+    int slot_tl[2][7][2];
+    int slot_ar[2][5][2];
+    int slot_ks[2][2][2];
+    int slot_dr[2][5][2];
+    int slot_am[2][1][2];
+    int slot_sr[2][5][2];
+    int slot_rr[2][4][2];
+    int slot_sl[2][4][2];
+    int slot_ssg_eg[2][4][2];
+
+    int reg_cnt1[2];
+    int reg_cnt2[2];
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
-    // fsm table output(ym2612)
-    int fsm_out[26];
-    // 0 - 11 operator select
-    // 12 - envelope generator step
-    // 13 - timer step
-    // 14 - load debug PG and EG value
-    // 15 - lfo, test pin, sync
-    // 16
-
-    // fsm table output(ym3438)
+    // fsm table output
     int fsm_clock_eg;
     int fsm_op4_sel;
-    int fsm_sel1; // 0, 4, 8, 12, 20
-    int fsm_sel2; // 0, 4, 8, 12, 20
+    int fsm_sel23;
 
     // clock
     int ic_latch[2]; // 12
