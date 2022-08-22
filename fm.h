@@ -93,6 +93,15 @@ typedef struct {
     int reg_cnt1[2];
     int reg_cnt2[2];
 
+    // lfo
+
+    int lfo_cnt1[2];
+    int lfo_cnt2[2];
+
+    int lfo_dlatch;
+    int lfo_dlatch_load;
+    int lfo_inc_latch[2];
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
@@ -102,6 +111,7 @@ typedef struct {
     int fsm_sel23;
 
     // clock
+    int phi;
     int ic_latch[2]; // 12
     int ic_check_latch[2]; // 4
     int prescaler_latch[2]; // 6

@@ -6,6 +6,36 @@
 
 void FM_Clock1(fm_t *chip);
 
+void FM_Prescaler(fm_t *chip)
+{
+    if (!chip->phi)
+    {
+        int ic_check;
+
+        chip->ic_latch[0] = chip->ic_latch[1] << 1;
+        chip->ic_latch[0] |= chip->ic;
+
+        ic_check = (chip->ic_latch[1] & 0x800) == 0 && chip->ic;
+
+        chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
+        chip->prescaler_latch[0] |= !ic_check && (chip->prescaler_latch[1] & 0x1f) == 0;
+
+        chip->ic_check_latch[0] = chip->ic_check_latch[1] << 1;
+        chip->ic_check_latch[0] |= ic_check;
+
+        chip->phi1_latch[0] = (chip->prescaler_latch[1] & 0x21) != 0;
+        chip->phi2_latch[0] = (chip->prescaler_latch[1] & 0xc) != 0;
+    }
+    else
+    {
+        chip->ic_latch[1] = chip->ic_latch[0] & 0xfff;
+        chip->ic_check_latch[1] = chip->ic_check_latch[0] & 0xf;
+        chip->prescaler_latch[1] = chip->prescaler_latch[0] & 0x3f;
+        chip->phi1_latch[1] = chip->phi1_latch[0] & 0x1;
+        chip->phi2_latch[1] = chip->phi2_latch[0] & 0x1;
+    }
+}
+
 void FM_HandleIO(fm_t *chip)
 {
     int write_data = chip->cs && chip->wr && (chip->address & 1) == 1 && !chip->ic;
@@ -48,6 +78,7 @@ int FM_GetBus(fm_t *chip)
 void FM_SetIC(fm_t *chip, int ic)
 {
     chip->ic = ic & 1;
+    FM_Prescaler(chip);
     FM_HandleIO(chip);
 }
 
@@ -374,7 +405,7 @@ void FM_FMRegisters1(fm_t *chip)
         if (write_data_en && chip->write_mode_22[1] && !chip->bank_latch)
         {
             chip->mode_lfo_en[0] = (bus >> 3) & 1;
-            chip->mode_lfo_freq[1] = bus & 7;
+            chip->mode_lfo_freq[0] = bus & 7;
         }
         else
         {
@@ -566,8 +597,8 @@ void FM_FMRegisters1(fm_t *chip)
                 // block
                 for (j = 0; j < 3; j++)
                 {
-                    chip->chan_block_ch3[8+j][0] &= ~1;
-                    chip->chan_block_ch3[8+j][0] |= (chip->chan_ac[1] >> (j + 3)) & 1;
+                    chip->chan_block_ch3[j][0] &= ~1;
+                    chip->chan_block_ch3[j][0] |= (chip->chan_ac[1] >> (j + 3)) & 1;
                 }
                 break;
             case 0xac:
@@ -694,6 +725,39 @@ void FM_Misc2(fm_t *chip)
     chip->reg_cnt2[1] = chip->reg_cnt2[0] & 7;
 }
 
+void FM_LFO1(fm_t *chip)
+{
+    static const int lfo_cycles[8] = {
+        108, 77, 71, 67, 62, 44, 8, 5
+    };
+    int inc = (chip->mode_test_21[1] & 2) != 0 || chip->fsm_sel23;
+    int freq = chip->mode_lfo_freq[1];
+    int of = (chip->lfo_cnt1[1] & lfo_cycles[freq]) == lfo_cycles[freq];
+
+    chip->lfo_cnt1[0] = chip->lfo_cnt1[1] + inc;
+
+    if (chip->ic || of)
+        chip->lfo_cnt1[0] = 0;
+
+    chip->lfo_cnt2[0] = chip->lfo_cnt2[1] + of;
+
+    if (!chip->mode_lfo_en[1])
+        chip->lfo_cnt2[0] = 0;
+
+    chip->lfo_inc_latch[0] = chip->fsm_sel23;
+
+    chip->lfo_dlatch_load = chip->lfo_inc_latch[1];
+}
+
+void FM_LFO2(fm_t *chip)
+{
+    chip->lfo_cnt1[1] = chip->lfo_cnt1[0] & 127;
+    chip->lfo_cnt2[1] = chip->lfo_cnt2[0] & 127;
+    chip->lfo_inc_latch[1] = chip->lfo_inc_latch[0];
+    if (chip->lfo_inc_latch[1] && !chip->lfo_dlatch_load)
+        chip->lfo_dlatch = chip->lfo_cnt2[1];
+}
+
 void FM_Clock1(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 0);
@@ -701,6 +765,7 @@ void FM_Clock1(fm_t *chip)
     FM_FMRegisters1(chip);
     FM_FSM1(chip);
     FM_Misc1(chip);
+    FM_LFO1(chip);
 }
 
 void FM_Clock2(fm_t *chip)
@@ -710,36 +775,13 @@ void FM_Clock2(fm_t *chip)
     FM_FMRegisters2(chip);
     FM_FSM2(chip);
     FM_Misc2(chip);
+    FM_LFO2(chip);
 }
 
 void FM_Clock(fm_t *chip, int phi)
 {
-    if (!phi)
-    {
-        int ic_check;
-
-        chip->ic_latch[0] = chip->ic_latch[1] << 1;
-        chip->ic_latch[0] |= chip->ic;
-
-        ic_check = (chip->ic_latch[1] & 0x800) == 0 && chip->ic;
-
-        chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
-        chip->prescaler_latch[0] |= !ic_check && (chip->prescaler_latch[1] & 0x1f) == 0;
-
-        chip->ic_check_latch[0] = chip->ic_check_latch[1] << 1;
-        chip->ic_check_latch[0] |= ic_check;
-
-        chip->phi1_latch[0] = (chip->prescaler_latch[1] & 0x21) != 0;
-        chip->phi2_latch[0] = (chip->prescaler_latch[1] & 0xc) != 0;
-    }
-    else
-    {
-        chip->ic_latch[1] = chip->ic_latch[0] & 0xfff;
-        chip->ic_check_latch[1] = chip->ic_check_latch[0] & 0xf;
-        chip->prescaler_latch[1] = chip->prescaler_latch[0] & 0x3f;
-        chip->phi1_latch[1] = chip->phi1_latch[0] & 0x1;
-        chip->phi2_latch[1] = chip->phi2_latch[0] & 0x1;
-    }
+    chip->phi = phi;
+    FM_Prescaler(chip);
     if (chip->phi1_latch[1])
     {
         FM_Clock1(chip);
@@ -767,10 +809,11 @@ void main(void)
     {
         FM_Clock(&fm, 0);
         FM_Clock(&fm, 1);
-        int v1 = fm.mode_dac_data[1];
+        int v1 = fm.lfo_cnt2[1];
         int v2 = 0;
         int v3 = 0;
         int v4 = 0;
+        if ((i % 144) == 0)
         printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
 
@@ -779,10 +822,11 @@ void main(void)
     {
         FM_Clock(&fm, 0);
         FM_Clock(&fm, 1);
-        int v1 = fm.mode_dac_data[1];
+        int v1 = fm.lfo_cnt2[1];
         int v2 = 0;
         int v3 = 0;
         int v4 = 0;
+        if ((i % 144) == 0)
         printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
     FM_SetIC(&fm, 0);
@@ -790,40 +834,43 @@ void main(void)
     {
         FM_Clock(&fm, 0);
         FM_Clock(&fm, 1);
-        int v1 = fm.mode_dac_data[1];
+        int v1 = fm.lfo_cnt2[1];
         int v2 = 0;
         int v3 = 0;
         int v4 = 0;
+        if ((i % 144) == 0)
         printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
 
     FM_SetAddress(&fm, 0);
-    FM_SetData(&fm, 0x28);
+    FM_SetData(&fm, 0x22);
     FM_SetWrite(&fm, 1);
     FM_SetWrite(&fm, 0);
     for (; i < 1000; i++)
     {
         FM_Clock(&fm, 0);
         FM_Clock(&fm, 1);
-        int v1 = fm.mode_dac_data[1];
+        int v1 = fm.lfo_cnt2[1];
         int v2 = 0;
         int v3 = 0;
         int v4 = 0;
+        if ((i % 144) == 0)
         printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
 
     FM_SetAddress(&fm, 1);
-    FM_SetData(&fm, 0x12);
+    FM_SetData(&fm, 0xf);
     FM_SetWrite(&fm, 1);
     FM_SetWrite(&fm, 0);
-    for (; i < 1200; i++)
+    for (; i < 30000; i++)
     {
         FM_Clock(&fm, 0);
         FM_Clock(&fm, 1);
-        int v1 = fm.mode_dac_data[1];
+        int v1 = fm.lfo_dlatch;
         int v2 = 0;
         int v3 = 0;
         int v4 = 0;
-        printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
+        if ((i % 144) == 0)
+            printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
 }
