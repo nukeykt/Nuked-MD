@@ -63,6 +63,8 @@ typedef struct {
     int mode_dac_en[2];
     int mode_test_2c[2];
 
+    int mode_kon[4][2];
+
     // operator registers
     int slot_multi[2][4][2];
     int slot_dt[2][3][2];

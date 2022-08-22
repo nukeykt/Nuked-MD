@@ -544,8 +544,8 @@ void FM_FMRegisters1(fm_t *chip)
                 // block
                 for (j = 0; j < 3; j++)
                 {
-                    chip->chan_block[8+j][0] &= ~1;
-                    chip->chan_block[8+j][0] |= (chip->chan_a4[1] >> (j + 3)) & 1;
+                    chip->chan_block[j][0] &= ~1;
+                    chip->chan_block[j][0] |= (chip->chan_a4[1] >> (j + 3)) & 1;
                 }
                 break;
             case 0xa4:
@@ -609,9 +609,29 @@ void FM_FMRegisters1(fm_t *chip)
                 break;
         }
     }
+    // keyon
+    chip->mode_kon[0][0] = chip->mode_kon[0][1] << 1;
+    chip->mode_kon[1][0] = chip->mode_kon[1][1] << 1;
+    chip->mode_kon[2][0] = chip->mode_kon[2][1] << 1;
+    chip->mode_kon[3][0] = chip->mode_kon[3][1] << 1;
+    if (chip->reg_cnt2[1] == ((chip->mode_kon_channel[1] >> 2) & 1) && chip->reg_cnt1[1] == (chip->mode_kon_channel[1] & 3))
+    {
+        chip->mode_kon[0][0] |= (chip->mode_kon_operator[1] >> 0) & 1;
+        chip->mode_kon[1][0] |= (chip->mode_kon_operator[1] >> 3) & 1;
+        chip->mode_kon[2][0] |= (chip->mode_kon_operator[1] >> 1) & 1;
+        chip->mode_kon[3][0] |= (chip->mode_kon_operator[1] >> 2) & 1;
+    }
+    else
+    {
+        if (!chip->ic)
+            chip->mode_kon[0][0] |= (chip->mode_kon[3][1] >> 5) & 1;
+        chip->mode_kon[1][0] |= (chip->mode_kon[0][1] >> 5) & 1;
+        chip->mode_kon[2][0] |= (chip->mode_kon[1][1] >> 5) & 1;
+        chip->mode_kon[3][0] |= (chip->mode_kon[2][1] >> 5) & 1;
+    }
 }
 
-void FM_FMRegisters2(fm_t* chip)
+void FM_FMRegisters2(fm_t *chip)
 {
     chip->write_fm_address[1] = chip->write_fm_address[0];
     chip->write_fm_data[1] = chip->write_fm_data[0];
@@ -646,6 +666,10 @@ void FM_FMRegisters2(fm_t* chip)
     chip->mode_test_2c[1] = chip->mode_test_2c[0];
     chip->chan_a4[1] = chip->chan_a4[0];
     chip->chan_ac[1] = chip->chan_ac[0];
+    chip->mode_kon[0][1] = chip->mode_kon[0][0];
+    chip->mode_kon[1][1] = chip->mode_kon[1][0];
+    chip->mode_kon[2][1] = chip->mode_kon[2][0];
+    chip->mode_kon[3][1] = chip->mode_kon[3][0];
 }
 
 void FM_Misc1(fm_t *chip)
@@ -774,7 +798,7 @@ void main(void)
     }
 
     FM_SetAddress(&fm, 0);
-    FM_SetData(&fm, 0xb1);
+    FM_SetData(&fm, 0x28);
     FM_SetWrite(&fm, 1);
     FM_SetWrite(&fm, 0);
     for (; i < 1000; i++)
@@ -789,7 +813,7 @@ void main(void)
     }
 
     FM_SetAddress(&fm, 1);
-    FM_SetData(&fm, 123);
+    FM_SetData(&fm, 0x12);
     FM_SetWrite(&fm, 1);
     FM_SetWrite(&fm, 0);
     for (; i < 1200; i++)
