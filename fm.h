@@ -177,6 +177,13 @@ typedef struct {
     int eg_kon_csm[2];
     int eg_kon_latch[2];
     int eg_tl[2][2];
+    int eg_ams;
+    int eg_lfo[2];
+    int eg_ch3_latch[2];
+    int eg_out;
+    int eg_out_tl;
+    int eg_out_total;
+    int eg_debug[2];
 
     // fsm
     int fsm_cnt1[2];

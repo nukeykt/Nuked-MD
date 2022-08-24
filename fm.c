@@ -1028,6 +1028,8 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     int nextstate = eg_state_attack;
     int tl = 0;
     int istantattack = 0;
+    int eg_output;
+    int ams = 0;
     static const int eg_stephi[4][4] = {
         { 0, 0, 0, 0 },
         { 1, 0, 0, 0 },
@@ -1131,7 +1133,9 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     chip->eg_ssg_pgreset[0] = (chip->eg_ssg_pgreset[1] << 1) | ssg_pgreset;
     chip->eg_ssg_pgrepeat[0] = (chip->eg_ssg_pgrepeat[1] << 1) | ssg_pgrepeat;
 
-    chip->eg_level_ssg[0] = chip->eg_ssg_inv[1] ? chip->eg_level_latch_inv : chip->eg_level_latch[1];
+    chip->eg_level_ssg[0] = eg_output = chip->eg_ssg_inv[1] ? chip->eg_level_latch_inv : chip->eg_level_latch[1];
+    if (chip->mode_test_21[1] & 32)
+        eg_output = 0;
 
     for (i = 0; i < 4; i++)
         sl |= ((chip->slot_sl[bank][i][1] >> 11) & 1) << i;
@@ -1351,12 +1355,39 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         chip->eg_level[i][0] = (chip->eg_level[i][1] << 1) | (nextlevel & 1);
         nextlevel >>= 1;
     }
+
+
+    if (chip->slot_am[bank][0][1] & (1<<11))
+        for (i = 0; i < 2; i++)
+            ams |= ((chip->chan_ams[i][1] >> 5) & 1) << i;
+
+    chip->eg_ams = ams;
+
+    if (chip->lfo_dlatch & 64)
+        chip->eg_lfo[0] = chip->lfo_dlatch & 63;
+    else
+        chip->eg_lfo[0] = chip->lfo_dlatch ^ 63;
+
+    chip->eg_ch3_latch[0] = chip->fsm_ch3_sel;
+
+    chip->eg_out_tl = chip->eg_tl[1][1];
+    if (chip->eg_ch3_latch[1] && chip->mode_ch3[1] == 2) // CSM
+        chip->eg_out_tl = 0;
+
+    chip->eg_out = eg_output + chip->eg_lfo[1];
+
+    chip->eg_debug[0] = chip->eg_debug[1] << 1;
+    if (chip->fsm_sel2)
+        chip->eg_debug[0] |= chip->eg_out_total;
 }
 
 void FM_EnvelopeGenerator2(fm_t *chip)
 {
     int i;
     int b0, b1, b2, b3;
+    static const int eg_am_shift[4] = {
+        7, 3, 1, 0
+    };
     chip->eg_prescaler_clock_l[1] = chip->eg_prescaler_clock_l[0];
     chip->eg_prescaler[1] = chip->eg_prescaler[0] & 3;
     chip->eg_step[1] = chip->eg_step[0];
@@ -1442,6 +1473,16 @@ void FM_EnvelopeGenerator2(fm_t *chip)
 
     chip->eg_state[0][1] = chip->eg_state[0][0];
     chip->eg_state[1][1] = chip->eg_state[1][0];
+
+    chip->eg_lfo[1] = (chip->eg_lfo[0] << 1) >> eg_am_shift[chip->eg_ams];
+
+    chip->eg_ch3_latch[1] = chip->eg_ch3_latch[0];
+
+    chip->eg_out_total = (chip->eg_out & 1023) + chip->eg_out_tl;
+    if ((chip->eg_out & 1024) != 0 || (chip->eg_out_total & 1024) != 0)
+        chip->eg_out_total = 1023;
+
+    chip->eg_debug[1] = chip->eg_debug[0];
 }
 
 void FM_Clock1(fm_t *chip)
