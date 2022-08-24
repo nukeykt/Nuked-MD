@@ -9,6 +9,7 @@ typedef struct {
     int cs;
     int address;
     int data;
+    int test;
 
     // io
     int write_addr_trig;
@@ -127,6 +128,19 @@ typedef struct {
     int pg_phase[20][2];
     int pg_reset_latch[2];
     int pg_debug[2];
+
+    // eg
+    int eg_prescaler[2];
+    int eg_prescaler_clock_l[2];
+    int eg_clock_delay[2];
+    int eg_step[2];
+    int eg_timer_load;
+    int eg_timer[2];
+    int eg_timer_carry[2];
+    int eg_timer_mask[2];
+    int eg_timer_masked[2];
+    int eg_timer_low_lock;
+    int eg_shift_lock;
 
     // fsm
     int fsm_cnt1[2];

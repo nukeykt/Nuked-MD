@@ -75,6 +75,20 @@ int FM_GetBus(fm_t *chip)
     return data;
 }
 
+void FM_SetTest(fm_t *chip, int test)
+{
+    chip->test = test;
+    if (chip->phi1_latch[1])
+        FM_Clock1(chip);
+}
+
+int FM_ReadTest(fm_t *chip)
+{
+    if (chip->mode_test_2c[1] & 128)
+        return chip->fsm_sel23;
+    return 0; // FIXME: high impedance
+}
+
 void FM_SetIC(fm_t *chip, int ic)
 {
     chip->ic = ic & 1;
@@ -967,6 +981,81 @@ void FM_PhaseGenerator2(fm_t *chip)
     chip->pg_debug[1] = chip->pg_debug[0];
 }
 
+void FM_EnvelopeGenerator1(fm_t *chip)
+{
+    int sum;
+    int add;
+    int timer_bit;
+    int timer_bit_masked;
+    chip->eg_prescaler_clock_l[0] = chip->fsm_clock_eg;
+    chip->eg_prescaler[0] = chip->eg_prescaler[1] + chip->fsm_clock_eg;
+    if (((chip->eg_prescaler[1] & 2) != 0 && chip->fsm_clock_eg) || chip->ic)
+        chip->eg_prescaler[0] = 0;
+    chip->eg_step[0] = chip->eg_prescaler[1] >> 1;
+
+    chip->eg_clock_delay[0] = (chip->eg_clock_delay[1] << 1) | chip->fsm_clock_eg;
+
+    chip->eg_timer_load = chip->eg_step[1] && chip->eg_prescaler_clock_l[1];
+
+    sum = (chip->eg_timer[1] >> 11) & 1;
+    add = chip->eg_timer_carry[1];
+    if ((chip->eg_prescaler[0] & 2) != 0 && chip->eg_prescaler_clock_l[1])
+        add = 1;
+    sum += add;
+    chip->eg_timer_carry[0] = sum >> 1;
+    sum &= 1;
+    if (chip->ic || (chip->mode_test_21[1] & 32) != 0)
+        sum = 0;
+
+    chip->eg_timer[0] = (chip->eg_timer[1] << 1) | sum;
+
+    timer_bit = sum;
+    if (chip->mode_test_2c[1] & 64)
+    {
+        if (chip->mode_test_2c[1] & 128) // Assuming TEST pin is NC
+            timer_bit |= FM_ReadTest(chip);
+        else
+            timer_bit |= chip->test & 1;
+    }
+
+    chip->eg_timer_mask[0] = timer_bit | chip->eg_timer_mask[1];
+    if (chip->fsm_clock_eg || ((chip->eg_clock_delay[1]>>11) & 1) != 0 || chip->ic)
+        chip->eg_timer_mask[0] = 0;
+
+    timer_bit_masked = timer_bit;
+    if (!chip->eg_timer_mask[1])
+        timer_bit_masked = 0;
+
+    chip->eg_timer_masked[0] = (chip->eg_timer_masked[1] << 1) | timer_bit_masked;
+}
+
+void FM_EnvelopeGenerator2(fm_t *chip)
+{
+    int b0, b1, b2, b3;
+    chip->eg_prescaler_clock_l[1] = chip->eg_prescaler_clock_l[0];
+    chip->eg_prescaler[1] = chip->eg_prescaler[0] & 3;
+    chip->eg_step[1] = chip->eg_step[0];
+
+    chip->eg_timer[1] = chip->eg_timer[0];
+    chip->eg_clock_delay[1] = chip->eg_clock_delay[0];
+    chip->eg_timer_carry[1] = chip->eg_timer_carry[0];
+    chip->eg_timer_mask[1] = chip->eg_timer_mask[0];
+    chip->eg_timer_masked[1] = chip->eg_timer_masked[0];
+
+    if (!chip->eg_timer_load && chip->eg_step[1] && chip->eg_prescaler_clock_l[1])
+    {
+        b0 = (chip->eg_timer[1] >> 11) & 1;
+        b1 = (chip->eg_timer[1] >> 10) & 1;
+        chip->eg_timer_low_lock = b1 * 2 + b0;
+
+        b0 = (chip->eg_timer_masked[1] & 0xaaa) != 0;
+        b1 = (chip->eg_timer_masked[1] & 0x666) != 0;
+        b2 = (chip->eg_timer_masked[1] & 0x1e1) != 0;
+        b3 = (chip->eg_timer_masked[1] & 0x1f) != 0;
+        chip->eg_shift_lock = b3 * 8 + b2 * 4 + b1 * 2 + b0;
+    }
+}
+
 void FM_Clock1(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 0);
@@ -975,6 +1064,8 @@ void FM_Clock1(fm_t *chip)
     FM_FSM1(chip);
     FM_Misc1(chip);
     FM_LFO1(chip);
+    FM_PhaseGenerator1(chip);
+    FM_EnvelopeGenerator1(chip);
 }
 
 void FM_Clock2(fm_t *chip)
@@ -985,6 +1076,8 @@ void FM_Clock2(fm_t *chip)
     FM_FSM2(chip);
     FM_Misc2(chip);
     FM_LFO2(chip);
+    FM_PhaseGenerator2(chip);
+    FM_EnvelopeGenerator2(chip);
 }
 
 void FM_Clock(fm_t *chip, int phi)
