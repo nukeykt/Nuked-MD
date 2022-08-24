@@ -4,6 +4,13 @@
 
 #include "fm.h"
 
+enum {
+    eg_state_attack = 0,
+    eg_state_decay,
+    eg_state_sustain,
+    eg_state_release
+};
+
 void FM_Clock1(fm_t *chip);
 
 void FM_Prescaler(fm_t *chip)
@@ -151,6 +158,7 @@ void FM_FSM2(fm_t *chip)
     chip->fsm_op4_sel = (cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6);
     chip->fsm_sel2 = cnt_comb == 2;
     chip->fsm_sel23 = cnt_comb == 30;
+    chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
 }
 
 void FM_HandleIO1(fm_t *chip)
@@ -920,10 +928,10 @@ void FM_PhaseGenerator1(fm_t *chip)
     chip->pg_inc[1][0] = chip->pg_inc[0][1];
 
     chip->pg_inc_mask[0] = chip->pg_inc[1][1];
-    if (0) // TODO: pg reset
+    if (chip->pg_reset[1] & 2)
         chip->pg_inc_mask[0] = 0;
 
-    chip->pg_reset_latch[0] = 0; // TODO: pg reset
+    chip->pg_reset_latch[0] = (chip->pg_reset[1] & 2) != 0;
 
     pg_inc = chip->pg_inc_mask[1];
 
@@ -983,10 +991,49 @@ void FM_PhaseGenerator2(fm_t *chip)
 
 void FM_EnvelopeGenerator1(fm_t *chip)
 {
+    int i;
     int sum;
     int add;
     int timer_bit;
     int timer_bit_masked;
+    int bank = (chip->reg_cnt2[1] >> 2) & 1;
+    int rate_sel;
+    int rate = 0;
+    int ks = 0;
+    int b0, b1;
+    int inc1;
+    int exp = 0;
+    int linear = 0;
+    int inc_total = 0;
+    int level = 0;
+    int level2 = 0;
+    int kon;
+    int kon2;
+    int okon;
+    int state;
+    int pg_reset;
+    int kon_event;
+    int ssg_eg = 0;
+    int ssg_dir = 0;
+    int ssg_inv = 0;
+    int ssg_holdup = 0;
+    int ssg_enable;
+    int ssg_pgreset = 0;
+    int ssg_pgrepeat = 0;
+    int eg_off;
+    int eg_slreach;
+    int eg_zeroatt;
+    int sl = 0;
+    int nextlevel = 0;
+    int nextstate = eg_state_attack;
+    int tl = 0;
+    int istantattack = 0;
+    static const int eg_stephi[4][4] = {
+        { 0, 0, 0, 0 },
+        { 1, 0, 0, 0 },
+        { 1, 0, 1, 0 },
+        { 1, 1, 1, 0 }
+    };
     chip->eg_prescaler_clock_l[0] = chip->fsm_clock_eg;
     chip->eg_prescaler[0] = chip->eg_prescaler[1] + chip->fsm_clock_eg;
     if (((chip->eg_prescaler[1] & 2) != 0 && chip->fsm_clock_eg) || chip->ic)
@@ -999,7 +1046,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     sum = (chip->eg_timer[1] >> 11) & 1;
     add = chip->eg_timer_carry[1];
-    if ((chip->eg_prescaler[0] & 2) != 0 && chip->eg_prescaler_clock_l[1])
+    if ((chip->eg_prescaler[1] & 2) != 0 && chip->eg_prescaler_clock_l[1])
         add = 1;
     sum += add;
     chip->eg_timer_carry[0] = sum >> 1;
@@ -1027,10 +1074,288 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         timer_bit_masked = 0;
 
     chip->eg_timer_masked[0] = (chip->eg_timer_masked[1] << 1) | timer_bit_masked;
+
+    for (i = 0; i < 10; i++)
+    {
+        level2 |= ((chip->eg_level[i][1] >> 20) & 1) << i;
+    }
+
+    chip->eg_level_latch[0] = level2;
+
+    kon2 = (chip->mode_kon[3][1] >> 5) & 1;
+    if (chip->fsm_ch3_sel)
+        kon2 |= 0; // TOOD: CSM kon
+
+    chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
+
+    kon = (chip->eg_kon_latch[1] >> 1) & 1;
+    okon = (chip->eg_key[1] >> 23) & 1;
+    pg_reset = (kon && !okon) || (chip->eg_ssg_pgreset[1] & 2) != 0;
+    kon_event = (kon && !okon) || (okon && (chip->eg_ssg_pgrepeat[1] & 2) != 0);
+    chip->pg_reset[0] = (chip->pg_reset[1] << 1) | pg_reset;
+    if (chip->eg_ssg_pgreset[1] & 2)
+        chip->pg_reset[0] |= 1;
+    chip->eg_key[0] = (chip->eg_key[1] << 1) | kon;
+
+    for (i = 0; i < 4; i++)
+        ssg_eg |= ((chip->slot_ssg_eg[bank][i][1] >> 11) & 1) << i;
+    ssg_enable = (ssg_eg & 8) != 0;
+    if (ssg_enable)
+    {
+        if (okon)
+        {
+            ssg_dir = (chip->eg_ssg_dir[1] >> 23) & 1;
+            ssg_inv = ssg_dir ^ ((ssg_eg >> 2) & 1);
+            if (level2 & 512)
+            {
+                if ((ssg_eg & 3) == 2)
+                    ssg_dir ^= 1;
+                if ((ssg_eg & 3) == 3)
+                    ssg_dir ^= 1;
+            }
+        }
+        if (kon2)
+            ssg_holdup = (ssg_eg & 7) == 3 || (ssg_eg & 7) == 5;
+        if (level2 & 512)
+        {
+            if ((ssg_eg & 3) == 0)
+                ssg_pgreset = 1;
+            if ((ssg_eg & 1) == 0)
+                ssg_pgrepeat = 1;
+        }
+    }
+    chip->eg_ssg_dir[0] = (chip->eg_ssg_dir[1] << 1) | ssg_dir;
+    chip->eg_ssg_inv[0] = ssg_inv;
+    chip->eg_ssg_holdup[0] = (chip->eg_ssg_holdup[1] << 1) | ssg_holdup;
+    chip->eg_ssg_enable[0] = (chip->eg_ssg_enable[1] << 1) | ssg_enable;
+    chip->eg_ssg_pgreset[0] = (chip->eg_ssg_pgreset[1] << 1) | ssg_pgreset;
+    chip->eg_ssg_pgrepeat[0] = (chip->eg_ssg_pgrepeat[1] << 1) | ssg_pgrepeat;
+
+    chip->eg_level_ssg[0] = chip->eg_ssg_inv[1] ? chip->eg_level_latch_inv : chip->eg_level_latch[1];
+
+    for (i = 0; i < 4; i++)
+        sl |= ((chip->slot_sl[bank][i][1] >> 11) & 1) << i;
+
+    if (sl == 15)
+        sl |= 16;
+
+    chip->eg_sl[0][0] = sl;
+    chip->eg_sl[1][0] = chip->eg_sl[0][1];
+
+    for (i = 0; i < 7; i++)
+        tl |= ((chip->slot_tl[bank][i][1] >> 11) & 1) << i;
+
+    chip->eg_tl[0][0] = tl;
+    chip->eg_tl[1][0] = chip->eg_tl[0][1];
+
+    b0 = (chip->eg_state[0][1] >> 21) & 1;
+    b1 = (chip->eg_state[1][1] >> 21) & 1;
+
+    rate_sel = b1 * 2 + b0;
+
+    if ((chip->eg_key[1] >> 21) & 1)
+    {
+        if (ssg_pgrepeat)
+            rate_sel = eg_state_attack;
+    }
+    else
+    {
+        if (kon2)
+            rate_sel = eg_state_attack;
+    }
+
+    switch (rate_sel)
+    {
+        case eg_state_attack:
+            for (i = 0; i < 5; i++)
+                rate |= ((chip->slot_ar[bank][i][1] >> 11) & 1) << i;
+            break;
+        case eg_state_decay:
+            for (i = 0; i < 5; i++)
+                rate |= ((chip->slot_dr[bank][i][1] >> 11) & 1) << i;
+            break;
+        case eg_state_sustain:
+            for (i = 0; i < 5; i++)
+                rate |= ((chip->slot_sr[bank][i][1] >> 11) & 1) << i;
+            break;
+        case eg_state_release:
+            rate = 1;
+            for (i = 0; i < 4; i++)
+                rate |= ((chip->slot_rr[bank][i][1] >> 11) & 1) << (i + 1);
+            break;
+    }
+
+    chip->eg_rate_nonzero[0] = rate != 0;
+    chip->eg_rate = rate;
+
+    for (i = 0; i < 2; i++)
+        ks |= ((chip->slot_ks[bank][i][1] >> 11) & 1) << i;
+
+    chip->eg_ksv = chip->pg_kcode[0][1] >> (ks ^ 3);
+
+    rate = chip->eg_rate2;
+    if (rate & 64)
+        rate = 63;
+
+    sum = (rate >> 2) + chip->eg_shift_lock;
+
+    inc1 = 0;
+    if (rate < 48 && chip->eg_rate_nonzero[1])
+    {
+        switch (sum & 15)
+        {
+            case 12:
+                inc1 = rate != 0;
+                break;
+            case 13:
+                inc1 = (rate >> 1) & 1;
+                break;
+            case 14:
+                inc1 = rate & 1;
+                break;
+        }
+    }
+    chip->eg_inc1 = inc1;
+    chip->eg_inc2 = eg_stephi[rate & 3][chip->eg_timer_low_lock];
+    chip->eg_rate12 = (rate & 60) == 48;
+    chip->eg_rate13 = (rate & 60) == 52;
+    chip->eg_rate14 = (rate & 60) == 56;
+    chip->eg_rate15 = (rate & 60) == 60;
+    chip->eg_maxrate[0] = (rate & 62) == 62;
+    chip->eg_prescaler_l = (chip->eg_prescaler[1] & 2) != 0;
+
+    chip->eg_incsh_nonzero[0] = chip->eg_incsh0 | chip->eg_incsh1 | chip->eg_incsh2 | chip->eg_incsh3;
+
+
+    if (okon && !kon)
+    {
+        level = chip->eg_level_ssg[1];
+    }
+    else
+    {
+        for (i = 0; i < 10; i++)
+        {
+            level |= ((chip->eg_level[i][1] >> 22) & 1) << i;
+        }
+    }
+
+    b0 = (chip->eg_state[0][1] >> 23) & 1;
+    b1 = (chip->eg_state[1][1] >> 23) & 1;
+
+    state = b1 * 2 + b0;
+
+    exp = kon && (state == eg_state_attack) && !chip->eg_maxrate[1] && level != 0;
+
+    eg_off = (chip->eg_ssg_enable[1] & 2) != 0 ? (level & 512) != 0 : (level & 0x3f0) == 0x3f0;
+    eg_slreach = (level >> 4) == (chip->eg_sl[1][1] << 1);
+
+    linear = !kon_event && !eg_off && (state == eg_state_sustain || state == eg_state_release);
+    linear |= !kon_event && !eg_off && !eg_slreach && state == eg_state_decay;
+
+    if (exp)
+    {
+        if (chip->eg_incsh0)
+            inc_total |= ~level >> 4;
+        if (chip->eg_incsh1)
+            inc_total |= ~level >> 3;
+        if (chip->eg_incsh2)
+            inc_total |= ~level >> 2;
+        if (chip->eg_incsh3)
+            inc_total |= ~level >> 1;
+    }
+    if (linear)
+    {
+        if (chip->eg_ssg_enable[1] & 2)
+        {
+            if (chip->eg_incsh0)
+                inc_total |= 1;
+            if (chip->eg_incsh1)
+                inc_total |= 2;
+            if (chip->eg_incsh2)
+                inc_total |= 4;
+            if (chip->eg_incsh3)
+                inc_total |= 8;
+        }
+        else
+        {
+            if (chip->eg_incsh0)
+                inc_total |= 4;
+            if (chip->eg_incsh1)
+                inc_total |= 8;
+            if (chip->eg_incsh2)
+                inc_total |= 16;
+            if (chip->eg_incsh3)
+                inc_total |= 32;
+        }
+    }
+
+    chip->eg_inc_total = inc_total;
+
+    istantattack = chip->eg_maxrate[1] && (!chip->eg_maxrate[1] || kon_event);
+
+    if (!istantattack)
+        nextlevel |= level;
+
+    if (chip->eg_kon_csm[1] & 2)
+        nextlevel |= chip->eg_tl[1][1] << 3;
+
+    if ((!kon_event && eg_off && (chip->eg_ssg_holdup[1] & 2) == 0 && state != eg_state_attack) || chip->ic)
+    {
+        nextlevel = 0x3ff;
+        nextstate |= eg_state_release;
+    }
+
+    if (!kon_event && state == eg_state_sustain)
+    {
+        nextstate |= eg_state_sustain;
+    }
+
+    if (!kon_event && state == eg_state_decay && !eg_slreach)
+    {
+        nextstate |= eg_state_decay;
+    }
+    if (!kon_event && state == eg_state_decay && eg_slreach)
+    {
+        nextstate |= eg_state_sustain;
+    }
+
+    if (!kon && !kon_event)
+    {
+        nextstate |= eg_state_release;
+    }
+    if (!kon_event && state == eg_state_release)
+    {
+        nextstate |= eg_state_release;
+    }
+
+    if (!kon_event && state == eg_state_attack && level == 0)
+    {
+        nextstate = eg_state_decay;
+    }
+    if (chip->ic)
+    {
+        nextstate |= eg_state_release;
+    }
+
+
+    chip->eg_nextlevel[0] = nextlevel;
+    b0 = nextstate & 1;
+    b1 = (nextstate >> 1) & 1;
+    chip->eg_state[0][0] = (chip->eg_state[0][1] << 1) | b0;
+    chip->eg_state[1][0] = (chip->eg_state[1][1] << 1) | b1;
+
+    nextlevel = chip->eg_nextlevel[1];
+
+    for (i = 0; i < 10; i++)
+    {
+        chip->eg_level[i][0] = (chip->eg_level[i][1] << 1) | (nextlevel & 1);
+        nextlevel >>= 1;
+    }
 }
 
 void FM_EnvelopeGenerator2(fm_t *chip)
 {
+    int i;
     int b0, b1, b2, b3;
     chip->eg_prescaler_clock_l[1] = chip->eg_prescaler_clock_l[0];
     chip->eg_prescaler[1] = chip->eg_prescaler[0] & 3;
@@ -1054,6 +1379,69 @@ void FM_EnvelopeGenerator2(fm_t *chip)
         b3 = (chip->eg_timer_masked[1] & 0x1f) != 0;
         chip->eg_shift_lock = b3 * 8 + b2 * 4 + b1 * 2 + b0;
     }
+
+    chip->eg_rate_nonzero[1] = chip->eg_rate_nonzero[0];
+
+    chip->eg_rate2 = (chip->eg_rate << 1) + chip->eg_ksv;
+
+    chip->eg_maxrate[1] = chip->eg_maxrate[0];
+
+    chip->eg_incsh0 = 0;
+    chip->eg_incsh1 = 0;
+    chip->eg_incsh2 = 0;
+    chip->eg_incsh3 = 0;
+
+    if (chip->eg_prescaler_l)
+    {
+        chip->eg_incsh0 = chip->eg_inc1;
+        chip->eg_incsh3 = chip->eg_rate15;
+        if (!chip->eg_inc2)
+        {
+            chip->eg_incsh0 |= chip->eg_rate12;
+            chip->eg_incsh1 = chip->eg_rate13;
+            chip->eg_incsh2 = chip->eg_rate14;
+        }
+        else
+        {
+            chip->eg_incsh1 = chip->eg_rate12;
+            chip->eg_incsh2 = chip->eg_rate13;
+            chip->eg_incsh3 |= chip->eg_rate14;
+        }
+    }
+
+    chip->eg_incsh_nonzero[1] = chip->eg_incsh_nonzero[0];
+    chip->eg_kon_latch[1] = chip->eg_kon_latch[0];
+
+    chip->eg_level_ssg[1] = chip->eg_level_ssg[0];
+
+    chip->pg_reset[1] = chip->pg_reset[0];
+
+    chip->eg_ssg_dir[1] = chip->eg_ssg_dir[0];
+    chip->eg_ssg_inv[1] = chip->eg_ssg_inv[0];
+    chip->eg_ssg_holdup[1] = chip->eg_ssg_holdup[0];
+    chip->eg_ssg_enable[1] = chip->eg_ssg_enable[0];
+    chip->eg_ssg_pgreset[1] = chip->eg_ssg_pgreset[0];
+    chip->eg_ssg_pgrepeat[1] = chip->eg_ssg_pgrepeat[0];
+
+    chip->eg_level_latch[1] = chip->eg_level_latch[0];
+    chip->eg_level_latch_inv = (512 - chip->eg_level_latch[0]) & 0x3ff;
+
+    chip->eg_sl[0][1] = chip->eg_sl[0][0];
+    chip->eg_sl[1][1] = chip->eg_sl[1][0];
+    chip->eg_tl[0][1] = chip->eg_tl[0][0];
+    chip->eg_tl[1][1] = chip->eg_tl[1][0];
+
+    chip->eg_nextlevel[1] = chip->eg_nextlevel[0] + chip->eg_inc_total;
+
+    chip->eg_kon_csm[1] = chip->eg_kon_csm[0];
+
+    for (i = 0; i < 10; i++)
+    {
+        chip->eg_level[i][1] = chip->eg_level[i][0];
+    }
+
+    chip->eg_state[0][1] = chip->eg_state[0][0];
+    chip->eg_state[1][1] = chip->eg_state[1][0];
 }
 
 void FM_Clock1(fm_t *chip)

@@ -128,10 +128,12 @@ typedef struct {
     int pg_phase[20][2];
     int pg_reset_latch[2];
     int pg_debug[2];
+    int pg_reset[2];
 
     // eg
     int eg_prescaler[2];
     int eg_prescaler_clock_l[2];
+    int eg_prescaler_l;
     int eg_clock_delay[2];
     int eg_step[2];
     int eg_timer_load;
@@ -141,6 +143,40 @@ typedef struct {
     int eg_timer_masked[2];
     int eg_timer_low_lock;
     int eg_shift_lock;
+    int eg_level[10][2];
+    int eg_level_latch[2];
+    int eg_level_latch_inv;
+    int eg_state[2][2];
+    int eg_ssg_dir[2];
+    int eg_ssg_inv[2];
+    int eg_ssg_holdup[2];
+    int eg_ssg_enable[2];
+    int eg_ssg_pgreset[2];
+    int eg_ssg_pgrepeat[2];
+    int eg_key[2];
+    int eg_rate_nonzero[2];
+    int eg_rate;
+    int eg_ksv;
+    int eg_rate2;
+    int eg_inc1;
+    int eg_inc2;
+    int eg_rate12;
+    int eg_rate13;
+    int eg_rate14;
+    int eg_rate15;
+    int eg_maxrate[2];
+    int eg_incsh0;
+    int eg_incsh1;
+    int eg_incsh2;
+    int eg_incsh3;
+    int eg_incsh_nonzero[2];
+    int eg_inc_total;
+    int eg_level_ssg[2];
+    int eg_sl[2][2];
+    int eg_nextlevel[2];
+    int eg_kon_csm[2];
+    int eg_kon_latch[2];
+    int eg_tl[2][2];
 
     // fsm
     int fsm_cnt1[2];
@@ -150,6 +186,7 @@ typedef struct {
     int fsm_op4_sel;
     int fsm_sel2;
     int fsm_sel23;
+    int fsm_ch3_sel;
 
     // clock
     int phi;
