@@ -1754,7 +1754,7 @@ void FM_Operator2(fm_t *chip)
     chip->op_pow_delta[1] = chip->op_pow_delta[0];
     chip->op_shift[1] = chip->op_shift[0];
     chip->op_output[1] = chip->op_output[0];
-    chip->op_mod_sum[1] = chip->op_mod_sum[1];
+    chip->op_mod_sum[1] = chip->op_mod_sum[0];
     chip->op_dofeedback[1] = chip->op_dofeedback[0];
 }
 
