@@ -135,6 +135,7 @@ void FM_FSM2(fm_t *chip)
 
     chip->fsm_clock_eg = cnt_comb == 0;
     chip->fsm_op4_sel = (cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6);
+    chip->fsm_sel2 = cnt_comb == 2;
     chip->fsm_sel23 = cnt_comb == 30;
 }
 
@@ -756,6 +757,214 @@ void FM_LFO2(fm_t *chip)
     chip->lfo_inc_latch[1] = chip->lfo_inc_latch[0];
     if (chip->lfo_inc_latch[1] && !chip->lfo_dlatch_load)
         chip->lfo_dlatch = chip->lfo_cnt2[1];
+}
+
+void FM_PhaseGenerator1(fm_t *chip)
+{
+    // Note table
+    static const int fn_note[16] = {
+        0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3
+    };
+    // LFO shift
+    static const int pg_lfo_sh1[8][8] = {
+        { 7, 7, 7, 7, 7, 7, 7, 7 },
+        { 7, 7, 7, 7, 7, 7, 7, 7 },
+        { 7, 7, 7, 7, 7, 7, 1, 1 },
+        { 7, 7, 7, 7, 1, 1, 1, 1 },
+        { 7, 7, 7, 1, 1, 1, 1, 0 },
+        { 7, 7, 1, 1, 0, 0, 0, 0 },
+        { 7, 7, 1, 1, 0, 0, 0, 0 },
+        { 7, 7, 1, 1, 0, 0, 0, 0 }
+    };
+
+    static const int pg_lfo_sh2[8][8] = {
+        { 7, 7, 7, 7, 7, 7, 7, 7 },
+        { 7, 7, 7, 7, 2, 2, 2, 2 },
+        { 7, 7, 7, 2, 2, 2, 7, 7 },
+        { 7, 7, 2, 2, 7, 7, 2, 2 },
+        { 7, 7, 2, 7, 7, 7, 2, 7 },
+        { 7, 7, 7, 2, 7, 7, 2, 1 },
+        { 7, 7, 7, 2, 7, 7, 2, 1 },
+        { 7, 7, 7, 2, 7, 7, 2, 1 }
+    };
+#if 0
+    // YM2610 decap
+    static const int pg_lfo_sh2[8][8] = {
+        { 7, 7, 7, 7, 7, 7, 7, 7 },
+        { 7, 7, 7, 7, 2, 2, 2, 2 },
+        { 7, 7, 7, 2, 2, 2, 7, 7 },
+        { 7, 7, 2, 2, 7, 7, 2, 2 },
+        { 7, 2, 2, 7, 7, 2, 2, 7 },
+        { 7, 2, 7, 2, 7, 2, 2, 1 },
+        { 7, 2, 7, 2, 7, 2, 2, 1 },
+        { 7, 2, 7, 2, 7, 2, 2, 1 }
+    };
+#endif
+    static const int pg_detune_add[4] = {
+        0, 8, 10, 11
+    };
+    static const int pg_detune[8] = { 16, 17, 19, 20, 22, 24, 27, 29 };
+    int i;
+    int fnum = 0;
+    int fnum_h;
+    int block = 0;
+    int pms = 0;
+    int dt = 0;
+    int dt_l = 0;
+    int dt_sum;
+    int dt_sum_l;
+    int dt_sum_h;
+    int kcode;
+    int multi = 0;
+    int lfo;
+    int ch3_sel = chip->reg_cnt1[1] == 1 && (chip->reg_cnt2[1] & 1) == 0 && chip->mode_ch3[1] != 0;
+    int op_sel = chip->reg_cnt2[1] >> 1;
+    int bank = (chip->reg_cnt2[1] >> 2) & 1;
+    int detune = 0;
+    int carry = 0;
+    int pg_inc;
+    int reset;
+    int debug;
+    if (ch3_sel && op_sel == 0)
+    {
+        for (i = 0; i < 11; i++)
+            fnum |= ((chip->chan_fnum_ch3[i][1] >> 5) & 1) << i;
+        for (i = 0; i < 3; i++)
+            block |= ((chip->chan_block_ch3[i][1] >> 5) & 1) << i;
+    }
+    else if (ch3_sel && op_sel == 1)
+    {
+        for (i = 0; i < 11; i++)
+            fnum |= ((chip->chan_fnum_ch3[i][1] >> 0) & 1) << i;
+        for (i = 0; i < 3; i++)
+            block |= ((chip->chan_block_ch3[i][1] >> 0) & 1) << i;
+    }
+    else if (ch3_sel && op_sel == 2)
+    {
+        for (i = 0; i < 11; i++)
+            fnum |= ((chip->chan_fnum_ch3[i][1] >> 4) & 1) << i;
+        for (i = 0; i < 3; i++)
+            block |= ((chip->chan_block_ch3[i][1] >> 4) & 1) << i;
+    }
+    else
+    {
+        for (i = 0; i < 11; i++)
+            fnum |= ((chip->chan_fnum[i][1] >> 4) & 1) << i;
+        for (i = 0; i < 3; i++)
+            block |= ((chip->chan_block[i][1] >> 4) & 1) << i;
+    }
+    for (i = 0; i < 3; i++)
+        pms |= ((chip->chan_pms[i][1] >> 5) & 1) << i;
+    for (i = 0; i < 3; i++)
+        dt |= ((chip->slot_dt[bank][i][1] >> 11) & 1) << i;
+    for (i = 0; i < 4; i++)
+        multi |= ((chip->slot_multi[bank][i][1] >> 11) & 1) << i;
+
+    kcode = (block << 2) | fn_note[fnum >> 7];
+
+    chip->pg_kcode[0][0] = kcode;
+    chip->pg_kcode[1][0] = chip->pg_kcode[0][1];
+
+    chip->pg_fnum[0][0] = fnum;
+    chip->pg_fnum[1][0] = chip->pg_fnum[0][1];
+
+    lfo = (chip->lfo_dlatch >> 2) & 7;
+
+    if (chip->lfo_dlatch & 32)
+        lfo ^= 7;
+
+    fnum_h = chip->pg_fnum[0][1] >> 4;
+
+    chip->pg_fnum_lfo1 = fnum_h >> pg_lfo_sh1[pms][lfo];
+    chip->pg_fnum_lfo2 = fnum_h >> pg_lfo_sh2[pms][lfo];
+
+    chip->pg_lfo_shift = 2;
+    if (pms > 5)
+        chip->pg_lfo_shift = 7 - pms;
+
+    chip->pg_lfo_sign = (chip->lfo_dlatch >> 6) & 1;
+
+    chip->pg_freq1 = (chip->pg_fnum[1][1] + chip->pg_lfo) & 0xfff;
+    block = chip->pg_kcode[1][1] >> 2;
+    chip->pg_block = block;
+    chip->pg_dt[0] = dt;
+    
+    dt_l = chip->pg_dt[1] & 3;
+    dt_sum = chip->pg_kcode[1][1] + ((pg_detune_add[dt_l] + 1) << 2);
+    dt_sum_l = dt_sum & 7;
+    dt_sum_h = dt_sum >> 3;
+    chip->pg_detune[0] = dt_l ? pg_detune[dt_sum_h] >> (9 - dt_sum_h) : 0;
+    if (chip->pg_dt[1] & 0x04)
+        chip->pg_detune[0] = -chip->pg_detune[0];
+
+    chip->pg_freq3 = (chip->pg_freq2 + chip->pg_detune[1]) & 0x1ffff;
+
+    chip->pg_multi[0][0] = multi;
+    chip->pg_multi[1][0] = chip->pg_multi[0][1];
+    chip->pg_multi2 = chip->pg_multi[1][1];
+    chip->pg_inc[0][0] = chip->pg_freq4;
+    chip->pg_inc[1][0] = chip->pg_inc[0][1];
+
+    chip->pg_inc_mask[0] = chip->pg_inc[1][1];
+    if (0) // TODO: pg reset
+        chip->pg_inc_mask[0] = 0;
+
+    chip->pg_reset_latch[0] = 0; // TODO: pg reset
+
+    pg_inc = chip->pg_inc_mask[1];
+
+    reset = chip->pg_reset_latch[1] || (chip->mode_test_21[1] & 8) != 0;
+
+    for (i = 0; i < 20; i++)
+    {
+        if (!reset)
+            carry += (chip->pg_phase[i][1] >> 23) & 1;
+        carry += pg_inc & 1;
+        chip->pg_phase[i][0] = (chip->pg_phase[i][1] << 1) | (carry & 1);
+        pg_inc >>= 1;
+        carry >>= 1;
+    }
+
+    chip->pg_debug[0] = chip->pg_debug[1] >> 1;
+    if (chip->fsm_sel2)
+    {
+        for (i = 0; i < 10; i++)
+        {
+            chip->pg_debug[0] |= ((chip->pg_phase[i][1] >> 23) & 1) << i;
+        }
+    }
+}
+
+void FM_PhaseGenerator2(fm_t *chip)
+{
+    int i;
+    int block = chip->pg_kcode[1][0];
+    chip->pg_fnum[0][1] = chip->pg_fnum[0][0];
+    chip->pg_fnum[1][1] = chip->pg_fnum[1][0];
+    chip->pg_kcode[0][1] = chip->pg_kcode[0][0];
+    chip->pg_kcode[1][1] = chip->pg_kcode[1][0];
+    chip->pg_lfo = (chip->pg_fnum_lfo1 + chip->pg_fnum_lfo2) >> chip->pg_lfo_shift;
+    if (chip->pg_lfo_sign)
+        chip->pg_lfo = -chip->pg_lfo;
+    chip->pg_freq2 = (chip->pg_freq1 << chip->pg_block) >> 2;
+    chip->pg_dt[1] = chip->pg_dt[0];
+    chip->pg_detune[1] = chip->pg_detune[0];
+    chip->pg_multi[0][1] = chip->pg_multi[0][0];
+    chip->pg_multi[1][1] = chip->pg_multi[1][0];
+    if (!chip->pg_multi2)
+        chip->pg_freq4 = chip->pg_freq3 >> 1;
+    else
+        chip->pg_freq4 = chip->pg_freq3 * chip->pg_multi2;
+    chip->pg_inc[0][1] = chip->pg_inc[0][0];
+    chip->pg_inc[1][1] = chip->pg_inc[1][0];
+    chip->pg_inc_mask[1] = chip->pg_inc_mask[0];
+    chip->pg_reset_latch[1] = chip->pg_reset_latch[0];
+    for (i = 0; i < 20; i++)
+    {
+        chip->pg_phase[i][1] = chip->pg_phase[i][0];
+    }
+
+    chip->pg_debug[1] = chip->pg_debug[0];
 }
 
 void FM_Clock1(fm_t *chip)

@@ -102,12 +102,39 @@ typedef struct {
     int lfo_dlatch_load;
     int lfo_inc_latch[2];
 
+    // pg
+    int pg_fnum[2][2];
+    int pg_kcode[2][2];
+    int pg_fnum_lfo1;
+    int pg_fnum_lfo2;
+    int pg_lfo_shift;
+    int pg_lfo_sign;
+    int pg_lfo;
+    int pg_freq1;
+    int pg_freq2;
+    int pg_freq3;
+    int pg_freq4;
+    int pg_freq5[2];
+    int pg_freq6;
+    int pg_freq_m1;
+    int pg_block;
+    int pg_dt[2];
+    int pg_detune[2];
+    int pg_multi[2][2];
+    int pg_multi2;
+    int pg_inc[2][2];
+    int pg_inc_mask[2];
+    int pg_phase[20][2];
+    int pg_reset_latch[2];
+    int pg_debug[2];
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
     // fsm table output
     int fsm_clock_eg;
     int fsm_op4_sel;
+    int fsm_sel2;
     int fsm_sel23;
 
     // clock
