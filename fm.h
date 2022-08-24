@@ -11,6 +11,9 @@ typedef struct {
     int data;
     int test;
 
+    // output
+    int dac_val;
+
     // io
     int write_addr_trig;
     int write_addr_trig_sync;
@@ -204,6 +207,13 @@ typedef struct {
     int op_mod_sum[2];
     int op_dofeedback[2];
 
+    // accumulator
+
+    int ch_accm[9][2];
+    int ch_out[9][2];
+    int ch_out_dlatch;
+    int ch_dac_load;
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
@@ -216,6 +226,8 @@ typedef struct {
     int fsm_sel2;
     int fsm_sel23;
     int fsm_ch3_sel;
+    int fsm_dac_load;
+    int fsm_dac_out_sel;
 
     // clock
     int phi;

@@ -197,6 +197,9 @@ void FM_FSM2(fm_t *chip)
     chip->fsm_sel2 = cnt_comb == 2;
     chip->fsm_sel23 = cnt_comb == 30;
     chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
+    chip->fsm_dac_load = cnt_comb == 0 || cnt_comb == 5 || cnt_comb == 10 || cnt_comb == 16 || cnt_comb == 21 || cnt_comb == 26;
+    chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
+        cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
 }
 
 void FM_HandleIO1(fm_t *chip)
@@ -696,7 +699,7 @@ void FM_FMRegisters1(fm_t *chip)
                 for (j = 0; j < 2; j++)
                 {
                     chip->chan_pan[j][0] &= ~1;
-                    chip->chan_pan[j][0] |= (chip->fm_data[1] >> (j + 6)) & 1;
+                    chip->chan_pan[j][0] |= !((chip->fm_data[1] >> (j + 6)) & 1);
                 }
                 break;
         }
@@ -1754,6 +1757,100 @@ void FM_Operator2(fm_t *chip)
     chip->op_dofeedback[1] = chip->op_dofeedback[0];
 }
 
+void FM_Accumulator1(fm_t *chip)
+{
+    int i;
+    int sum;
+    int inp = 0;
+    int acc = 0;
+    int test_dac = (chip->mode_test_2c[1] & 32) != 0;
+    int connect = 0;
+    int index = 0;
+    int load = test_dac || chip->fsm_op1_sel;
+    int acc_clear = load && !test_dac;
+    if (chip->fsm_op1_sel)
+        index = 0;
+    if (chip->fsm_op3_sel)
+        index = 1;
+    if (chip->fsm_op2_sel)
+        index = 2;
+    if (chip->fsm_op4_sel)
+        index = 3;
+    for (i = 0; i < 3; i++)
+        connect |= ((chip->chan_connect[i][1] >> 5) & 1) << i;
+    sum = test_dac;
+    if (fm_algorithm[index][5][connect] && !test_dac)
+        inp = chip->op_output[1] >> 5;
+    if (!acc_clear)
+        for (i = 0; i < 9; i++)
+            acc += ((chip->ch_accm[i][1] >> 5) & 1) << i;
+
+    sum = test_dac + inp + acc;
+
+    sum &= 511;
+
+    if ((inp & 256) != 0 && (acc & 256) != 0 && (sum & 256) == 0)
+        sum = 512;
+    if ((inp & 256) == 0 && (acc & 256) == 0 && (sum & 256) != 0)
+        sum = 255;
+
+    for (i = 0; i < 9; i++)
+        chip->ch_accm[i][0] = (chip->ch_accm[i][1] << 1) | ((sum >> i) & 1);
+
+    for (i = 0; i < 9; i++)
+    {
+        chip->ch_out[i][0] = chip->ch_out[i][1] << 1;
+        if (load)
+            chip->ch_out[i][0] |= (chip->ch_accm[i][1] >> 5) & 1;
+        else
+            chip->ch_out[i][0] |= (chip->ch_out[i][1] >> 5) & 1;
+    }
+
+    chip->ch_dac_load = chip->fsm_dac_load;
+}
+
+void FM_Accumulator2(fm_t* chip)
+{
+    int i;
+    int test_dac = (chip->mode_test_2c[1] & 32) != 0;
+    for (i = 0; i < 9; i++)
+    {
+        chip->ch_accm[i][1] = chip->ch_accm[i][0];
+        chip->ch_out[i][1] = chip->ch_out[i][0];
+    }
+    if ((chip->fsm_dac_load && !chip->ch_dac_load) || test_dac)
+    {
+        chip->ch_out_dlatch = 0;
+        if (chip->fsm_dac_out_sel || test_dac)
+        {
+            for (i = 0; i < 9; i++)
+                chip->ch_out_dlatch |= ((chip->ch_out[i][1] >> 5) & 1) << i;
+        }
+        else
+        {
+            for (i = 0; i < 9; i++)
+                chip->ch_out_dlatch |= ((chip->ch_out[i][1] >> 4) & 1) << i;
+        }
+    }
+    if (chip->mode_dac_en[1])
+    {
+        chip->dac_val = chip->mode_dac_data[1] << 1;
+        chip->dac_val |= (chip->mode_test_2c[1] & 8) != 0;
+    }
+    else
+        chip->dac_val = chip->ch_out_dlatch;
+
+    if (chip->fsm_dac_load && !chip->ch_dac_load)
+    {
+
+    }
+
+    if (!chip->fsm_dac_load || test_dac)
+    {
+
+    }
+}
+
 void FM_Clock1(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 0);
@@ -1765,6 +1862,7 @@ void FM_Clock1(fm_t *chip)
     FM_PhaseGenerator1(chip);
     FM_EnvelopeGenerator1(chip);
     FM_Operator1(chip);
+    FM_Accumulator1(chip);
 }
 
 void FM_Clock2(fm_t *chip)
@@ -1778,6 +1876,7 @@ void FM_Clock2(fm_t *chip)
     FM_PhaseGenerator2(chip);
     FM_EnvelopeGenerator2(chip);
     FM_Operator2(chip);
+    FM_Accumulator2(chip);
 }
 
 void FM_Clock(fm_t *chip, int phi)
@@ -1864,7 +1963,7 @@ void main(void)
     FM_SetData(&fm, 0xf);
     FM_SetWrite(&fm, 1);
     FM_SetWrite(&fm, 0);
-    for (; i < 30000; i++)
+    for (; i < 144 * 53267; i++)
     {
         FM_Clock(&fm, 0);
         FM_Clock(&fm, 1);
@@ -1872,7 +1971,7 @@ void main(void)
         int v2 = 0;
         int v3 = 0;
         int v4 = 0;
-        if ((i % 144) == 0)
-            printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
+        //if ((i % 144) == 0)
+        //    printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
 }
