@@ -1373,7 +1373,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     if (!kon_event && state == eg_state_attack && level == 0)
     {
-        nextstate = eg_state_decay;
+        nextstate |= eg_state_decay;
     }
     if (chip->ic)
     {
@@ -1522,6 +1522,7 @@ void FM_EnvelopeGenerator2(fm_t *chip)
         chip->eg_out_total = 1023;
 
     chip->eg_debug[1] = chip->eg_debug[0];
+    chip->eg_key[1] = chip->eg_key[0];
 }
 
 void FM_Operator1(fm_t *chip)
