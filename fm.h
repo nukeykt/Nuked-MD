@@ -185,12 +185,34 @@ typedef struct {
     int eg_out_total;
     int eg_debug[2];
 
+    // op
+    int op_mod[10][2];
+    int op_phase[2];
+    int op_logsin_base[2];
+    int op_logsin_delta[2];
+    int op_logsin_add_delta[2];
+    int op_atten[2];
+    int op_env[2];
+    int op_pow_base[2];
+    int op_pow_delta[2];
+    int op_pow_add_delta[2];
+    int op_shift[2];
+    int op_sign[2];
+    int op_output[2];
+    int op_op1[2][14][2];
+    int op_op2[14][2];
+    int op_mod_sum[2];
+    int op_dofeedback[2];
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
     // fsm table output
     int fsm_clock_eg;
     int fsm_op4_sel;
+    int fsm_op1_sel;
+    int fsm_op2_sel;
+    int fsm_op3_sel;
     int fsm_sel2;
     int fsm_sel23;
     int fsm_ch3_sel;

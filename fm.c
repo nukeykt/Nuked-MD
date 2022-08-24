@@ -11,6 +11,41 @@ enum {
     eg_state_release
 };
 
+static const int fm_algorithm[4][6][8] = {
+    {
+        { 1, 1, 1, 1, 1, 1, 1, 1 }, /* OP1_0         */
+        { 1, 1, 1, 1, 1, 1, 1, 1 }, /* OP1_1         */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* OP2           */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* Last operator */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* Last operator */
+        { 0, 0, 0, 0, 0, 0, 0, 1 }  /* Out           */
+    },
+    {
+        { 0, 1, 0, 0, 0, 1, 0, 0 }, /* OP1_0         */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* OP1_1         */
+        { 1, 1, 1, 0, 0, 0, 0, 0 }, /* OP2           */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* Last operator */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* Last operator */
+        { 0, 0, 0, 0, 0, 1, 1, 1 }  /* Out           */
+    },
+    {
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* OP1_0         */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* OP1_1         */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* OP2           */
+        { 1, 0, 0, 1, 1, 1, 1, 0 }, /* Last operator */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* Last operator */
+        { 0, 0, 0, 0, 1, 1, 1, 1 }  /* Out           */
+    },
+    {
+        { 0, 0, 1, 0, 0, 1, 0, 0 }, /* OP1_0         */
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, /* OP1_1         */
+        { 0, 0, 0, 1, 0, 0, 0, 0 }, /* OP2           */
+        { 1, 1, 0, 1, 1, 0, 0, 0 }, /* Last operator */
+        { 0, 0, 1, 0, 0, 0, 0, 0 }, /* Last operator */
+        { 1, 1, 1, 1, 1, 1, 1, 1 }  /* Out           */
+    }
+};
+
 void FM_Clock1(fm_t *chip);
 
 void FM_Prescaler(fm_t *chip)
@@ -155,7 +190,10 @@ void FM_FSM2(fm_t *chip)
     cnt_comb = (chip->fsm_cnt2[1] << 2) | chip->fsm_cnt1[1];
 
     chip->fsm_clock_eg = cnt_comb == 0;
-    chip->fsm_op4_sel = (cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6);
+    chip->fsm_op4_sel = cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6;
+    chip->fsm_op1_sel = cnt_comb == 8 || cnt_comb == 9 || cnt_comb == 10 || cnt_comb == 12 || cnt_comb == 13 || cnt_comb == 14;
+    chip->fsm_op3_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22;
+    chip->fsm_op2_sel = cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
     chip->fsm_sel2 = cnt_comb == 2;
     chip->fsm_sel23 = cnt_comb == 30;
     chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
@@ -846,7 +884,6 @@ void FM_PhaseGenerator1(fm_t *chip)
     int carry = 0;
     int pg_inc;
     int reset;
-    int debug;
     if (ch3_sel && op_sel == 0)
     {
         for (i = 0; i < 11; i++)
@@ -1022,7 +1059,6 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     int ssg_pgrepeat = 0;
     int eg_off;
     int eg_slreach;
-    int eg_zeroatt;
     int sl = 0;
     int nextlevel = 0;
     int nextstate = eg_state_attack;
@@ -1485,6 +1521,239 @@ void FM_EnvelopeGenerator2(fm_t *chip)
     chip->eg_debug[1] = chip->eg_debug[0];
 }
 
+void FM_Operator1(fm_t *chip)
+{
+    int i;
+    int carry = 0;
+    int phase = 0;
+    int quarter;
+    int index;
+    int atten = 0;
+    int output;
+    int mod1 = 0, mod2 = 0;
+    int mod;
+    int connect = 0;
+    int fb = 0;
+    static const int logsin[128] = {
+        0x6c3, 0x58b, 0x4e4, 0x471, 0x41a, 0x3d3, 0x398, 0x365, 0x339, 0x311, 0x2ed, 0x2cd, 0x2af, 0x293, 0x279, 0x261,
+        0x24b, 0x236, 0x222, 0x20f, 0x1fd, 0x1ec, 0x1dc, 0x1cd, 0x1be, 0x1b0, 0x1a2, 0x195, 0x188, 0x17c, 0x171, 0x166,
+        0x15b, 0x150, 0x146, 0x13c, 0x133, 0x129, 0x121, 0x118, 0x10f, 0x107, 0x0ff, 0x0f8, 0x0f0, 0x0e9, 0x0e2, 0x0db,
+        0x0d4, 0x0cd, 0x0c7, 0x0c1, 0x0bb, 0x0b5, 0x0af, 0x0a9, 0x0a4, 0x09f, 0x099, 0x094, 0x08f, 0x08a, 0x086, 0x081,
+        0x07d, 0x078, 0x074, 0x070, 0x06c, 0x068, 0x064, 0x060, 0x05c, 0x059, 0x055, 0x052, 0x04e, 0x04b, 0x048, 0x045,
+        0x042, 0x03f, 0x03c, 0x039, 0x037, 0x034, 0x031, 0x02f, 0x02d, 0x02a, 0x028, 0x026, 0x024, 0x022, 0x020, 0x01e,
+        0x01c, 0x01a, 0x018, 0x017, 0x015, 0x014, 0x012, 0x011, 0x00f, 0x00e, 0x00d, 0x00c, 0x00a, 0x009, 0x008, 0x007,
+        0x007, 0x006, 0x005, 0x004, 0x004, 0x003, 0x002, 0x002, 0x001, 0x001, 0x001, 0x001, 0x000, 0x000, 0x000, 0x000
+    };
+    static const int logsin_d[128] = {
+        0x196, 0x07c, 0x04a, 0x035, 0x029, 0x022, 0x01d, 0x019, 0x015, 0x013, 0x012, 0x00f, 0x00e, 0x00d, 0x00d, 0x00c,
+        0x00b, 0x00a, 0x00a, 0x009, 0x009, 0x009, 0x008, 0x007, 0x007, 0x007, 0x007, 0x006, 0x007, 0x006, 0x006, 0x005,
+        0x005, 0x005, 0x005, 0x005, 0x004, 0x005, 0x004, 0x004, 0x005, 0x004, 0x004, 0x003, 0x004, 0x003, 0x003, 0x003,
+        0x003, 0x004, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x002, 0x003, 0x003, 0x003, 0x003, 0x002, 0x002,
+        0x002, 0x002, 0x002, 0x002, 0x002, 0x002, 0x002, 0x002, 0x002, 0x002, 0x002, 0x001, 0x002, 0x002, 0x002, 0x001,
+        0x001, 0x001, 0x002, 0x002, 0x001, 0x001, 0x002, 0x001, 0x001, 0x001, 0x001, 0x001, 0x001, 0x001, 0x001, 0x001,
+        0x001, 0x001, 0x001, 0x000, 0x001, 0x000, 0x001, 0x000, 0x001, 0x001, 0x000, 0x000, 0x001, 0x001, 0x001, 0x001,
+        0x000, 0x000, 0x000, 0x001, 0x000, 0x000, 0x001, 0x000, 0x001, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000
+    };
+    static const int pow[128] = {
+        0x3f5, 0x3ea, 0x3df, 0x3d4, 0x3c9, 0x3bf, 0x3b4, 0x3a9, 0x39f, 0x394, 0x38a, 0x37f, 0x375, 0x36a, 0x360, 0x356,
+        0x34c, 0x342, 0x338, 0x32e, 0x324, 0x31a, 0x310, 0x306, 0x2fd, 0x2f3, 0x2e9, 0x2e0, 0x2d6, 0x2cd, 0x2c4, 0x2ba,
+        0x2b1, 0x2a8, 0x29e, 0x295, 0x28c, 0x283, 0x27a, 0x271, 0x268, 0x25f, 0x257, 0x24e, 0x245, 0x23c, 0x234, 0x22b,
+        0x223, 0x21a, 0x212, 0x209, 0x201, 0x1f9, 0x1f0, 0x1e8, 0x1e0, 0x1d8, 0x1d0, 0x1c8, 0x1c0, 0x1b8, 0x1b0, 0x1a8,
+        0x1a0, 0x199, 0x191, 0x189, 0x181, 0x17a, 0x172, 0x16b, 0x163, 0x15c, 0x154, 0x14d, 0x146, 0x13e, 0x137, 0x130,
+        0x129, 0x122, 0x11b, 0x114, 0x10c, 0x106, 0x0ff, 0x0f8, 0x0f1, 0x0ea, 0x0e3, 0x0dc, 0x0d6, 0x0cf, 0x0c8, 0x0c2,
+        0x0bb, 0x0b5, 0x0ae, 0x0a8, 0x0a1, 0x09b, 0x094, 0x08e, 0x088, 0x082, 0x07b, 0x075, 0x06f, 0x069, 0x063, 0x05d,
+        0x057, 0x051, 0x04b, 0x045, 0x03f, 0x039, 0x033, 0x02d, 0x028, 0x022, 0x01c, 0x016, 0x011, 0x00b, 0x006, 0x000,
+    };
+    static const int pow_d[128] = {
+        0x005, 0x005, 0x005, 0x006, 0x006, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x006, 0x005, 0x005,
+        0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x004, 0x005,
+        0x004, 0x004, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x005, 0x004, 0x004, 0x004, 0x005, 0x004, 0x005,
+        0x004, 0x004, 0x004, 0x005, 0x004, 0x004, 0x005, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004,
+        0x004, 0x003, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x003, 0x004, 0x004, 0x004,
+        0x003, 0x003, 0x003, 0x003, 0x004, 0x003, 0x003, 0x003, 0x003, 0x003, 0x004, 0x004, 0x003, 0x003, 0x004, 0x003,
+        0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x004, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003,
+        0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x003, 0x002, 0x003, 0x003, 0x003, 0x003, 0x003, 0x002, 0x003,
+    };
+    for (i = 0; i < 10; i++)
+    {
+        carry += (chip->op_mod[i][1] >> 6) & 1;
+        carry += (chip->pg_phase[10 + i][1] >> 19) & 1;
+        phase += (carry & 1) << i;
+        carry >>= 1;
+    }
+    chip->op_phase[0] = phase;
+
+    chip->op_sign[0] = (chip->op_sign[1] << 1) | ((chip->op_phase[1] >> 9) & 1);
+
+    quarter = chip->op_phase[1] & 255;
+    if (chip->op_phase[1] & 256)
+        quarter ^= 255;
+
+    chip->op_logsin_add_delta[0] = (quarter & 1) == 0;
+
+    chip->op_logsin_base[0] = logsin[quarter >> 1];
+    chip->op_logsin_delta[0] = logsin_d[quarter >> 1];
+
+    chip->op_env[0] = chip->eg_out_total;
+
+    atten = chip->op_logsin_base[1];
+    if (chip->op_logsin_add_delta[1])
+        atten += chip->op_logsin_delta[1];
+
+    atten += chip->op_env[1] << 2;
+
+    chip->op_atten[0] = atten;
+
+    atten = chip->op_atten[1];
+    if (atten & 4096)
+        atten = 4095;
+
+    index = atten & 255;
+    chip->op_shift[0] = atten >> 8;
+
+    chip->op_pow_add_delta[0] = (index & 1) == 0;
+
+    chip->op_pow_base[0] = pow[index >> 1];
+    chip->op_pow_delta[0] = pow_d[index >> 1];
+
+    output = chip->op_pow_base[1];
+    if (chip->op_pow_add_delta[1])
+        output += chip->op_pow_delta[1];
+
+    output |= 0x400;
+
+    output = (output << 2) >> chip->op_shift[1];
+
+    if (chip->mode_test_21[1] & 16)
+        output ^= 1 << 13;
+
+    if (chip->op_sign[1] & 4)
+    {
+        output ^= 0x3fff;
+        output++;
+    }
+
+    chip->op_output[0] = output;
+
+    for (i = 0; i < 14; i++)
+    {
+        chip->op_op1[0][i][0] = chip->op_op1[0][i][1] << 1;
+        chip->op_op1[1][i][0] = chip->op_op1[1][i][1] << 1;
+        chip->op_op2[i][0] = chip->op_op2[i][1] << 1;
+        if (chip->fsm_op1_sel)
+        {
+            chip->op_op1[0][i][0] |= (chip->op_output[1] >> i) & 1;
+            chip->op_op1[1][i][0] |= (chip->op_op1[0][i][1] >> 5) & 1;
+        }
+        else
+        {
+            chip->op_op1[0][i][0] |= (chip->op_op1[0][i][1] >> 5) & 1;
+            chip->op_op1[1][i][0] |= (chip->op_op1[1][i][1] >> 5) & 1;
+        }
+        if (chip->fsm_op2_sel)
+            chip->op_op2[i][0] |= (chip->op_output[1] >> i) & 1;
+        else
+            chip->op_op2[i][0] |= (chip->op_op2[i][1] >> 5) & 1;
+    }
+    for (i = 0; i < 3; i++)
+        connect |= ((chip->chan_connect[i][1] >> 5) & 1) << i;
+
+    index = 0;
+    if (chip->fsm_op2_sel)
+        index = 0;
+    if (chip->fsm_op4_sel)
+        index = 1;
+    if (chip->fsm_op1_sel)
+        index = 2;
+    if (chip->fsm_op3_sel)
+        index = 3;
+    if (fm_algorithm[index][0][connect])
+    {
+        for (i = 0; i < 14; i++)
+            mod2 |= ((chip->op_op1[0][i][1] >> 5) & 1) << i;
+    }
+    if (fm_algorithm[index][1][connect])
+    {
+        for (i = 0; i < 14; i++)
+            mod1 |= ((chip->op_op1[0][i][1] >> 5) & 1) << i;
+    }
+    if (fm_algorithm[index][2][connect])
+    {
+        for (i = 0; i < 14; i++)
+            mod1 |= ((chip->op_op2[i][1] >> 5) & 1) << i;
+    }
+    if (fm_algorithm[index][3][connect])
+    {
+        mod2 |= chip->op_output[1];
+    }
+    if (fm_algorithm[index][5][connect])
+    {
+        mod1 |= chip->op_output[1];
+    }
+    if (mod1 & (1 << 13))
+        mod1 |= 1 << 14;
+    if (mod2 & (1 << 13))
+        mod2 |= 1 << 14;
+    mod = (mod1 + mod2) >> 1;
+    mod &= 0x3fff;
+
+    chip->op_mod_sum[0] = mod;
+    chip->op_dofeedback[0] = chip->fsm_op2_sel;
+
+    if (chip->op_dofeedback[1])
+    {
+        for (i = 0; i < 3; i++)
+            fb |= (chip->chan_connect[i][1] & 1) << i;
+        if (!fb)
+            mod = 0;
+        else
+        {
+            mod = chip->op_mod_sum[1];
+            if (mod & (1 << 13))
+                mod |= ~0x3fff;
+
+            mod = mod >> (9 - fb);
+        }
+    }
+    else
+        mod = chip->op_mod_sum[1];
+
+    for (i = 0; i < 10; i++)
+    {
+        chip->op_mod[i][0] = (chip->op_mod[i][1] << 1) | (mod & 1);
+        mod >>= 1;
+    }
+}
+
+void FM_Operator2(fm_t *chip)
+{
+    int i;
+    for (i = 0; i < 10; i++)
+    {
+        chip->op_mod[i][1] = chip->op_mod[i][0];
+    }
+    for (i = 0; i < 14; i++)
+    {
+        chip->op_op1[0][i][1] = chip->op_op1[0][i][0];
+        chip->op_op1[1][i][1] = chip->op_op1[1][i][0];
+        chip->op_op2[i][1] = chip->op_op2[i][0];
+    }
+    chip->op_phase[1] = chip->op_phase[0];
+    chip->op_sign[1] = chip->op_sign[0];
+    chip->op_logsin_add_delta[1] = chip->op_logsin_add_delta[0];
+    chip->op_logsin_base[1] = chip->op_logsin_base[0];
+    chip->op_logsin_delta[1] = chip->op_logsin_delta[0];
+    chip->op_env[1] = chip->op_env[0];
+    chip->op_atten[1] = chip->op_atten[0];
+    chip->op_pow_add_delta[1] = chip->op_pow_add_delta[0];
+    chip->op_pow_base[1] = chip->op_pow_base[0];
+    chip->op_pow_delta[1] = chip->op_pow_delta[0];
+    chip->op_shift[1] = chip->op_shift[0];
+    chip->op_output[1] = chip->op_output[0];
+    chip->op_mod_sum[1] = chip->op_mod_sum[1];
+    chip->op_dofeedback[1] = chip->op_dofeedback[0];
+}
+
 void FM_Clock1(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 0);
@@ -1495,6 +1764,7 @@ void FM_Clock1(fm_t *chip)
     FM_LFO1(chip);
     FM_PhaseGenerator1(chip);
     FM_EnvelopeGenerator1(chip);
+    FM_Operator1(chip);
 }
 
 void FM_Clock2(fm_t *chip)
@@ -1507,6 +1777,7 @@ void FM_Clock2(fm_t *chip)
     FM_LFO2(chip);
     FM_PhaseGenerator2(chip);
     FM_EnvelopeGenerator2(chip);
+    FM_Operator2(chip);
 }
 
 void FM_Clock(fm_t *chip, int phi)
