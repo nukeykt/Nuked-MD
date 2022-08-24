@@ -13,6 +13,8 @@ typedef struct {
 
     // output
     int dac_val;
+    int out_l;
+    int out_r;
 
     // io
     int write_addr_trig;
@@ -212,6 +214,7 @@ typedef struct {
     int ch_accm[9][2];
     int ch_out[9][2];
     int ch_out_dlatch;
+    int ch_out_pan_dlatch;
     int ch_dac_load;
 
     // fsm

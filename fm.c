@@ -1813,6 +1813,9 @@ void FM_Accumulator2(fm_t* chip)
 {
     int i;
     int test_dac = (chip->mode_test_2c[1] & 32) != 0;
+    int pan_l = 0;
+    int pan_r = 0;
+    int do_out = 0;
     for (i = 0; i < 9; i++)
     {
         chip->ch_accm[i][1] = chip->ch_accm[i][0];
@@ -1842,13 +1845,27 @@ void FM_Accumulator2(fm_t* chip)
 
     if (chip->fsm_dac_load && !chip->ch_dac_load)
     {
-
+        chip->ch_out_pan_dlatch = 0;
+        if (chip->fsm_dac_out_sel)
+        {
+            for (i = 0; i < 2; i++)
+                chip->ch_out_pan_dlatch |= (((chip->chan_pan[i][1] >> 5) & 1) ^ 1) << i;
+        }
+        else
+        {
+            for (i = 0; i < 2; i++)
+                chip->ch_out_pan_dlatch |= (((chip->chan_pan[i][1] >> 4) & 1) ^ 1) << i;
+        }
     }
-
-    if (!chip->fsm_dac_load || test_dac)
-    {
-
-    }
+    do_out = test_dac || !chip->fsm_dac_load;
+    if (do_out && (chip->ch_out_pan_dlatch & 1) != 0)
+        chip->out_l = chip->dac_val;
+    else
+        chip->out_l = 0;
+    if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
+        chip->out_r = chip->dac_val;
+    else
+        chip->out_r = 0;
 }
 
 void FM_Clock1(fm_t *chip)
