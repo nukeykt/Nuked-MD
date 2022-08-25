@@ -946,7 +946,7 @@ void FM_PhaseGenerator1(fm_t *chip)
 
     chip->pg_lfo_sign = (chip->lfo_dlatch >> 6) & 1;
 
-    chip->pg_freq1 = (chip->pg_fnum[1][1] + chip->pg_lfo) & 0xfff;
+    chip->pg_freq1 = ((chip->pg_fnum[1][1] << 1) + chip->pg_lfo) & 0xfff;
     block = chip->pg_kcode[1][1] >> 2;
     chip->pg_block = block;
     chip->pg_dt[0] = dt;
