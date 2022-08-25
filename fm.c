@@ -550,7 +550,7 @@ void FM_FMRegisters1(fm_t *chip)
                 for (j = 0; j < 3; j++)
                 {
                     chip->slot_dt[bank][j][0] &= ~1;
-                    chip->slot_dt[bank][j][0] |= (chip->fm_data[1] >> (j + 3)) & 1;
+                    chip->slot_dt[bank][j][0] |= (chip->fm_data[1] >> (j + 4)) & 1;
                 }
                 break;
             case 0x40:
@@ -884,7 +884,6 @@ void FM_PhaseGenerator1(fm_t *chip)
     int ch3_sel = chip->reg_cnt1[1] == 1 && (chip->reg_cnt2[1] & 1) == 0 && chip->mode_ch3[1] != 0;
     int op_sel = chip->reg_cnt2[1] >> 1;
     int bank = (chip->reg_cnt2[1] >> 2) & 1;
-    int detune = 0;
     int carry = 0;
     int pg_inc;
     int reset;
@@ -953,10 +952,13 @@ void FM_PhaseGenerator1(fm_t *chip)
     chip->pg_dt[0] = dt;
     
     dt_l = chip->pg_dt[1] & 3;
-    dt_sum = chip->pg_kcode[1][1] + ((pg_detune_add[dt_l] + 1) << 2);
+    kcode = chip->pg_kcode[1][1];
+    if (kcode > 28)
+        kcode = 28;
+    dt_sum = kcode + ((pg_detune_add[dt_l] + 1) << 2);
     dt_sum_l = dt_sum & 7;
     dt_sum_h = dt_sum >> 3;
-    chip->pg_detune[0] = dt_l ? pg_detune[dt_sum_h] >> (9 - dt_sum_h) : 0;
+    chip->pg_detune[0] = dt_l ? pg_detune[dt_sum_l] >> (9 - dt_sum_h) : 0;
     if (chip->pg_dt[1] & 0x04)
         chip->pg_detune[0] = -chip->pg_detune[0];
 
@@ -1516,7 +1518,7 @@ void FM_EnvelopeGenerator2(fm_t *chip)
 
     chip->eg_ch3_latch[1] = chip->eg_ch3_latch[0];
 
-    chip->eg_out_total = (chip->eg_out & 1023) + chip->eg_out_tl;
+    chip->eg_out_total = (chip->eg_out & 1023) + (chip->eg_out_tl << 3);
     if ((chip->eg_out & 1024) != 0 || (chip->eg_out_total & 1024) != 0)
         chip->eg_out_total = 1023;
 
@@ -1579,7 +1581,7 @@ void FM_Operator1(fm_t *chip)
     };
     for (i = 0; i < 10; i++)
     {
-        carry += (chip->op_mod[i][1] >> 6) & 1;
+        carry += (chip->op_mod[i][1] >> 5) & 1;
         carry += (chip->pg_phase[10 + i][1] >> 19) & 1;
         phase += (carry & 1) << i;
         carry >>= 1;
