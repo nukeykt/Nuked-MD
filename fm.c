@@ -1110,7 +1110,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         chip->eg_timer_mask[0] = 0;
 
     timer_bit_masked = timer_bit;
-    if (!chip->eg_timer_mask[1])
+    if (chip->eg_timer_mask[1])
         timer_bit_masked = 0;
 
     chip->eg_timer_masked[0] = (chip->eg_timer_masked[1] << 1) | timer_bit_masked;
@@ -1858,11 +1858,11 @@ void FM_Accumulator2(fm_t* chip)
         }
     }
     do_out = test_dac || !chip->fsm_dac_load;
-    if (do_out && (chip->ch_out_pan_dlatch & 1) != 0)
+    if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
         chip->out_l = chip->dac_val;
     else
         chip->out_l = 0;
-    if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
+    if (do_out && (chip->ch_out_pan_dlatch & 1) != 0)
         chip->out_r = chip->dac_val;
     else
         chip->out_r = 0;
