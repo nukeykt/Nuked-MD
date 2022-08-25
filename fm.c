@@ -201,6 +201,8 @@ void FM_FSM2(fm_t *chip)
     chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
         cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
     chip->fsm_dac_ch6 = cnt_comb == 5 || cnt_comb == 6 || cnt_comb == 8 || cnt_comb == 9;
+    chip->fsm_clock_timers = cnt_comb == 2;
+    chip->fsm_clock_timers1 = cnt_comb == 1;
 }
 
 void FM_HandleIO1(fm_t *chip)
@@ -505,10 +507,10 @@ void FM_FMRegisters1(fm_t *chip)
             chip->mode_ch3[0] = chip->mode_ch3[1];
             chip->mode_timer_a_load[0] = chip->mode_timer_a_load[1];
             chip->mode_timer_a_enable[0] = chip->mode_timer_a_enable[1];
-            chip->mode_timer_a_reset[0] = chip->mode_timer_a_reset[1];
+            chip->mode_timer_a_reset[0] = 0;
             chip->mode_timer_b_load[0] = chip->mode_timer_b_load[1];
             chip->mode_timer_b_enable[0] = chip->mode_timer_b_enable[1];
-            chip->mode_timer_b_reset[0] = chip->mode_timer_b_reset[1];
+            chip->mode_timer_b_reset[0] = 0;
         }
         if (write_data_en && chip->write_mode_28[1] && !chip->bank_latch)
         {
@@ -1127,7 +1129,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     kon2 = (chip->mode_kon[3][1] >> 5) & 1;
     if (chip->fsm_ch3_sel)
-        kon2 |= 0; // TOOD: CSM kon
+        kon2 |= chip->timer_csm_key_dlatch;
 
     chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
 
@@ -1871,6 +1873,94 @@ void FM_Accumulator2(fm_t* chip)
         chip->out_r = 0;
 }
 
+void FM_Timers1(fm_t *chip)
+{
+    int time;
+    int test_timers = (chip->mode_test_21[1] & 4) != 0;
+    int reset;
+    int subcnt;
+    if (chip->timer_a_load_latch[1])
+        time = chip->mode_timer_a_reg[1];
+    else
+        time = chip->timer_a_cnt[1];
+
+    if ((chip->timer_a_load_dlatch && chip->fsm_clock_timers1) || test_timers)
+        time++;
+
+    reset = chip->mode_timer_a_reset[1] || chip->ic;
+
+    if (reset)
+        chip->timer_a_status[0] = 0;
+    else
+        chip->timer_a_status[0] = chip->timer_a_status[1] || (chip->timer_a_of[1] && chip->mode_timer_a_enable[1]);
+
+    chip->timer_a_load_old[0] = chip->timer_a_load_dlatch;
+    chip->timer_a_load_latch[0] = (!chip->timer_a_load_old[1] && chip->timer_a_load_dlatch) || chip->timer_a_of[1];
+    if (!chip->timer_a_load_dlatch)
+        chip->timer_a_cnt[0] = 0;
+    else
+        chip->timer_a_cnt[0] = time;
+    chip->timer_a_of[0] = (time & 1024) != 0;
+
+
+    subcnt = chip->timer_b_subcnt[1];
+    if (chip->fsm_clock_timers1)
+        subcnt++;
+
+    if (chip->ic)
+        chip->timer_b_subcnt[0] = 0;
+    else
+        chip->timer_b_subcnt[0] = subcnt;
+
+    chip->timer_b_subcnt_of[0] = (subcnt & 16) != 0;
+
+    if (chip->timer_b_load_latch[1])
+        time = chip->mode_timer_b_reg[1];
+    else
+        time = chip->timer_b_cnt[1];
+
+    if ((chip->timer_b_load_dlatch && chip->timer_b_subcnt_of[1]) || test_timers)
+        time++;
+
+    reset = chip->mode_timer_b_reset[1] || chip->ic;
+
+    if (reset)
+        chip->timer_b_status[0] = 0;
+    else
+        chip->timer_b_status[0] = chip->timer_b_status[1] || (chip->timer_b_of[1] && chip->mode_timer_b_enable[1]);
+
+    chip->timer_b_load_old[0] = chip->timer_b_load_dlatch;
+    chip->timer_b_load_latch[0] = (!chip->timer_b_load_old[1] && chip->timer_b_load_dlatch) || chip->timer_b_of[1];
+    if (!chip->timer_b_load_dlatch)
+        chip->timer_b_cnt[0] = 0;
+    else
+        chip->timer_b_cnt[0] = time;
+
+    chip->timer_dlatch = chip->fsm_clock_timers;
+}
+
+void FM_Timers2(fm_t *chip)
+{
+    chip->timer_a_load_latch[1] = chip->timer_a_load_latch[0];
+    chip->timer_a_load_old[1] = chip->timer_a_load_old[0];
+    chip->timer_a_cnt[1] = chip->timer_a_cnt[0] & 1023;
+    chip->timer_a_of[1] = chip->timer_a_of[0];
+    chip->timer_a_status[1] = chip->timer_a_status[0];
+    chip->timer_b_subcnt[1] = chip->timer_b_subcnt[0] & 15;
+    chip->timer_b_subcnt_of[1] = chip->timer_b_subcnt_of[0];
+    chip->timer_b_load_latch[1] = chip->timer_b_load_latch[0];
+    chip->timer_b_load_old[1] = chip->timer_b_load_old[0];
+    chip->timer_b_cnt[1] = chip->timer_b_cnt[0] & 255;
+    chip->timer_b_of[1] = chip->timer_b_of[0];
+    chip->timer_b_status[1] = chip->timer_b_status[0];
+    if (!chip->timer_dlatch && chip->fsm_clock_timers)
+    {
+        chip->timer_a_load_dlatch = chip->mode_timer_a_load[1];
+        chip->timer_b_load_dlatch = chip->mode_timer_b_load[1];
+        chip->timer_csm_key_dlatch = chip->mode_ch3[1] == 2 && ((!chip->timer_a_load_old[1] && chip->timer_a_load_dlatch) || chip->timer_a_of[1]);
+    }
+}
+
 void FM_Clock1(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 0);
@@ -1883,6 +1973,7 @@ void FM_Clock1(fm_t *chip)
     FM_EnvelopeGenerator1(chip);
     FM_Operator1(chip);
     FM_Accumulator1(chip);
+    FM_Timers1(chip);
 }
 
 void FM_Clock2(fm_t *chip)
@@ -1897,6 +1988,7 @@ void FM_Clock2(fm_t *chip)
     FM_EnvelopeGenerator2(chip);
     FM_Operator2(chip);
     FM_Accumulator2(chip);
+    FM_Timers2(chip);
 }
 
 void FM_Clock(fm_t *chip, int phi)

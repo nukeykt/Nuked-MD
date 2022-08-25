@@ -217,11 +217,31 @@ typedef struct {
     int ch_out_pan_dlatch;
     int ch_dac_load;
 
+    // timers
+    int timer_dlatch;
+    int timer_a_cnt[2];
+    int timer_a_load_latch[2];
+    int timer_a_load_old[2];
+    int timer_a_load_dlatch;
+    int timer_a_of[2];
+    int timer_a_status[2];
+    int timer_b_subcnt[2];
+    int timer_b_subcnt_of[2];
+    int timer_b_cnt[2];
+    int timer_b_load_latch[2];
+    int timer_b_load_old[2];
+    int timer_b_load_dlatch;
+    int timer_b_of[2];
+    int timer_b_status[2];
+    int timer_csm_key_dlatch;
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
     // fsm table output
     int fsm_clock_eg;
+    int fsm_clock_timers1;
+    int fsm_clock_timers;
     int fsm_op4_sel;
     int fsm_op1_sel;
     int fsm_op2_sel;
