@@ -1311,17 +1311,6 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         if (chip->eg_ssg_enable[1] & 2)
         {
             if (chip->eg_incsh0)
-                inc_total |= 1;
-            if (chip->eg_incsh1)
-                inc_total |= 2;
-            if (chip->eg_incsh2)
-                inc_total |= 4;
-            if (chip->eg_incsh3)
-                inc_total |= 8;
-        }
-        else
-        {
-            if (chip->eg_incsh0)
                 inc_total |= 4;
             if (chip->eg_incsh1)
                 inc_total |= 8;
@@ -1329,6 +1318,17 @@ void FM_EnvelopeGenerator1(fm_t *chip)
                 inc_total |= 16;
             if (chip->eg_incsh3)
                 inc_total |= 32;
+        }
+        else
+        {
+            if (chip->eg_incsh0)
+                inc_total |= 1;
+            if (chip->eg_incsh1)
+                inc_total |= 2;
+            if (chip->eg_incsh2)
+                inc_total |= 4;
+            if (chip->eg_incsh3)
+                inc_total |= 8;
         }
     }
 
