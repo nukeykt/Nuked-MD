@@ -103,6 +103,11 @@ void FM_HandleIO(fm_t *chip)
         // chip->write_data_trig_sync = chip->write_data_trig;
         FM_Clock1(chip);
     }
+    if (!read_enable)
+    {
+        chip->status_timer_a_dlatch = chip->timer_a_status[1];
+        chip->status_timer_b_dlatch = chip->timer_b_status[1];
+    }
 }
 
 int FM_GetBus(fm_t *chip)
@@ -129,6 +134,43 @@ int FM_ReadTest(fm_t *chip)
     if (chip->mode_test_2c[1] & 128)
         return chip->fsm_sel23;
     return 0; // FIXME: high impedance
+}
+
+int FM_ReadStatus(fm_t *chip)
+{
+    int io_dir = chip->cs && chip->rd && !chip->ic;
+    int read_en = !chip->ic && (chip->address & 3) == 0 && chip->rd && chip->cs;
+    int status;
+    int testdata = 0;
+    int read_enable = chip->cs && chip->rd && chip->address == 0 && !chip->ic;
+    if (!io_dir)
+        return 0;
+   
+    if (!read_en)
+    {
+        return 0; // FIXME: bus noise (EWJ music stutter)
+    }
+    if (chip->mode_test_21[1] & 64)
+    {
+        testdata |= (chip->pg_debug[1] & 1) << 15;
+        if (chip->mode_test_21[1] & 1)
+            testdata |= ((chip->eg_debug[1] >> 9) & 1) << 14;
+        else
+            testdata |= (chip->eg_incsh_nonzero[1] & 1) << 14;
+        if (chip->mode_test_2c[1] & 16)
+            testdata |= chip->ch_out_debug[1] & 0x1ff;
+        else
+            testdata |= chip->op_output[1] & 0x3fff;
+        if (chip->mode_test_21[1] & 128)
+            status = testdata & 255;
+        else
+            status = testdata >> 8;
+    }
+    else
+    {
+        status = (chip->busy_latch[1] << 7) | (chip->status_timer_b_dlatch << 1) | chip->status_timer_a_dlatch;
+    }
+    return status;
 }
 
 void FM_SetIC(fm_t *chip, int ic)
@@ -1814,6 +1856,8 @@ void FM_Accumulator1(fm_t *chip)
     }
 
     chip->ch_dac_load = chip->fsm_dac_load;
+
+    chip->ch_out_debug[0] = chip->ch_out_dlatch;
 }
 
 void FM_Accumulator2(fm_t* chip)
@@ -1871,6 +1915,8 @@ void FM_Accumulator2(fm_t* chip)
         chip->out_r = chip->dac_val;
     else
         chip->out_r = 0;
+
+    chip->ch_out_debug[1] = chip->ch_out_debug[0];
 }
 
 void FM_Timers1(fm_t *chip)
@@ -1935,6 +1981,7 @@ void FM_Timers1(fm_t *chip)
         chip->timer_b_cnt[0] = 0;
     else
         chip->timer_b_cnt[0] = time;
+    chip->timer_b_of[0] = (time & 256) != 0;
 
     chip->timer_dlatch = chip->fsm_clock_timers;
 }

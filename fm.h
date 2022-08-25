@@ -38,6 +38,8 @@ typedef struct {
     int fm_address[2];
     int write_fm_data[2];
     int fm_data[2];
+    int status_timer_a_dlatch;
+    int status_timer_b_dlatch;
 
     // mode registers
     int write_mode_21[2];
@@ -216,6 +218,7 @@ typedef struct {
     int ch_out_dlatch;
     int ch_out_pan_dlatch;
     int ch_dac_load;
+    int ch_out_debug[2];
 
     // timers
     int timer_dlatch;
