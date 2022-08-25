@@ -1051,6 +1051,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     int kon;
     int kon2;
     int okon;
+    int okon2;
     int state;
     int pg_reset;
     int kon_event;
@@ -1139,12 +1140,14 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         chip->pg_reset[0] |= 1;
     chip->eg_key[0] = (chip->eg_key[1] << 1) | kon;
 
+    okon2 = (chip->eg_key[1] >> 21) & 1;
+
     for (i = 0; i < 4; i++)
         ssg_eg |= ((chip->slot_ssg_eg[bank][i][1] >> 11) & 1) << i;
     ssg_enable = (ssg_eg & 8) != 0;
     if (ssg_enable)
     {
-        if (okon)
+        if (okon2)
         {
             ssg_dir = (chip->eg_ssg_dir[1] >> 23) & 1;
             ssg_inv = ssg_dir ^ ((ssg_eg >> 2) & 1);
@@ -1153,7 +1156,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
                 if ((ssg_eg & 3) == 2)
                     ssg_dir ^= 1;
                 if ((ssg_eg & 3) == 3)
-                    ssg_dir ^= 1;
+                    ssg_dir = 1;
             }
         }
         if (kon2)
@@ -1197,7 +1200,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     rate_sel = b1 * 2 + b0;
 
-    if ((chip->eg_key[1] >> 21) & 1)
+    if (okon2)
     {
         if (ssg_pgrepeat)
             rate_sel = eg_state_attack;
