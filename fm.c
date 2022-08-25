@@ -139,14 +139,13 @@ int FM_ReadTest(fm_t *chip)
 int FM_ReadStatus(fm_t *chip)
 {
     int io_dir = chip->cs && chip->rd && !chip->ic;
-    int read_en = !chip->ic && (chip->address & 3) == 0 && chip->rd && chip->cs;
+    int read_enable = chip->cs && chip->rd && chip->address == 0 && !chip->ic;
     int status;
     int testdata = 0;
-    int read_enable = chip->cs && chip->rd && chip->address == 0 && !chip->ic;
     if (!io_dir)
         return 0;
    
-    if (!read_en)
+    if (!read_enable)
     {
         return 0; // FIXME: bus noise (EWJ music stutter)
     }
@@ -1988,6 +1987,7 @@ void FM_Timers1(fm_t *chip)
 
 void FM_Timers2(fm_t *chip)
 {
+    int read_enable = chip->cs && chip->rd && chip->address == 0 && !chip->ic;
     chip->timer_a_load_latch[1] = chip->timer_a_load_latch[0];
     chip->timer_a_load_old[1] = chip->timer_a_load_old[0];
     chip->timer_a_cnt[1] = chip->timer_a_cnt[0] & 1023;
@@ -2005,6 +2005,11 @@ void FM_Timers2(fm_t *chip)
         chip->timer_a_load_dlatch = chip->mode_timer_a_load[1];
         chip->timer_b_load_dlatch = chip->mode_timer_b_load[1];
         chip->timer_csm_key_dlatch = chip->mode_ch3[1] == 2 && ((!chip->timer_a_load_old[1] && chip->timer_a_load_dlatch) || chip->timer_a_of[1]);
+    }
+    if (!read_enable)
+    {
+        chip->status_timer_a_dlatch = chip->timer_a_status[1];
+        chip->status_timer_b_dlatch = chip->timer_b_status[1];
     }
 }
 
