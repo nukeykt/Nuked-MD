@@ -694,7 +694,7 @@ void FM_FMRegisters1(fm_t *chip)
                 for (j = 0; j < 2; j++)
                 {
                     chip->chan_ams[j][0] &= ~1;
-                    chip->chan_ams[j][0] |= (chip->fm_data[1] >> (j + 3)) & 1;
+                    chip->chan_ams[j][0] |= (chip->fm_data[1] >> (j + 4)) & 1;
                 }
                 // pan
                 for (j = 0; j < 2; j++)
@@ -1792,8 +1792,8 @@ void FM_Accumulator1(fm_t *chip)
     sum &= 511;
 
     if ((inp & 256) != 0 && (acc & 256) != 0 && (sum & 256) == 0)
-        sum = 512;
-    if ((inp & 256) == 0 && (acc & 256) == 0 && (sum & 256) != 0)
+        sum = 256;
+    else if ((inp & 256) == 0 && (acc & 256) == 0 && (sum & 256) != 0)
         sum = 255;
 
     for (i = 0; i < 9; i++)
@@ -1815,8 +1815,6 @@ void FM_Accumulator2(fm_t* chip)
 {
     int i;
     int test_dac = (chip->mode_test_2c[1] & 32) != 0;
-    int pan_l = 0;
-    int pan_r = 0;
     int do_out = 0;
     for (i = 0; i < 9; i++)
     {
