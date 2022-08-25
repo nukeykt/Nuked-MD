@@ -128,7 +128,7 @@ typedef struct {
     int pg_detune[2];
     int pg_multi[2][2];
     int pg_multi2;
-    int pg_inc[2][2];
+    int pg_inc[2];
     int pg_inc_mask[2];
     int pg_phase[20][2];
     int pg_reset_latch[2];
@@ -231,6 +231,7 @@ typedef struct {
     int fsm_ch3_sel;
     int fsm_dac_load;
     int fsm_dac_out_sel;
+    int fsm_dac_ch6;
 
     // clock
     int phi;

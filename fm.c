@@ -200,6 +200,7 @@ void FM_FSM2(fm_t *chip)
     chip->fsm_dac_load = cnt_comb == 0 || cnt_comb == 5 || cnt_comb == 10 || cnt_comb == 16 || cnt_comb == 21 || cnt_comb == 26;
     chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
         cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
+    chip->fsm_dac_ch6 = cnt_comb == 5 || cnt_comb == 6 || cnt_comb == 8 || cnt_comb == 9;
 }
 
 void FM_HandleIO1(fm_t *chip)
@@ -964,10 +965,9 @@ void FM_PhaseGenerator1(fm_t *chip)
     chip->pg_multi[0][0] = multi;
     chip->pg_multi[1][0] = chip->pg_multi[0][1];
     chip->pg_multi2 = chip->pg_multi[1][1];
-    chip->pg_inc[0][0] = chip->pg_freq4;
-    chip->pg_inc[1][0] = chip->pg_inc[0][1];
+    chip->pg_inc[0] = chip->pg_freq4;
 
-    chip->pg_inc_mask[0] = chip->pg_inc[1][1];
+    chip->pg_inc_mask[0] = chip->pg_inc[1];
     if (chip->pg_reset[1] & 2)
         chip->pg_inc_mask[0] = 0;
 
@@ -1017,8 +1017,7 @@ void FM_PhaseGenerator2(fm_t *chip)
         chip->pg_freq4 = chip->pg_freq3 >> 1;
     else
         chip->pg_freq4 = chip->pg_freq3 * chip->pg_multi2;
-    chip->pg_inc[0][1] = chip->pg_inc[0][0];
-    chip->pg_inc[1][1] = chip->pg_inc[1][0];
+    chip->pg_inc[1] = chip->pg_inc[0];
     chip->pg_inc_mask[1] = chip->pg_inc_mask[0];
     chip->pg_reset_latch[1] = chip->pg_reset_latch[0];
     for (i = 0; i < 20; i++)
@@ -1409,7 +1408,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     chip->eg_ch3_latch[0] = chip->fsm_ch3_sel;
 
-    chip->eg_out_tl = chip->eg_tl[1][1];
+    chip->eg_out_tl = chip->eg_tl[0][1];
     if (chip->eg_ch3_latch[1] && chip->mode_ch3[1] == 2) // CSM
         chip->eg_out_tl = 0;
 
@@ -1679,7 +1678,7 @@ void FM_Operator1(fm_t *chip)
     if (fm_algorithm[index][1][connect])
     {
         for (i = 0; i < 14; i++)
-            mod1 |= ((chip->op_op1[0][i][1] >> 5) & 1) << i;
+            mod1 |= ((chip->op_op1[1][i][1] >> 5) & 1) << i;
     }
     if (fm_algorithm[index][2][connect])
     {
@@ -1690,7 +1689,7 @@ void FM_Operator1(fm_t *chip)
     {
         mod2 |= chip->op_output[1];
     }
-    if (fm_algorithm[index][5][connect])
+    if (fm_algorithm[index][4][connect])
     {
         mod1 |= chip->op_output[1];
     }
@@ -1707,7 +1706,7 @@ void FM_Operator1(fm_t *chip)
     if (chip->op_dofeedback[1])
     {
         for (i = 0; i < 3; i++)
-            fb |= (chip->chan_connect[i][1] & 1) << i;
+            fb |= (chip->chan_fb[i][1] & 1) << i;
         if (!fb)
             mod = 0;
         else
@@ -1836,7 +1835,7 @@ void FM_Accumulator2(fm_t* chip)
                 chip->ch_out_dlatch |= ((chip->ch_out[i][1] >> 4) & 1) << i;
         }
     }
-    if (chip->mode_dac_en[1])
+    if ((chip->fsm_dac_ch6 && chip->mode_dac_en[1]) || test_dac)
     {
         chip->dac_val = chip->mode_dac_data[1] << 1;
         chip->dac_val |= (chip->mode_test_2c[1] & 8) != 0;
