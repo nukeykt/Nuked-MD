@@ -2083,9 +2083,8 @@ void FM_Accumulator2(fm_t* chip)
         else
         {
             sign = 1;
+            out++;
         }
-
-        out += sign;
         
         if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
             chip->out_l = out;
