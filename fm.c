@@ -324,7 +324,7 @@ void FM_FSM2(fm_t *chip)
         chip->alg_mod_prev_1 = 0;
         chip->alg_output = 0;
 
-        if (chip->fsm_op3_sel)
+        if (chip->fsm_op2_sel)
         {
             chip->alg_mod_op1_0 |= fm_algorithm[0][0][connect];
             chip->alg_mod_op1_1 |= fm_algorithm[0][1][connect];
@@ -333,7 +333,7 @@ void FM_FSM2(fm_t *chip)
             chip->alg_mod_prev_1 |= fm_algorithm[0][4][connect];
             chip->alg_output |= fm_algorithm[2][5][connect];
         }
-        if (chip->fsm_op2_sel)
+        if (chip->fsm_op4_sel)
         {
             chip->alg_mod_op1_0 |= fm_algorithm[1][0][connect];
             chip->alg_mod_op1_1 |= fm_algorithm[1][1][connect];
@@ -342,7 +342,7 @@ void FM_FSM2(fm_t *chip)
             chip->alg_mod_prev_1 |= fm_algorithm[1][4][connect];
             chip->alg_output |= fm_algorithm[3][5][connect];
         }
-        if (chip->fsm_op4_sel)
+        if (chip->fsm_op1_sel)
         {
             chip->alg_mod_op1_0 |= fm_algorithm[2][0][connect];
             chip->alg_mod_op1_1 |= fm_algorithm[2][1][connect];
@@ -351,7 +351,7 @@ void FM_FSM2(fm_t *chip)
             chip->alg_mod_prev_1 |= fm_algorithm[2][4][connect];
             chip->alg_output |= fm_algorithm[0][5][connect];
         }
-        if (chip->fsm_op1_sel)
+        if (chip->fsm_op3_sel)
         {
             chip->alg_mod_op1_0 |= fm_algorithm[3][0][connect];
             chip->alg_mod_op1_1 |= fm_algorithm[3][1][connect];
@@ -363,6 +363,20 @@ void FM_FSM2(fm_t *chip)
     }
     else // YM2612
     {
+        chip->fsm_clock_eg = chip->fsm_clock_eg_l;
+        chip->fsm_op1_sel = chip->fsm_op1_sel_l;
+        chip->fsm_op2_sel = chip->fsm_op2_sel_l;
+        chip->fsm_sel2 = chip->fsm_clock_timers_l;
+        chip->fsm_sel23 = chip->fsm_sel23_l;
+        chip->fsm_ch3_sel = chip->fsm_ch3_sel_l;
+        chip->fsm_dac_load = chip->fsm_dac_load_l;
+        chip->fsm_dac_out_sel = chip->fsm_dac_out_sel_l;
+        chip->fsm_dac_ch6 = chip->fsm_dac_ch6_l;
+        chip->fsm_clock_timers = chip->fsm_clock_timers_l;
+        chip->fsm_clock_timers1 = chip->fsm_clock_timers1_l;
+
+
+
         chip->fsm_out[0] = (cnt_comb & 30) == 30;
         chip->fsm_out[1] = (cnt_comb & 28) == 0;
         chip->fsm_out[2] = (cnt_comb & 30) == 4;
@@ -389,6 +403,13 @@ void FM_FSM2(fm_t *chip)
         chip->fsm_out[23] = (cnt_comb & 24) == 16;
         chip->fsm_out[24] = (cnt_comb & 28) == 24;
         chip->fsm_out[25] = (cnt_comb & 30) == 28;
+
+        chip->alg_mod_op1_0 = chip->alg_mod_op1_0_l;
+        chip->alg_mod_op1_1 = chip->alg_mod_op1_1_l;
+        chip->alg_mod_op2 = chip->alg_mod_op2_l;
+        chip->alg_mod_prev_0 = chip->alg_mod_prev_0_l;
+        chip->alg_mod_prev_1 = chip->alg_mod_prev_1_l;
+        chip->alg_output = chip->alg_output_l;
     }
 }
 
@@ -1989,6 +2010,8 @@ void FM_Accumulator2(fm_t* chip)
     int i;
     int test_dac = (chip->mode_test_2c[1] & 32) != 0;
     int do_out = 0;
+    int sign;
+    int out;
     for (i = 0; i < 9; i++)
     {
         chip->ch_accm[i][1] = chip->ch_accm[i][0];
@@ -2030,15 +2053,49 @@ void FM_Accumulator2(fm_t* chip)
                 chip->ch_out_pan_dlatch |= (((chip->chan_pan[i][1] >> 4) & 1) ^ 1) << i;
         }
     }
-    do_out = test_dac || !chip->fsm_dac_load;
-    if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
-        chip->out_l = chip->dac_val;
+    if (!(chip->flags & fm_flags_ym2612))
+    {
+        do_out = test_dac || !chip->fsm_dac_load;
+        if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
+            chip->out_l = chip->dac_val;
+        else
+            chip->out_l = 0;
+        if (do_out && (chip->ch_out_pan_dlatch & 1) != 0)
+            chip->out_r = chip->dac_val;
+        else
+            chip->out_r = 0;
+
+        if (chip->out_l & 256)
+            chip->out_l |= ~0x1ff;
+        if (chip->out_r & 256)
+            chip->out_r |= ~0x1ff;
+    }
     else
-        chip->out_l = 0;
-    if (do_out && (chip->ch_out_pan_dlatch & 1) != 0)
-        chip->out_r = chip->dac_val;
-    else
-        chip->out_r = 0;
+    {
+        do_out = test_dac || chip->fsm_dac_load;
+
+        out = chip->dac_val;
+        if (out & 256)
+        {
+            sign = -1;
+            out |= ~0x1ff;
+        }
+        else
+        {
+            sign = 1;
+        }
+
+        out += sign;
+        
+        if (do_out && (chip->ch_out_pan_dlatch & 2) != 0)
+            chip->out_l = out;
+        else
+            chip->out_l = sign;
+        if (do_out && (chip->ch_out_pan_dlatch & 1) != 0)
+            chip->out_r = out;
+        else
+            chip->out_r = sign;
+    }
 
     chip->ch_out_debug[1] = chip->ch_out_debug[0];
 }
