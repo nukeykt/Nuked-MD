@@ -1,7 +1,12 @@
 #pragma once
 #include <stdint.h>
 
+enum {
+    fm_flags_ym2612 = 1,
+};
+
 typedef struct {
+    int flags;
     // input
     int ic;
     int rd;
@@ -238,6 +243,20 @@ typedef struct {
     int timer_b_status[2];
     int timer_csm_key_dlatch;
 
+    // fm algorithm
+    int alg_mod_op1_0;
+    int alg_mod_op1_1;
+    int alg_mod_op2;
+    int alg_mod_prev_0;
+    int alg_mod_prev_1;
+    int alg_output;
+    int alg_mod_op1_0_l;
+    int alg_mod_op1_1_l;
+    int alg_mod_op2_l;
+    int alg_mod_prev_0_l;
+    int alg_mod_prev_1_l;
+    int alg_output_l;
+
     // fsm
     int fsm_cnt1[2];
     int fsm_cnt2[2];
@@ -255,6 +274,20 @@ typedef struct {
     int fsm_dac_load;
     int fsm_dac_out_sel;
     int fsm_dac_ch6;
+    // ym2612 FSM
+    int fsm_out[26];
+    int fsm_op4_sel_l;
+    int fsm_op1_sel_l;
+    int fsm_op2_sel_l;
+    int fsm_op3_sel_l;
+    int fsm_clock_eg_l;
+    int fsm_clock_timers1_l;
+    int fsm_clock_timers_l;
+    int fsm_sel23_l;
+    int fsm_ch3_sel_l;
+    int fsm_dac_ch6_l;
+    int fsm_dac_load_l;
+    int fsm_dac_out_sel_l;
 
     // clock
     int phi;
