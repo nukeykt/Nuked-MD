@@ -19,6 +19,7 @@ typedef struct {
     int o_halt;
     int o_iorq;
     int o_rd;
+    int o_wr;
 
     // state
     int w1;
@@ -61,6 +62,11 @@ typedef struct {
     int w30;
     int w31;
     int l8;
+    int w32;
+    int l9;
+    int w33;
+    int l10;
+    int l11;
 
     // temp wires
     int tm_w1;
