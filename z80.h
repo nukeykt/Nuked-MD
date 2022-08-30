@@ -10,6 +10,7 @@ typedef struct {
     // input
     int i_int;
     int i_nmi;
+    int i_wait;
 
     // output
 
@@ -67,6 +68,28 @@ typedef struct {
     int w33;
     int l10;
     int l11;
+    int w34;
+    int l12;
+    int w35;
+    int w36;
+    int w37;
+    int w38;
+    int w39;
+    int w40;
+    int w41;
+    int w42;
+    int w43;
+    int l13;
+    int w44;
+    int l14;
+    int l15;
+    int w45;
+    int w46;
+    int w47;
+    int l16;
+    int w48;
+    int l17;
+    int l18;
 
     // temp wires
     int tm_w1;
