@@ -11,6 +11,8 @@ typedef struct {
     int i_int;
     int i_nmi;
     int i_wait;
+    int i_reset;
+    int i_busrq;
 
     // output
 
@@ -21,6 +23,7 @@ typedef struct {
     int o_iorq;
     int o_rd;
     int o_wr;
+    int o_busak;
 
     // state
     int w1;
@@ -90,6 +93,31 @@ typedef struct {
     int w48;
     int l17;
     int l18;
+    int w49;
+    int w50;
+    int w51;
+    int w52;
+    int l19;
+    int w53;
+    int l20;
+    int w54;
+    int w55;
+    int w56;
+    int w57;
+    int w58;
+    int w59;
+    int w60;
+    int l21;
+    int w61;
+    int w62;
+    int l22;
+    int w63;
+    int l23;
+    int l24;
+    int w64;
+    int w65;
+    int w66;
+    int w67;
 
     // temp wires
     int tm_w1;
