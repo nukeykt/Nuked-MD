@@ -64,7 +64,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w17 = !(chip->tm_w1 || chip->tm_w2);
     if (chip->w16)
         chip->w18 = chip->w12;
-    if (chip->tm_w1)
+    if (chip->w55)
         chip->w18 = 0;
     if (chip->w16)
         chip->w19 = chip->w9;
@@ -72,7 +72,7 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w19 = 0;
     if (chip->w13 && chip->w16)
         chip->halt = 1;
-    if (chip->tm_w1 || chip->tm_w2 || chip->tm_w3 || chip->tm_w4)
+    if (chip->tm_w1 || chip->w18 || chip->tm_w3 || chip->tm_w4)
         chip->halt = 0;
     chip->o_halt = chip->halt;
     chip->w20 = !(chip->tm_w1 || chip->tm_w2 || !chip->tm_w3 || chip->tm_w4);
@@ -107,7 +107,7 @@ void Z80_Clock(z80_t *chip, int clk)
 
     if (clk)
         chip->l7 = chip->tm_w5;
-    chip->w28 = !(chip->halt || (chip->tm_w1 && chip->tm_w2) || chip->tm_w3 || chip->tm_w4 || !(chip->tm_w1 || chip->l7));
+    chip->w28 = !(chip->halt || (chip->w18 && chip->tm_w2) || chip->tm_w3 || chip->tm_w4 || !(chip->w18 || chip->l7));
 
     if (chip->tm_w2)
         chip->w29 = chip->w28;
@@ -271,7 +271,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w71 = !clk && !chip->l26;
     chip->w72 = !(!chip->w73 || chip->tm_w2);
 
-    if (chip->tm_w1 || chip->tm_w4 || chip->tm_w5)
+    if (chip->tm_w1 || chip->w18 || chip->tm_w5)
         chip->w73 = 0;
     else if (!clk)
     {
@@ -280,7 +280,7 @@ void Z80_Clock(z80_t *chip, int clk)
         if (chip->w75)
             chip->w73 = chip->w74;
     }
-    if (chip->tm_w3 || chip->tm_w4)
+    if (chip->w18 || chip->tm_w4)
         chip->w74 = 0;
     else if (!clk)
     {
@@ -291,4 +291,28 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->l27 = chip->tm_w2;
     chip->w75 = !clk && !chip->l27 && !chip->tm_w1;
 
+    chip->w76 = !(chip->tm_w1 && chip->tm_w2 && chip->tm_w3);
+    chip->w77 = chip->tm_w1 && chip->tm_w2;
+
+    if (chip->w55)
+        chip->w78 = 1;
+    else if (!clk)
+    {
+        if (chip->w79)
+            chip->w78 = !chip->tm_w1;
+    }
+    if (clk)
+        chip->l28 = !(chip->tm_w1 && chip->tm_w2 && chip->tm_w3);
+    chip->w79 = !clk && !chip->l28;
+    if (chip->w55)
+        chip->w80 = 0;
+    else if (!clk)
+    {
+        if (chip->w79)
+            chip->w80 = chip->tm_w1;
+    }
+
+    chip->w81 = chip->w80 && !(chip->tm_w1 && chip->tm_w2 && chip->w18);
+    chip->w82 = !(chip->tm_w1 || chip->tm_w2);
+    chip->w83 = !(chip->tm_w1 || !chip->tm_w2);
 }
