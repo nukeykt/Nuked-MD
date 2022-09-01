@@ -22,7 +22,7 @@ void Z80_Clock(z80_t *chip, int clk)
     if (clk && chip->tm_w1 && chip->w41)
         chip->w2 = 0;
     if (clk)
-        chip->l1 = chip->tm_w2;
+        chip->l1 = chip->w69;
     if (!clk && chip->l1)
         chip->w2 = 0;
     if (clk && chip->w15)
@@ -51,7 +51,7 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w9 = chip->w8;
 
     if (clk)
-        chip->l3 = chip->tm_w1;
+        chip->l3 = !chip->w72;
     chip->w12 = !(chip->w5 || (chip->w9 && chip->l3));
     chip->w11 = !(chip->w12 || chip->w9 || chip->tm_w3);
     chip->w10 = !(chip->w12 || chip->w9 || chip->w11);
@@ -234,14 +234,14 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w59 = chip->w58;
 
     if (clk)
-        chip->l21 = chip->tm_w1;
+        chip->l21 = chip->w68;
     chip->w60 = chip->l21 && chip->tm_w2;
     if (!clk)
         chip->w61 = !chip->w60;
 
     if (clk)
-        chip->l22 = chip->tm_w1;
-    chip->w62 = chip->l22 || chip->tm_w1;
+        chip->l22 = chip->w67;
+    chip->w62 = chip->l22 || chip->w67;
 
     if (clk)
         chip->l23 = chip->tm_w1;
@@ -258,4 +258,37 @@ void Z80_Clock(z80_t *chip, int clk)
     if (chip->w65)
         chip->w66 = 1;
     chip->o_busak = !chip->w65 && chip->w66 && !chip->w67;
+
+    if (clk)
+        chip->l25 = chip->tm_w1;
+    else
+        chip->w68 = chip->l25 && chip->tm_w2;
+
+    chip->w69 = !(chip->w55 || (chip->w41 && chip->tm_w1));
+    chip->w70 = !(chip->tm_w1 && chip->tm_w2 && chip->tm_w3);
+    if (clk)
+        chip->l26 = chip->w70;
+    chip->w71 = !clk && !chip->l26;
+    chip->w72 = !(!chip->w73 || chip->tm_w2);
+
+    if (chip->tm_w1 || chip->tm_w4 || chip->tm_w5)
+        chip->w73 = 0;
+    else if (!clk)
+    {
+        if (chip->w71)
+            chip->w73 = chip->tm_w2;
+        if (chip->w75)
+            chip->w73 = chip->w74;
+    }
+    if (chip->tm_w3 || chip->tm_w4)
+        chip->w74 = 0;
+    else if (!clk)
+    {
+        if (chip->w71)
+            chip->w74 = chip->tm_w1;
+    }
+    if (clk)
+        chip->l27 = chip->tm_w2;
+    chip->w75 = !clk && !chip->l27 && !chip->tm_w1;
+
 }

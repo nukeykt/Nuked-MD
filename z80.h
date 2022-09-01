@@ -118,6 +118,17 @@ typedef struct {
     int w65;
     int w66;
     int w67;
+    int w68;
+    int l25;
+    int w69;
+    int w70;
+    int w71;
+    int l26;
+    int w72;
+    int w73;
+    int w74;
+    int w75;
+    int l27;
 
     // temp wires
     int tm_w1;
@@ -126,5 +137,6 @@ typedef struct {
     int tm_w4;
     int tm_w5;
     int tm_w6;
+    int tm_w7;
 
 } z80_t;
