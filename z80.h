@@ -172,6 +172,19 @@ typedef struct {
     int w113;
     int l31;
     int w114;
+    int w115;
+    int w116;
+    int w117;
+    int w118;
+    int w119;
+    int l32;
+    int w120;
+    int w121;
+    int w122;
+    int l33;
+    int w123;
+    int w124;
+    int l34;
 
     // temp wires
     int tm_w1;
@@ -181,5 +194,10 @@ typedef struct {
     int tm_w5;
     int tm_w6;
     int tm_w7;
+    int tm_w8;
+    int tm_w9;
+    int tm_w10;
+    int tm_w11;
+    int tm_w12;
 
 } z80_t;
