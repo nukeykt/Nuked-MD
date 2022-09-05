@@ -24,6 +24,8 @@ typedef struct {
     int o_rd;
     int o_wr;
     int o_busak;
+    int o_m1;
+    int o_rfsh;
 
     // state
     int w1;
@@ -185,6 +187,21 @@ typedef struct {
     int w123;
     int w124;
     int l34;
+    int w125;
+    int w126;
+    int w127;
+    int w128;
+    int l35;
+    int w129;
+    int w130;
+    int w131;
+    int w132;
+    int l36;
+    int w133;
+    int w134;
+    int w135;
+    int w136;
+    int w137;
 
     // temp wires
     int tm_w1;
