@@ -211,6 +211,11 @@ typedef struct {
     int w144;
     int l37;
     int l38;
+    int w145;
+    int w146;
+    int w147;
+
+    int pla[99];
 
     // temp wires
     int tm_w1;
