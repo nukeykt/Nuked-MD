@@ -633,4 +633,32 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w161 = !(chip->pla[29] || chip->pla[30] || chip->w86
         || chip->pla[48] || chip->pla[52] || chip->pla[53] || chip->pla[61]
         || chip->pla[62] || chip->pla[63] || chip->pla[71] || chip->pla[75]);
+    chip->w162 = !(chip->pla[5] || chip->pla[7] || chip->pla[8]
+        || chip->pla[11] || chip->pla[16] || chip->pla[21] || chip->pla[26]
+        || chip->pla[28] || chip->pla[30] || chip->pla[31] || chip->pla[32]
+        || chip->pla[33] || chip->pla[34] || chip->pla[38]);
+    chip->w163 = !(chip->pla[32] || chip->pla[33] || chip->pla[34]
+        || chip->pla[36] || chip->pla[37]);
+    chip->w164 = !(chip->pla[26] || chip->pla[39] || chip->pla[40]
+        || chip->pla[46] || chip->pla[48] || chip->pla[60] || chip->pla[61]
+        || chip->pla[62] || chip->pla[71] || chip->pla[77] || chip->pla[78]
+        || chip->pla[79] || chip->pla[80] || chip->pla[83]);
+    chip->w165 = !(chip->pla[7] || chip->pla[8] || chip->pla[13]
+        || chip->pla[17] || chip->pla[26] || chip->pla[32]);
+    chip->w166 = !(chip->pla[9] || chip->pla[18] || chip->pla[19]
+        || chip->pla[30]);
+    chip->w167 = !(chip->w86 || chip->pla[39] || chip->pla[48]
+        || chip->pla[56] || chip->pla[64] || chip->pla[65] || chip->pla[70]
+        || chip->pla[74] || chip->pla[82] || chip->pla[83] || chip->pla[85]
+        || chip->pla[88] || chip->pla[89] || chip->pla[93]);
+    chip->w168 = !(chip->pla[10] || chip->pla[12] || chip->pla[24]);
+    chip->w169 = !(chip->pla[39] || chip->pla[40] || chip->pla[43]
+        || chip->pla[44] || chip->pla[45] || chip->pla[46] || chip->pla[48]
+        || chip->pla[49]);
+    chip->w170 = !(chip->pla[49] || chip->pla[55] || chip->pla[56]
+        || chip->pla[58] || chip->pla[60] || chip->pla[67] || chip->pla[68]
+        || chip->pla[69] || chip->pla[74] || chip->pla[91]);
+    chip->w171 = !(chip->pla[6] || chip->pla[9] || chip->pla[13]);
+    chip->w172 = !(chip->pla[24] || chip->pla[25] || chip->pla[28]
+        || chip->pla[31] || chip->pla[32] || chip->pla[35] || chip->pla[37]);
 }
