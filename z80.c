@@ -190,7 +190,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w45 = !clk && !chip->l15;
 
     chip->w46 = !(chip->tm_w1 || (chip->tm_w2 && chip->tm_w3) || (chip->tm_w2 && chip->tm_w4));
-    chip->w45 = (chip->tm_w1 && chip->tm_w2) || (chip->w41 && chip->w3 && chip->w46);
+    chip->w192 = (chip->tm_w1 && chip->tm_w2) || (chip->w41 && chip->w3 && chip->w46);
     if (clk)
         chip->l16 = !(chip->tm_w1 && chip->tm_w2 && chip->w41);
     chip->w47 = !clk && !chip->l16;
@@ -387,9 +387,9 @@ void Z80_Clock(z80_t *chip, int clk)
     if (clk)
     {
         if (chip->w116)
-            chip->w115 = 0;
-        if (chip->tm_w1 || chip->tm_w2)
             chip->w115 = 1;
+        if (chip->tm_w1 || chip->tm_w2)
+            chip->w115 = 0;
     }
 
     chip->w117 = chip->tm_w1 || chip->tm_w2 || (chip->tm_w3 && chip->tm_w4) || (chip->tm_w10 && chip->w138 && chip->tm_w12)
@@ -677,9 +677,61 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w183 = !(chip->w182 && (chip->w114 || chip->pla[37]));
     chip->w184 = !(chip->pla[55] || chip->pla[56]);
     chip->w185 = !(chip->pla[56] || chip->pla[74]);
-    chip->w186 = !(chip->pla[77] || chip->pla[78] || chip->pla[79] || chip->pla[80]);
+    chip->w186 = !(chip->pla[77] || chip->pla[78] || chip->pla[79]
+        || chip->pla[80]);
     chip->w187 = !(chip->pla[60] || chip->pla[61] || chip->pla[62]);
-    chip->w188 = !(chip->pla[71] || chip->pla[72] || chip->pla[77] || chip->pla[78]);
-    chip->w189 = !(chip->pla[72] || chip->pla[73] || chip->pla[77] || chip->pla[78]);
+    chip->w188 = !(chip->pla[71] || chip->pla[72] || chip->pla[77]
+        || chip->pla[78]);
+    chip->w189 = !(chip->pla[72] || chip->pla[73] || chip->pla[77]
+        || chip->pla[78]);
     chip->w190 = !(chip->pla[89] || chip->pla[93]);
+    chip->w191 = !(chip->pla[79] || chip->pla[80] || chip->pla[81]
+        || !chip->w169 || chip->pla[83] || chip->pla[92] || chip->pla[93]);
+
+    chip->w193 = (chip->w144 && chip->w14) || chip->w205;
+    chip->w194 = !chip->w202 && !chip->w203;
+
+    chip->w196 = chip->pla[86] || chip->pla[87];
+    chip->w195 = !(chip->pla[88] || !(chip->w196 || (!chip->tm_w1 && !chip->w173)));
+
+    chip->w197 = !chip->tm_w1 && chip->w186;
+    chip->w199 = !(chip->pla[83] || chip->pla[87] || chip->tm_w1);
+    chip->w198 = !chip->w199 && chip->w170;
+
+    chip->w200 = !((chip->w127 && (!chip->w186 || !chip->w88))
+        || (chip->w120 && !chip->w88)
+        || (chip->w123 && !chip->w167)
+        || (chip->w121 && (!chip->w167 || chip->tm_w1)));
+
+    chip->w202 = ((chip->w121 || chip->w123) && !chip->w197)
+        || (chip->w127 && !chip->w198);
+    chip->w201 = !chip->w200 && !chip->w202;
+
+    chip->w203 = !(chip->w110 || (chip->w141 && chip->w131));
+
+    chip->w204 = !((chip->w109 && chip->pla[93])
+        || (chip->pla[88] && chip->w121 && chip->w141));
+
+    if (clk)
+        chip->l39 = chip->w204;
+    else
+        chip->w205 = !chip->l39;
+
+    chip->w207 = !(chip->w176 && !(chip->w86 || !chip->w88));
+
+    chip->w206 = !((chip->w131 && chip->w109 && chip->w207)
+        || (!chip->w186 && chip->w123 && (chip->w41 || chip->w110))
+        || (chip->w195 && chip->w127 && chip->w41));
+
+    chip->w209 = !chip->w186 && (chip->w147 & 8) != 0;
+
+    chip->w208 = !(chip->w110 &&
+        ((chip->w120 && chip->w209 && !chip->w88)
+        || (chip->w123 && !chip->w173 && !chip->w167)
+        || (chip->w127 && chip->w209)));
+
+    if (clk)
+        chip->l40 = !chip->w206 || !chip->w208;
+    else
+        chip->w210 = chip->l40;
 }
