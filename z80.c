@@ -661,4 +661,25 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w171 = !(chip->pla[6] || chip->pla[9] || chip->pla[13]);
     chip->w172 = !(chip->pla[24] || chip->pla[25] || chip->pla[28]
         || chip->pla[31] || chip->pla[32] || chip->pla[35] || chip->pla[37]);
+    chip->w173 = !(chip->w86 || chip->pla[53] || chip->pla[56] || chip->pla[44]
+        || chip->pla[63] || chip->pla[74] || chip->pla[75] || chip->pla[88]);
+    chip->w174 = !(chip->pla[7] || chip->pla[8] || chip->pla[32]
+        || chip->pla[36] || chip->pla[50] || chip->pla[51]);
+    chip->w175 = !(chip->pla[50] || chip->pla[51] || chip->pla[72]);
+    chip->w176 = !(chip->pla[82] || chip->pla[84]);
+    chip->w177 = !(chip->pla[4] || chip->pla[5] || chip->pla[6]
+        || chip->pla[7] || chip->pla[9]);
+    chip->w178 = !(chip->pla[7] || chip->pla[8]);
+    chip->w179 = !(chip->pla[5] || chip->pla[7] || chip->pla[8]);
+    chip->w180 = !(chip->pla[12] || chip->pla[24]);
+    chip->w181 = !(chip->pla[13] || chip->pla[25] || chip->pla[26]);
+    chip->w182 = !(chip->pla[33] || chip->pla[36]);
+    chip->w183 = !(chip->w182 && (chip->w114 || chip->pla[37]));
+    chip->w184 = !(chip->pla[55] || chip->pla[56]);
+    chip->w185 = !(chip->pla[56] || chip->pla[74]);
+    chip->w186 = !(chip->pla[77] || chip->pla[78] || chip->pla[79] || chip->pla[80]);
+    chip->w187 = !(chip->pla[60] || chip->pla[61] || chip->pla[62]);
+    chip->w188 = !(chip->pla[71] || chip->pla[72] || chip->pla[77] || chip->pla[78]);
+    chip->w189 = !(chip->pla[72] || chip->pla[73] || chip->pla[77] || chip->pla[78]);
+    chip->w190 = !(chip->pla[89] || chip->pla[93]);
 }

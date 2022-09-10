@@ -241,6 +241,23 @@ typedef struct {
     int w171;
     int w172;
     int w173;
+    int w174;
+    int w175;
+    int w176;
+    int w177;
+    int w178;
+    int w179;
+    int w180;
+    int w181;
+    int w182;
+    int w183;
+    int w184;
+    int w185;
+    int w186;
+    int w187;
+    int w188;
+    int w189;
+    int w190;
 
     // temp wires
     int tm_w1;
