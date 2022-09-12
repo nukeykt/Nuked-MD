@@ -457,7 +457,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w139 = !chip->tm_w1 && !chip->tm_w2 && !chip->tm_w3 && !chip->tm_w4;
     chip->w140 = !chip->tm_w1 && chip->w151 && !chip->tm_w3;
     chip->w141 = !chip->tm_w1 && ((chip->w140 && chip->w127) || chip->w123);
-    chip->w142 = !chip->tm_w1 && !chip->tm_w2 && !chip->tm_w3;
+    chip->w142 = !chip->tm_w1 && !chip->tm_w2 && !chip->w234;
 
     chip->w143 = chip->w120 || (chip->w142 && chip->w123) || (chip->w121 && chip->tm_w2)
         || (chip->w127 && (!chip->w151 || (chip->w140 && chip->tm_w3)));
@@ -707,10 +707,10 @@ void Z80_Clock(z80_t *chip, int clk)
         || (chip->w127 && !chip->w198);
     chip->w201 = !chip->w200 && !chip->w202;
 
-    chip->w203 = !(chip->w110 || (chip->w141 && chip->w131));
+    chip->w203 = !(chip->w110 || (chip->w41 && chip->w131));
 
     chip->w204 = !((chip->w109 && chip->pla[93])
-        || (chip->pla[88] && chip->w121 && chip->w141));
+        || (chip->pla[88] && chip->w121 && chip->w41));
 
     if (clk)
         chip->l39 = chip->w204;
@@ -743,7 +743,7 @@ void Z80_Clock(z80_t *chip, int clk)
         || (chip->w109 && (chip->w121 || ((chip->w123 || chip->w127)
             && (!chip->w186 || !chip->w173)))));
 
-    chip->w214 = !((chip->w141 && chip->w131)
+    chip->w214 = !((chip->w41 && chip->w131)
         || (chip->w68 && chip->w131 && (!chip->w88 || !chip->w167))
         || (chip->w114 && ((chip->w127 && !chip->w186)
             || (chip->w121 && chip->w167 && !chip->w173))));
@@ -757,7 +757,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w218 = !chip->pla[88] && chip->w88;
     chip->w217 = !((chip->w120 && chip->w218) || chip->w131 || chip->w127);
 
-    chip->w219 = !((chip->w141 && (chip->w121 || (chip->w127 && !chip->w186)))
+    chip->w219 = !((chip->w41 && (chip->w121 || (chip->w127 && !chip->w186)))
         || (chip->w109 && chip->w131)
         || (chip->w114 && (chip->w131 || (chip->w127 && !chip->w173))));
 
@@ -767,7 +767,7 @@ void Z80_Clock(z80_t *chip, int clk)
         || (chip->w109 && chip->w123 && !chip->w186));
 
     chip->w222 = !((!chip->w175 && ((chip->w114 && chip->w120)
-        || (chip->w141 && chip->w127)))
+        || (chip->w41 && chip->w127)))
         || (chip->w110 && (chip->w127 || chip->w120) && !chip->w88));
 
     chip->w225 = !chip->w100 && !chip->w169;
@@ -783,7 +783,52 @@ void Z80_Clock(z80_t *chip, int clk)
         || (chip->w120 && chip->w224)
         || (chip->w127 && !chip->w170)));
 
-    chip->w227 = (chip->w131 && chip->w114);
+    chip->w227 = !(chip->w131 && chip->w114);
     if (clk)
-        chip->l41 = chip->w227;
+        chip->l42 = chip->w227;
+    chip->w228 = !(chip->w131 && chip->w41);
+    chip->w229 = !((chip->w41 && chip->w120 && !chip->w88)
+        || (chip->w109 && chip->w131 && chip->pla[94]));
+    chip->w230 = !( (chip->w68 && chip->w131 && (chip->pla[93] || !chip->w173))
+        || (chip->w114 && (((chip->w127 || chip->w123) && !chip->w173)
+            || (chip->w121 && !chip->w173 && chip->w167))));
+    chip->w231 = !(((chip->w68 || chip->w109) && (chip->w131 || chip->w120)
+        && (!chip->w173 || !chip->w88))
+        || (chip->w114 && chip->w120 && !chip->w88));
+    chip->w232 = !((chip->w41 && (chip->w120 || chip->w127) && chip->pla[91])
+        || ((chip->w109 || chip->w68)
+            && (chip->w121 || (chip->w131
+                && (chip->pla[89] || chip->pla[90]))))
+        );
+
+    chip->w234 = chip->pla[29] || chip->pla[30];
+
+    chip->w236 = !(chip->pla[67] || chip->pla[68]);
+    chip->w235 = !(chip->w236 || (chip->w147 & 8) != 0);
+    chip->w237 = !(chip->w237 || !chip->w167);
+
+    chip->w233 = !(
+        (chip->w110 && (chip->w123 || chip->w121)
+            && (chip->pla[88] || chip->w234 || chip->w235))
+        || (chip->w41 && (chip->w123 || chip->w121)
+            && chip->w237)
+        );
+
+    chip->w238 = !(
+        ((chip->w41 && chip->w127) || (chip->w114 && chip->w120))
+        && chip->w225);
+
+    chip->w240 = !(chip->pla[77] || chip->w186);
+
+    chip->w239 = !((chip->w114 && chip->w120 && chip->w240)
+        || (chip->w109 && ((chip->w127 && chip->pla[83]) || (chip->w123 && chip->w234)))
+        || (chip->w41 && (chip->w123 || chip->w121) && chip->w234)
+        );
+
+    chip->w241 = !(
+        (chip->w131 && chip->w68 && chip->pla[78])
+        || (chip->w131 && chip->w109 && (chip->w234 || !chip->w191))
+        || (chip->w114 && chip->w127 && chip->pla[77])
+        || (chip->w41 && chip->w120 && (chip->pla[77] || chip->pla[81]))
+        );
 }
