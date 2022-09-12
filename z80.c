@@ -766,6 +766,24 @@ void Z80_Clock(z80_t *chip, int clk)
         && (!chip->w185 || chip->w86))
         || (chip->w109 && chip->w123 && !chip->w186));
 
-    chip->w222 = !((!chip->w175 && ((chip->w114 && chip->w120) || (chip->w141 && chip->w127)))
+    chip->w222 = !((!chip->w175 && ((chip->w114 && chip->w120)
+        || (chip->w141 && chip->w127)))
         || (chip->w110 && (chip->w127 || chip->w120) && !chip->w88));
+
+    chip->w225 = !chip->w100 && !chip->w169;
+
+    chip->w224 = !chip->w170 || chip->w225 || !chip->w159;
+
+    chip->w223 = !((chip->w127 && !chip->w186)
+        || (chip->w120 && !chip->w170)
+        || (chip->w131 && chip->w224));
+
+    chip->w226 = !(chip->w110 && (
+        chip->w131
+        || (chip->w120 && chip->w224)
+        || (chip->w127 && !chip->w170)));
+
+    chip->w227 = (chip->w131 && chip->w114);
+    if (clk)
+        chip->l41 = chip->w227;
 }
