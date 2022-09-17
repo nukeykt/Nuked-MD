@@ -470,6 +470,32 @@ typedef struct {
     int w386;
     int w387;
     int w388;
+    int w389;
+    int w390;
+    int w391;
+    int w392;
+    int w393;
+    int w394;
+    int w395;
+    int w396;
+    int l53;
+    int w397;
+    int w398;
+    int w399;
+    int w400;
+    int w401;
+    int w402;
+    int l54;
+    int l55;
+    int w403;
+    int w404;
+    int w405;
+    int w406;
+    int w407;
+    int w408;
+    int w409;
+    int w410;
+    int w411;
 
     // temp wires
     int tm_w1;

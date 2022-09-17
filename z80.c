@@ -1270,4 +1270,69 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w388 = !(chip->pla[7] || chip->w177);
 
     chip->w387 = !(chip->w109 && chip->w127 && chip->w388);
+
+    if (clk)
+        chip->w390 = !chip->w270;
+
+    chip->w389 = !(chip->w390 && !chip->w162);
+
+    if (clk)
+        chip->w391 = !chip->w280;
+
+    chip->w392 = !(chip->w391 && !chip->w162);
+
+    chip->w393 = !(!chip->w277
+        || (chip->w114 && chip->w127 && chip->w255)
+        || (chip->w41 && chip->w123 && chip->w234)
+        );
+
+    chip->w394 = !((chip->w390 && !chip->w166)
+        || (chip->w109 && chip->w123 && chip->w234)
+        || (chip->w41 && chip->w127 && chip->w255)
+        );
+
+    chip->w395 = !(!chip->w165 && chip->w390);
+
+    if (clk)
+        chip->l53 = !chip->w276;
+    chip->w396 = !(chip->w395 && chip->w394 && (chip->w390 || chip->l53));
+
+    chip->w397 = !((chip->w41 || chip->w109 || chip->w68) && chip->w127);
+
+    chip->w398 = !(chip->w114 && chip->w123 && chip->w83);
+
+    if (clk)
+        chip->w400 = (
+            (chip->w41 && chip->w127 && chip->w255)
+            || (chip->w114 && chip->w123 && chip->pla[38])
+            );
+
+    chip->w399 = !((chip->w390 && !chip->pla[36] && chip->w255) || chip->w400);
+
+    chip->w401 = !(
+        (((chip->w147 & 8) == 0 && chip->w109) || chip->w114) &&
+        chip->w127 && chip->pla[38]
+        );
+
+    if (clk)
+        chip->l54 = chip->w371;
+    if (clk)
+        chip->l55 = chip->w374;
+
+    chip->w402 = !chip->l54 || chip->l55;
+
+    chip->w403 = !(!chip->w283 || !chip->w269 || chip->w268);
+
+    if (clk)
+        chip->w404 = chip->w403 || !chip->w371;
+
+    chip->w406 = chip->pla[50] || (chip->w147 & 32) == 0;
+
+    chip->w405 = !((chip->w147 & 16) == 0 || !chip->w406);
+    chip->w407 = !((chip->w147 & 16) == 0 || chip->w406);
+    chip->w408 = !((chip->w147 & 16) != 0 || chip->w406);
+    chip->w409 = !((chip->w147 & 16) != 0 || !chip->w406);
+
+    chip->w410 = !(!chip->w257 || !chip->w258 || (chip->w366 && (chip->w318 || chip->w368)));
+    chip->w411 = !(!chip->w251 || (chip->w366 && chip->w367) || (!chip->w274 && !chip->w380));
 }
