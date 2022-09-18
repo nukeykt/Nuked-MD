@@ -1335,4 +1335,83 @@ void Z80_Clock(z80_t *chip, int clk)
 
     chip->w410 = !(!chip->w257 || !chip->w258 || (chip->w366 && (chip->w318 || chip->w368)));
     chip->w411 = !(!chip->w251 || (chip->w366 && chip->w367) || (!chip->w274 && !chip->w380));
+
+    chip->w412 = !(chip->w260 && !chip->w262);
+
+    chip->w413 = !(chip->w318 || chip->w368);
+
+    chip->w414 = (!chip->w264 || !chip->w263 || !chip->w274
+        || (chip->w365 && (chip->w318 || chip->w368)));
+
+    chip->w415 = !(chip->w412 || (chip->w413 && chip->w365) || (!chip->w274 && chip->w380));
+
+    if (clk)
+        chip->w416 = chip->w410;
+
+    if (clk)
+        chip->w417 = !chip->w415;
+
+    if (clk)
+        chip->w418 = !chip->w414;
+
+    if (clk)
+        chip->w419 = chip->w274;
+
+    chip->w421 = !clk && !chip->w419;
+
+    if (!clk && chip->w421)
+        chip->w420 = chip->tm_w1;
+
+    chip->w422 = !(chip->w408 || (chip->w405 && chip->w423));
+
+    chip->w423 = !chip->tm_w2;
+
+    chip->w424 = !clk && chip->tm_w1;
+
+    if (clk)
+        chip->w425 = 0;
+    else
+    {
+        if (chip->w407)
+            chip->w425 = 0;
+        else if (chip->w424 && chip->w405)
+            chip->w425 = chip->w423;
+        else if (chip->w424 && chip->w408)
+            chip->w425 = chip->tm_w1;
+        else if (chip->w424 && chip->w409)
+            chip->w425 = chip->tm_w2;
+    }
+
+    chip->w426 = !(chip->w390 && !chip->w154);
+    chip->w427 = !clk && !chip->w426;
+
+
+    if (clk)
+        chip->l56 = !chip->w283;
+
+    chip->w428 = chip->l56 && chip->w426 && !clk;
+    
+    if (clk)
+        chip->w430 = !chip->w384;
+
+    if (clk)
+        chip->w431 = !chip->w282;
+
+    chip->w429 = !(chip->tm_w1 && (chip->w430 || chip->w431));
+
+    if (clk)
+        chip->l57 = chip->w385;
+
+    chip->w432 = !clk && !chip->l57;
+
+    chip->w433 = !chip->w429 && !clk;
+
+    if (clk)
+        chip->l58 = chip->w386;
+    if (clk)
+        chip->l59 = chip->w281;
+    chip->w435 = !chip->l58 && !chip->l59;
+    chip->w434 = !clk && !chip->w435;
+
+    chip->w436 = !clk && !chip->w389;
 }
