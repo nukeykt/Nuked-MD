@@ -1793,7 +1793,7 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w496 = chip->w513;
     if (chip->w471)
     {
-        chip->w496 = chip->w513 << 1;
+        chip->w496 = (chip->w513 << 1) & 0xff;
         if (!chip->w495)
             chip->w496 |= !chip->w422;
     }
@@ -1806,5 +1806,106 @@ void Z80_Clock(z80_t *chip, int clk)
     {
         chip->w496 &= 0xfe;
         chip->w496 |= (chip->w484 >> 7) & 1;
+    }
+
+    if (clk)
+        chip->l79 = chip->w411;
+    chip->w516 = !clk && !chip->l79;
+
+    chip->w517 = !clk && !chip->w416;
+
+    chip->w518 = !chip->w417;
+    chip->w519 = !chip->w418;
+
+    {
+        int u1 = 0;
+        int u2 = 0;
+        int u3 = 0;
+        int u4 = 0;
+        if (clk)
+        {
+            if (chip->w339)
+            {
+                chip->w514 = 0xffff;
+                chip->w515 = 0xffff;
+            }
+        }
+        else
+        {
+            int ix = -1;
+            if (chip->w516)
+            {
+                u1 = 1;
+                chip->w514 &= 0xff00;
+                chip->w515 &= 0xff00;
+                chip->w514 |= (chip->w484 ^ 255) & 255;
+                chip->w515 |= chip->w484 & 255;
+            }
+            if (chip->w517)
+            {
+                u2 = 1;
+                chip->w514 &= 0xff;
+                chip->w515 &= 0xff;
+                chip->w514 |= ((chip->w513 ^ 255) & 255) << 8;
+                chip->w515 |= (chip->w513 & 255) << 8;
+            }
+            if (!chip->w518)
+                chip->w484 = chip->w515 ^ 255;
+            if (!chip->w519)
+                chip->w513 = (chip->w515 >> 8) & 255;
+
+            if (!chip->w364)
+                ix = 0;
+            else if (!chip->w363)
+                ix = 1;
+            else if (!chip->w355)
+                ix = 2;
+            else if (!chip->w354)
+                ix = 3;
+            else if (!chip->w353)
+                ix = 4;
+            else if (!chip->w352)
+                ix = 5;
+            else if (!chip->w350)
+                ix = 6;
+            else if (!chip->w348)
+                ix = 7;
+            else if (!chip->w342)
+                ix = 8;
+            else if (!chip->w340)
+                ix = 9;
+            else if (!chip->w319)
+                ix = 10;
+            else if (!chip->w314)
+                ix = 11;
+            if (ix >= 0)
+            {
+                if (u1)
+                {
+                    chip->regs[ix] &= 0xff00;
+                    chip->regs[ix] |= chip->w515 & 0xff;
+                }
+                else
+                {
+                    u1 = 1;
+                    chip->w515 &= 0xff00;
+                    chip->w515 |= chip->regs[ix] & 0xff;
+                }
+                if (u2)
+                {
+                    chip->regs[ix] &= 0xff;
+                    chip->regs[ix] |= chip->w515 & 0xff00;
+                }
+                else
+                {
+                    u2 = 1;
+                    chip->w515 &= 0xff;
+                    chip->w515 |= chip->regs[ix] & 0xff00;
+                }
+            }
+
+            if (chip->w334)
+                chip->w522 = chip->w520;
+        }
     }
 }

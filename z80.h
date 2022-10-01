@@ -621,6 +621,17 @@ typedef struct {
     int w511;
     int w512;
     int w513; // bus 3
+    int w514;
+    int w515;
+    int w516;
+    int l79;
+    int w517;
+    int w518;
+    int w519;
+    int regs[12];
+    int w520;
+    int w521;
+    int w522;
 
     // temp wires
     int tm_w1;
