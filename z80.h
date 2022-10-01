@@ -213,7 +213,7 @@ typedef struct {
     int l37;
     int l38;
     int w145;
-    int w146;
+    int w146; // bus 1
     int w147;
     int pla[99];
     int w148;
@@ -563,6 +563,39 @@ typedef struct {
     int w462;
     int l70;
     int w463;
+    int w464;
+    int w465;
+    int l71;
+    int w466;
+    int w467;
+    int w468;
+    int l72;
+    int w469;
+    int w470;
+    int w471;
+    int w472;
+    int w473;
+    int w474;
+    int w475;
+    int w476;
+    int l73;
+    int w477;
+    int l74;
+    int l75;
+    int w478;
+    int l76;
+    int w479;
+    int l77;
+    int w480;
+    int w481;
+    int w482;
+    int w483;
+    int w484; // bus 2
+    int w485;
+    int w486;
+    int w487;
+    int w488;
+    int w489;
 
     // temp wires
     int tm_w1;
