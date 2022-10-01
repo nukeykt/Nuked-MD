@@ -596,6 +596,31 @@ typedef struct {
     int w487;
     int w488;
     int w489;
+    int w490;
+    int w491;
+    int w492;
+    int w493;
+    int w494;
+    int w495;
+    int w496; // alu bus
+    int w497;
+    int w498;
+    int w499;
+    int w500;
+    int w501;
+    int w502;
+    int w503;
+    int w504;
+    int w505;
+    int l78;
+    int w506;
+    int w507;
+    int w508;
+    int w509;
+    int w510;
+    int w511;
+    int w512;
+    int w513; // bus 3
 
     // temp wires
     int tm_w1;
