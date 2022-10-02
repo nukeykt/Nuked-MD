@@ -645,6 +645,7 @@ typedef struct {
     int w528;
     int w529;
     int regs2[2];
+    int w530;
 
     // temp wires
     int tm_w1;

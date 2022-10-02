@@ -16,10 +16,10 @@ void Z80_Clock(z80_t *chip, int clk)
 {
     if (clk && chip->w3 && chip->w41)
         chip->w1 = 1;
-    if (chip->tm_w4 || (clk && (chip->tm_w5 || chip->tm_w6)))
+    if (chip->w55 || (clk && (chip->w114 || chip->w201)))
         chip->w1 = 0;
 
-    if (clk && chip->tm_w1 && chip->w41)
+    if (clk && chip->w131 && chip->w41)
         chip->w2 = 0;
     if (clk)
         chip->l1 = chip->w69;
@@ -27,7 +27,7 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w2 = 0;
     if (clk && chip->w15)
         chip->w2 = 1;
-    chip->w3 = !(chip->tm_w5 || chip->tm_w4);
+    chip->w3 = !(chip->w201 || chip->w202);
 
     if (!clk)
         chip->w4 = chip->i_int;
@@ -57,40 +57,40 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w10 = !(chip->w12 || chip->w9 || chip->w11);
     chip->w13 = !((chip->w16 && !chip->w10) || chip->w18 || chip->w19 || chip->halt);
     chip->w14 = !(chip->w13 || (chip->w16 && chip->w10));
-    chip->w15 = !(chip->tm_w1 || chip->tm_w2 || chip->tm_w3);
+    chip->w15 = !(!chip->w114 || chip->w202 || chip->w201);
     if (clk)
         chip->l4 = chip->w20;
     chip->w16 = chip->l4 && !clk;
-    chip->w17 = !(chip->tm_w1 || chip->tm_w2);
+    chip->w17 = !(chip->w55 || chip->w19);
     if (chip->w16)
         chip->w18 = chip->w12;
     if (chip->w55)
         chip->w18 = 0;
     if (chip->w16)
         chip->w19 = chip->w9;
-    if (chip->tm_w1)
+    if (chip->w55)
         chip->w19 = 0;
     if (chip->w13 && chip->w16)
         chip->halt = 1;
-    if (chip->tm_w1 || chip->w18 || chip->tm_w3 || chip->tm_w4)
+    if (chip->w19 || chip->w18 || chip->w55 || !chip->w57)
         chip->halt = 0;
     chip->o_halt = chip->halt;
-    chip->w20 = !(chip->tm_w1 || chip->tm_w2 || !chip->tm_w3 || chip->tm_w4);
+    chip->w20 = !(chip->w55 || !chip->w97 || !chip->w118 || chip->w133);
     if (chip->w32 || chip->w26)
         chip->w21 = 0;
     if (chip->w23)
         chip->w21 = 1;
     chip->o_mreq = state_z;
-    if (!chip->tm_w4 && !chip->w21)
+    if (!chip->w62 && !chip->w21)
         chip->o_mreq = state_0;
     if (chip->w21)
         chip->o_mreq = state_1;
     if (chip->w26 || chip->w32)
         chip->w22 = 0;
-    if (chip->w23 || (chip->tm_w5 && clk))
+    if (chip->w23 || (chip->w36 && clk))
         chip->w22 = 1;
     chip->o_iorq = state_z;
-    if (!chip->tm_w1 && !chip->w22)
+    if (!chip->w62 && !chip->w22)
         chip->o_iorq = state_0;
     if (chip->w22)
         chip->o_iorq = state_1;
@@ -99,21 +99,21 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w23 = !clk && !chip->l5;
     if (clk)
         chip->l6 = chip->w27;
-    chip->w24 = !clk && !chip->tm_w1 && !chip->l6;
+    chip->w24 = !clk && !chip->w202 && !chip->l6;
 
     chip->w25 = !(chip->w24 || chip->w23 || (chip->w36 && clk));
-    chip->w26 = chip->tm_w1 && chip->w41 && clk;
-    chip->w27 = !((chip->tm_w1 && chip->tm_w5) || (chip->tm_w4 && (chip->w41 || (chip->tm_w1 && chip->tm_w2))));
+    chip->w26 = chip->w131 && chip->w41 && clk;
+    chip->w27 = !((chip->w110 && chip->w93) || (chip->w131 && (chip->w41 || (chip->w110 && !chip->w18))));
 
     if (clk)
-        chip->l7 = chip->tm_w5;
-    chip->w28 = !(chip->halt || (chip->w18 && chip->tm_w2) || chip->tm_w3 || chip->tm_w4 || !(chip->w18 || chip->l7));
+        chip->l7 = chip->w57;
+    chip->w28 = !(chip->halt || (chip->w18 && chip->w80) || chip->w55 || chip->w19 || !(chip->w18 || chip->l7));
 
-    if (chip->tm_w2)
+    if (chip->w103)
         chip->w29 = chip->w28;
     if (clk)
         chip->w29 = !chip->w30;
-    if (chip->tm_w1)
+    if (chip->w55)
         chip->w29 = 0;
     chip->w30 = !chip->w29;
 
@@ -125,7 +125,7 @@ void Z80_Clock(z80_t *chip, int clk)
     if (chip->w26 || chip->w32)
         chip->w31 = 0;
     chip->o_rd = state_z;
-    if (!chip->tm_w4 && !chip->w31)
+    if (!chip->w62 && !chip->w31)
         chip->o_rd = state_0;
     if (chip->w31)
         chip->o_rd = state_1;
@@ -135,29 +135,29 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w32 = !clk && chip->l9;
 
     if (clk)
-        chip->l10 = !chip->w41 && !chip->tm_w2;
+        chip->l10 = !chip->w41 && !chip->w55;
     if (!clk && !chip->l10)
         chip->w33 = 0;
     if (clk)
-        chip->l11 = !(chip->tm_w3 && chip->tm_w4);
+        chip->l11 = !(chip->w114 && chip->w201);
     if (!chip->l11)
         chip->w33 = 1;
-    if (clk && chip->tm_w5 && chip->tm_w3 && chip->tm_w4)
+    if (clk && chip->w106 && chip->w114 && chip->w201)
         chip->w33 = 1;
 
     chip->o_wr = state_z;
-    if (!chip->w33 && !chip->tm_w6)
+    if (!chip->w33 && !chip->w62)
         chip->o_wr = state_0;
     if (chip->w33)
         chip->o_wr = state_1;
 
     if (clk)
-        chip->l12 = !chip->w41 && !(!chip->tm_w1 && chip->w34);
+        chip->l12 = !chip->w41 && !(!chip->w114 && chip->w34);
     else
-        chip->w34 = !(chip->l12 && chip->tm_w3);
+        chip->w34 = !(chip->l12 && chip->w112);
 
     chip->w35 = !(!chip->w37 && chip->tm_w2 && chip->tm_w3);
-    chip->w36 = chip->tm_w1 && chip->tm_w2;
+    chip->w36 = chip->w114 && chip->w106;
     if (!clk)
         chip->w37 = chip->tm_w1;
 
@@ -168,13 +168,13 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w39 = chip->w38 && !chip->i_wait;
     else
         chip->w40 = !chip->w39;
-    if (chip->tm_w1)
+    if (chip->w202)
         chip->w40 = 0;
 
     chip->w41 = !chip->w40 && !chip->w34;
 
     if (clk)
-        chip->l13 = chip->tm_w1 && chip->tm_w2;
+        chip->l13 = chip->tm_w1 && chip->w201;
     chip->w43 = !(!chip->pla[35] && chip->l13);
     chip->w42 = !clk && !chip->w43;
 
@@ -186,11 +186,11 @@ void Z80_Clock(z80_t *chip, int clk)
         chip->w44 = 1;
 
     if (clk)
-        chip->l15 = !(chip->tm_w1 && chip->tm_w2);
+        chip->l15 = !(chip->w201 && chip->tm_w2);
     chip->w45 = !clk && !chip->l15;
 
     chip->w46 = !(chip->tm_w1 || (chip->tm_w2 && chip->tm_w3) || (chip->tm_w2 && chip->tm_w4));
-    chip->w192 = (chip->tm_w1 && chip->tm_w2) || (chip->w41 && chip->w3 && chip->w46);
+    chip->w192 = (chip->w201 && chip->tm_w2) || (chip->w41 && chip->w3 && chip->w46);
     if (clk)
         chip->l16 = !(chip->tm_w1 && chip->tm_w2 && chip->w41);
     chip->w47 = !clk && !chip->l16;
@@ -235,7 +235,7 @@ void Z80_Clock(z80_t *chip, int clk)
 
     if (clk)
         chip->l21 = chip->w68;
-    chip->w60 = chip->l21 && chip->tm_w2;
+    chip->w60 = chip->l21 && chip->w112;
     if (!clk)
         chip->w61 = chip->w60;
 
@@ -262,7 +262,7 @@ void Z80_Clock(z80_t *chip, int clk)
     if (clk)
         chip->l25 = chip->tm_w1;
     else
-        chip->w68 = chip->l25 && chip->tm_w2;
+        chip->w68 = chip->l25 && chip->w112;
 
     chip->w69 = !(chip->w55 || (chip->w41 && chip->tm_w1));
     chip->w70 = !(chip->tm_w1 && chip->pla[1] && chip->tm_w3);
@@ -271,7 +271,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w71 = !clk && !chip->l26;
     chip->w72 = !(!chip->w73 || chip->pla[1]);
 
-    if (chip->tm_w1 || chip->w18 || chip->tm_w5)
+    if (chip->w19 || chip->w18 || chip->tm_w5)
         chip->w73 = 0;
     else if (!clk)
     {
@@ -289,7 +289,7 @@ void Z80_Clock(z80_t *chip, int clk)
     }
     if (clk)
         chip->l27 = chip->tm_w2;
-    chip->w75 = !clk && !chip->l27 && !chip->tm_w1;
+    chip->w75 = !clk && !chip->l27 && !chip->w19;
 
     chip->w76 = !(chip->pla[52] && chip->tm_w2 && chip->tm_w3);
     chip->w77 = chip->tm_w1 && chip->tm_w2;
@@ -334,7 +334,7 @@ void Z80_Clock(z80_t *chip, int clk)
         if (chip->w103)
             chip->w92 = !chip->l43;
     }
-    chip->w93 = !(chip->tm_w1 || chip->tm_w2);
+    chip->w93 = !(chip->w131 || chip->w106);
     chip->w94 = (chip->w41 && chip->tm_w2) || chip->w55 || chip->tm_w3;
     if (chip->w55)
         chip->w95 = 0;
@@ -356,7 +356,7 @@ void Z80_Clock(z80_t *chip, int clk)
         if (!chip->w98 && chip->w103)
             chip->w100 = chip->w99;
     }
-    chip->w101 = !(chip->tm_w4 || chip->tm_w5 || (chip->tm_w3 && (chip->w41 || chip->tm_w2)));
+    chip->w101 = !(chip->w202 || chip->w201 || (chip->tm_w3 && (chip->w41 || chip->tm_w2)));
     chip->w102 = !((chip->tm_w1 && chip->tm_w2) || (chip->tm_w3 && chip->tm_w4 && chip->tm_w5));
     if (clk)
         chip->l29 = chip->w102;
@@ -370,12 +370,12 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->w108 = !chip->w104;
     if (clk)
         chip->l30 = chip->w41;
-    chip->w108 = !(chip->l30 && chip->tm_w1);
+    chip->w530 = !(chip->l30 && chip->w112);
     if (!clk)
-        chip->w109 = !chip->w108;
+        chip->w109 = !chip->w530;
     chip->w110 = !(chip->w113 || chip->w111);
     if (clk)
-        chip->w112 = !chip->tm_w1 && chip->tm_w2;
+        chip->w112 = !chip->tm_w1 && chip->w133;
     if (!clk)
         chip->w111 = chip->w112;
     chip->w113 = !(chip->w66 || chip->w63 || chip->w65);
