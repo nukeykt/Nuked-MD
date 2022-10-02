@@ -646,19 +646,11 @@ typedef struct {
     int w529;
     int regs2[2];
     int w530;
-
-    // temp wires
-    int tm_w1;
-    int tm_w2;
-    int tm_w3;
-    int tm_w4;
-    int tm_w5;
-    int tm_w6;
-    int tm_w7;
-    int tm_w8;
-    int tm_w9;
-    int tm_w10;
-    int tm_w11;
-    int tm_w12;
+    int w531;
+    int l82;
+    int w532;
+    int l83;
+    int l84;
+    int bu1, bu2, bu3;
 
 } z80_t;
