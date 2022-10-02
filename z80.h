@@ -639,6 +639,7 @@ typedef struct {
     int l80;
     int w524;
     int w525;
+    int l81;
     int w526;
     int w527;
     int w528;
