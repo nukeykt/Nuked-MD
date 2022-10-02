@@ -18,6 +18,7 @@ typedef struct {
 
     int ext_data_i;
     int ext_data_o;
+    int ext_data_o_high;
     int o_mreq;
     int o_halt;
     int o_iorq;
@@ -26,6 +27,8 @@ typedef struct {
     int o_busak;
     int o_m1;
     int o_rfsh;
+    int o_addr;
+    int o_addr_high;
 
     // state
     int w1;
@@ -632,6 +635,16 @@ typedef struct {
     int w520;
     int w521;
     int w522;
+    int w523;
+    int l80;
+    int w524;
+    int w525;
+    int l81;
+    int w526;
+    int w527;
+    int w528;
+    int w529;
+    int regs2[2];
 
     // temp wires
     int tm_w1;
