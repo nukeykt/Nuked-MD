@@ -2239,6 +2239,7 @@ void FM_Clock(fm_t *chip, int phi)
 }
 
 
+#if 0
 void main(void)
 {
     int i;
@@ -2320,3 +2321,4 @@ void main(void)
         //    printf("%i %i %i %i %i\n", i, v1, v2, v3, v4);
     }
 }
+#endif
