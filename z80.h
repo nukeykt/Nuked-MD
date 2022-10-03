@@ -632,6 +632,7 @@ typedef struct {
     int w518;
     int w519;
     int regs[12];
+    int regs_[12][2];
     int w520;
     int w521;
     int w522;
@@ -645,6 +646,7 @@ typedef struct {
     int w528;
     int w529;
     int regs2[2];
+    int regs2_[2][2];
     int w530;
     int w531;
     int l82;
