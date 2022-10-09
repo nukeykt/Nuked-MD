@@ -12,6 +12,13 @@ int Z80_GetData(z80_t *chip)
     return chip->ext_data_o;
 }
 
+void Z80_ClkLatches(z80_t *chip, int clk)
+{
+    chip->w304 = !clk && chip->w303 && chip->pla[95];
+    chip->w328 = !clk && !chip->w302;
+    chip->w440 = !clk && !chip->w392;
+}
+
 void Z80_ResetLogic(z80_t *chip, int clk)
 {
     chip->w52 = !clk && chip->l19;
@@ -1009,7 +1016,6 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
         chip->w391 = !chip->w280;
 
     chip->w392 = !(chip->w391 && !chip->w162);
-    chip->w440 = !clk && !chip->w392;
 
     chip->w281 = !(
         (chip->w110 && chip->w123) || (chip->w114 && chip->w120)
@@ -1243,7 +1249,6 @@ void Z80_RegistersLogic(z80_t* chip, int clk)
     if (clk)
         chip->l42 = chip->w227;
     chip->w303 = !chip->l42;
-    chip->w304 = !clk && chip->w303 && chip->pla[95];
     if (clk)
         chip->l45 = chip->w315;
     else if (chip->w304)
@@ -1251,6 +1256,7 @@ void Z80_RegistersLogic(z80_t* chip, int clk)
 
     if (clk)
         chip->w322 = !chip->w113;
+
 
     chip->w326 = !(chip->w303 && chip->pla[96]);
 
@@ -1262,8 +1268,6 @@ void Z80_RegistersLogic(z80_t* chip, int clk)
 
     if (chip->w324)
         chip->l46 = chip->w327;
-
-    chip->w328 = !clk && !chip->w302;
 
     if (chip->w328)
         chip->w327 = !chip->l46;
@@ -2057,6 +2061,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->bu2 = 0;
     chip->bu3 = 0;
 
+    Z80_ClkLatches(chip, clk);
     Z80_ResetLogic(chip, clk);
     Z80_StateLogic(chip, clk);
     Z80_InterruptLogic(chip, clk);
