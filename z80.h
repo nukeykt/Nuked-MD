@@ -32,8 +32,8 @@ typedef struct {
 
     int w110; // t1
     int w114; // t2
-    int w109; // t4
     int w41; // t3
+    int w109; // t4
     int w68; // t5
     int w61; // t6
     int w131; // m1
@@ -52,8 +52,6 @@ typedef struct {
     int w14;
     int w15;
     int w16;
-    int w17;
-    int w20;
     int w23;
     int w24;
     int w25;
@@ -82,7 +80,6 @@ typedef struct {
     int w65;
     int w67;
     int w69;
-    int w70;
     int w71;
     int w72;
     int w75;
@@ -90,7 +87,7 @@ typedef struct {
     int w77;
     int w79;
     int w81;
-    int w82;
+    int w82; // alu opcode
     int w83;
     int w84;
     int w85;
@@ -98,11 +95,11 @@ typedef struct {
     int w87;
     int w88;
     int w89;
-    int w90;
+    int w90; // normal opcode?
     int w91;
     int w93;
     int w94;
-    int w96;
+    int w96; // bit opcode
     int w97;
     int w101;
     int w102;
@@ -413,13 +410,10 @@ typedef struct {
     int w479;
     int w480;
     int w481;
-    int w482;
     int w483;
     int w485;
     int w486;
     int w487;
-    int w488;
-    int w489;
     int w490;
     int w491;
     int w492;
@@ -456,9 +450,9 @@ typedef struct {
     int l2;
     int l3;
     int halt;
-    int l4;
+    int l4; // end of instruction
     int w18;
-    int w19;
+    int w19; // accept NMI
     int w21;
     int w22;
     int l5;
@@ -501,17 +495,17 @@ typedef struct {
     int w66;
     int l25;
     int l26;
-    int w73;
-    int w74;
+    int w73; // iff1 ???
+    int w74; // iff2 ???
     int l27;
     int w78;
     int l28;
     int w80;
-    int w92;
+    int w92; // misc opcode
     int w95;
     int w98;
     int w99;
-    int w100;
+    int w100; // ix,iy prefix?
     int l29;
     int w104;
     int w107;
@@ -531,7 +525,7 @@ typedef struct {
     int l38;
     int w145;
     int w146; // bus 1
-    int w147;
+    int w147; // opcode
     int l39;
     int w205;
     int l40;
@@ -657,5 +651,9 @@ typedef struct {
     int l83;
     int l84;
     int bu1, bu2, bu3;
+
+    int pull1[2];
+    int pull2[2];
+    int ix;
 
 } z80_t;
