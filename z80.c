@@ -17,6 +17,8 @@ void Z80_ClkLatches(z80_t *chip, int clk)
     chip->w304 = !clk && chip->w303 && chip->pla[95];
     chip->w328 = !clk && !chip->w302;
     chip->w440 = !clk && !chip->w392;
+    chip->w329 = !clk && !chip->w326 && !chip->w327;
+    chip->w331 = !clk && !chip->w326 && chip->w327;
 }
 
 void Z80_ResetLogic(z80_t *chip, int clk)
@@ -1271,10 +1273,6 @@ void Z80_RegistersLogic(z80_t* chip, int clk)
 
     if (chip->w328)
         chip->w327 = !chip->l46;
-
-    chip->w329 = !clk && !chip->w326 && !chip->w327;
-
-    chip->w331 = !clk && !chip->w326 && chip->w327;
 
     chip->w323 = !((clk && !chip->w113) || chip->w322);
 
