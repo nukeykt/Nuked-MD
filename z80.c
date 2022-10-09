@@ -47,8 +47,7 @@ void Z80_StateLogic(z80_t* chip, int clk)
         chip->w59 = chip->w58;
     if (clk)
         chip->w63 = chip->l23;
-    chip->w64 = !chip->l24;
-    chip->w65 = !(chip->w64 || clk || !chip->w59);
+    chip->w65 = !(!chip->l24 || clk || !chip->w59);
     chip->w67 = !clk && !chip->w59;
     if (chip->w63 || chip->w67)
         chip->w66 = 0;
@@ -69,9 +68,8 @@ void Z80_StateLogic(z80_t* chip, int clk)
     chip->w110 = !(chip->w113 || chip->w111);
     if (clk)
         chip->l31 = chip->w110;
-    chip->w532 = !(chip->w112 && chip->l31);
     if (!clk)
-        chip->w114 = !chip->w532;
+        chip->w114 = chip->w112 && chip->l31;
     if (!clk)
         chip->w40 = !chip->w39;
     if (chip->w202)
@@ -90,9 +88,8 @@ void Z80_StateLogic(z80_t* chip, int clk)
         chip->w131 = chip->w130;
     if (clk)
         chip->l32 = chip->w131;
-    chip->w119 = chip->l32 && !chip->w134 && !chip->w130;
     if (chip->w132)
-        chip->w120 = chip->w119;
+        chip->w120 = chip->l32 && !chip->w134 && !chip->w130;
     if (clk)
         chip->l35 = chip->w120;
     chip->w128 = !(chip->w134 || chip->w130 || !chip->l35);
@@ -100,9 +97,8 @@ void Z80_StateLogic(z80_t* chip, int clk)
         chip->w127 = chip->w128;
     if (clk)
         chip->l34 = chip->w127;
-    chip->w124 = !chip->w130 && (chip->l34 || chip->w134);
     if (chip->w132)
-        chip->w123 = chip->w124;
+        chip->w123 = !chip->w130 && (chip->l34 || chip->w134);
     if (clk)
         chip->l33 = chip->w123;
     chip->w122 = chip->l33 && !chip->w130;
@@ -637,8 +633,6 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->w255 = !chip->w174 || (chip->w115 && chip->w256);
 
     chip->w254 = !(!chip->w255 || !chip->w186);
-
-    chip->w194 = !chip->w202 && !chip->w203;
 
     chip->w196 = chip->pla[86] || chip->pla[87];
     chip->w195 = !(chip->pla[88] || !(chip->w196 || (!chip->w299 && !chip->w173)));
@@ -1390,11 +1384,6 @@ void Z80_AluControlLogic(z80_t *chip, int clk)
 {
     if (clk)
         chip->w372 = !chip->w286;
-    chip->w502 = !((chip->w498 & 8) != 0 && ((chip->w498 & 4) != 0 || (chip->w498 & 2) != 0));
-    chip->w501 = !((chip->w498 & 128) != 0 && ((chip->w498 & 64) != 0 || (chip->w498 & 32) != 0
-        || ((chip->w498 & 16) != 0) && !chip->w502));
-    chip->w443 = !(chip->pla[21] && chip->l83 && chip->w501);
-    chip->w444 = !(chip->pla[21] && chip->l84 && chip->w502);
 
     if (clk)
         chip->w373 = !chip->w285 || !chip->w284;
@@ -1482,6 +1471,63 @@ void Z80_AluControlLogic(z80_t *chip, int clk)
     chip->w446 = !chip->w442 && !chip->w433;
 }
 
+void Z80_CalcAlu(z80_t *chip)
+{
+    int o1, o2, t, t2, c;
+
+    if (chip->alu_calc)
+        return;
+    {
+        int t;
+        if (chip->w481)
+            t = chip->w511 ^ 255;
+        else
+            t = chip->w511;
+
+        if (chip->w446)
+            chip->w512 = t & 15;
+        else
+            chip->w512 = (t >> 4) & 15;
+    }
+
+    chip->w504 = 0;
+    c = !(chip->w467 ^ chip->w476);
+
+    o1 = (chip->w512 & 1) != 0;
+    o2 = (chip->w500 & 1) != 0;
+    t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
+    t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
+    c = !t && !chip->w456;
+    chip->w504 |= t2 << 0;
+
+    o1 = (chip->w512 & 2) != 0;
+    o2 = (chip->w500 & 2) != 0;
+    t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
+    t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
+    c = !t && !chip->w456;
+    chip->w504 |= t2 << 1;
+
+    o1 = (chip->w512 & 4) != 0;
+    o2 = (chip->w500 & 4) != 0;
+    t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
+    t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
+    c = !t && !chip->w456;
+    chip->w504 |= t2 << 2;
+
+    chip->w508 = c;
+
+    o1 = (chip->w512 & 8) != 0;
+    o2 = (chip->w500 & 8) != 0;
+    t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
+    t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
+    c = !t && !chip->w456;
+    chip->w504 |= t2 << 3;
+
+    chip->w507 = c;
+
+    chip->alu_calc = 1;
+}
+
 void Z80_AluLogic(z80_t *chip, int clk)
 {
     if (clk)
@@ -1495,70 +1541,8 @@ void Z80_AluLogic(z80_t *chip, int clk)
     if (clk)
         chip->l65 = chip->w168;
     chip->w456 = !chip->l65 && !chip->w115;
-    {
-        int t;
-        if (chip->w481)
-            t = chip->w511 ^ 255;
-        else
-            t = chip->w511;
-
-        if (chip->w446)
-            chip->w512 = t & 15;
-        else
-            chip->w512 = (t >> 4) & 15;
-    }
-    chip->w478 = !(chip->w467 ^ chip->w476);
-    if (chip->w446)
-        chip->w500 = chip->w498 & 15;
-    else
-        chip->w500 = (chip->w498 >> 4) & 15;
-    {
-        int o1, o2, t, t2, c;
-
-        chip->w504 = 0;
-        c = chip->w478;
-
-        o1 = (chip->w512 & 1) != 0;
-        o2 = (chip->w500 & 1) != 0;
-        t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
-        t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
-        c = !t && !chip->w456;
-        chip->w504 |= t2 << 0;
-
-        o1 = (chip->w512 & 2) != 0;
-        o2 = (chip->w500 & 2) != 0;
-        t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
-        t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
-        c = !t && !chip->w456;
-        chip->w504 |= t2 << 1;
-
-        o1 = (chip->w512 & 4) != 0;
-        o2 = (chip->w500 & 4) != 0;
-        t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
-        t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
-        c = !t && !chip->w456;
-        chip->w504 |= t2 << 2;
-
-        chip->w508 = c;
-
-        o1 = (chip->w512 & 8) != 0;
-        o2 = (chip->w500 & 8) != 0;
-        t = !((c && (o1 || o2)) || (o1 && o2) || chip->w455);
-        t2 = ((o1 || o2 || c) && (t || chip->w454)) || (o1 && o2 && c);
-        c = !t && !chip->w456;
-        chip->w504 |= t2 << 3;
-
-        chip->w507 = c;
-    }
     if (clk)
         chip->w453 = chip->pla[15];
-    chip->w451 = !(chip->w508 ^ chip->w507) && !chip->w453;
-
-    if (chip->w446)
-        chip->w503 = chip->w504;
-
-    if (chip->w377)
-        chip->w496 = chip->w503 | (chip->w504 << 4);
     if (chip->w378)
         chip->w496 = chip->w511;
     if (!chip->w402)
@@ -1575,21 +1559,7 @@ void Z80_RegistersLogic2(z80_t* chip, int clk)
     chip->pull2[0] = 0;
     chip->pull2[1] = 0;
     chip->ix = -1;
-    if (clk)
-    {
-        if (chip->w339)
-        {
-            chip->w514 = 0xffff;
-            chip->w515 = 0xffff;
-            if (chip->w338)
-            {
-                chip->w520 = 0xffff;
-                chip->w521 = 0xffff;
-            }
-            chip->w527 = chip->w523;
-        }
-    }
-    else
+    if (!clk)
     {
         if (!chip->w364)
             chip->ix = 0;
@@ -1632,16 +1602,6 @@ void Z80_RegistersLogic2(z80_t* chip, int clk)
             }
         }
 #endif
-        if (!chip->w518)
-        {
-            chip->bu2 = 255;
-            chip->w484 = chip->w515;
-        }
-        if (!chip->w519)
-        {
-            chip->bu3 = 255;
-            chip->w513 = (chip->w515 >> 8) & 255;
-        }
 
     }
     if (!chip->w215)
@@ -1686,46 +1646,56 @@ void Z80_RegistersLogic2(z80_t* chip, int clk)
     //chip->w521 &= ~pull2[1];
 
 
-    if (!clk)
-    {
-        if (chip->w334)
-            chip->w522 = chip->w520;
-    }
     if (clk && chip->w210)
         chip->w524 = (chip->w522 & 0xffff) != 1;
     chip->w438 = !chip->w524;
+    if (clk)
     {
-        int i;
-        int c[16], o[16], o2[15];
-        chip->w523 = 0;
-        chip->w525 = chip->w522 & 0x7fff;
-        if (!chip->w210)
-            chip->w525 ^= 0x7fff;
-        for (i = 0; i < 16; i++)
-            o[i] = (chip->w522 >> i) & 1;
-        for (i = 0; i < 15; i++)
-            o2[i] = (chip->w525 >> i) & 1;
-        c[0] = !chip->w193;
-        c[1] = !chip->w193 && !o2[0];
-        c[2] = !chip->w193 && !o2[0] && !o2[1];
-        c[3] = !o2[2] && c[2];
-        c[4] = !o2[3] && !o2[2] && c[2];
-        c[5] = !o2[4] && c[4];
-        c[6] = !o2[5] && !o2[4] && c[4];
-        c[7] = !o2[6] && !o2[5] && !o2[4] && !o2[3] && !o2[2] && !o2[1] && !o2[0] && !chip->w193 && !chip->w321;
-        c[8] = !o2[7] && c[7];
-        c[9] = !o2[8] && !o2[7] && c[7];
-        c[10] = !o2[9] && c[9];
-        c[11] = !o2[10] && !o2[9] && c[9];
-        c[12] = !o2[11] && !o2[10] && !o2[9] && !o2[8] && !o2[7] && c[7];
-        c[13] = !o2[12] && c[12];
-        c[14] = !o2[13] && !o2[12] && c[12];
-        c[15] = !o2[14] && !o2[13] && !o2[12] && c[12];
+        if (chip->w339)
+        {
+            chip->w514 = 0xffff;
+            chip->w515 = 0xffff;
+            if (chip->w338)
+            {
+                chip->w520 = 0xffff;
+                chip->w521 = 0xffff;
+            }
+            {
+                int i;
+                int c[16], o[16], o2[15];
+                chip->w523 = 0;
+                chip->w525 = chip->w522 & 0x7fff;
+                if (!chip->w210)
+                    chip->w525 ^= 0x7fff;
+                for (i = 0; i < 16; i++)
+                    o[i] = (chip->w522 >> i) & 1;
+                for (i = 0; i < 15; i++)
+                    o2[i] = (chip->w525 >> i) & 1;
+                c[0] = !chip->w193;
+                c[1] = !chip->w193 && !o2[0];
+                c[2] = !chip->w193 && !o2[0] && !o2[1];
+                c[3] = !o2[2] && c[2];
+                c[4] = !o2[3] && !o2[2] && c[2];
+                c[5] = !o2[4] && c[4];
+                c[6] = !o2[5] && !o2[4] && c[4];
+                c[7] = !o2[6] && !o2[5] && !o2[4] && !o2[3] && !o2[2] && !o2[1] && !o2[0] && !chip->w193 && !chip->w321;
+                c[8] = !o2[7] && c[7];
+                c[9] = !o2[8] && !o2[7] && c[7];
+                c[10] = !o2[9] && c[9];
+                c[11] = !o2[10] && !o2[9] && c[9];
+                c[12] = !o2[11] && !o2[10] && !o2[9] && !o2[8] && !o2[7] && c[7];
+                c[13] = !o2[12] && c[12];
+                c[14] = !o2[13] && !o2[12] && c[12];
+                c[15] = !o2[14] && !o2[13] && !o2[12] && c[12];
 
-        for (i = 0; i < 16; i++)
-            chip->w523 |= (c[i] ^ o[i] ^ 1) << i;
+                for (i = 0; i < 16; i++)
+                    chip->w523 |= (c[i] ^ o[i] ^ 1) << i;
+            }
+            chip->w527 = chip->w523;
+        }
     }
 
+    chip->w194 = !chip->w202 && !chip->w203;
     if (clk && chip->w194)
         chip->w526 = chip->w522 ^ 0xffff;
 
@@ -1740,6 +1710,24 @@ void Z80_RegistersLogic2(z80_t* chip, int clk)
     chip->w515 = chip->pull1[1] ^ 0xffff;
     chip->w520 = chip->pull2[0] ^ 0xffff;
     chip->w521 = chip->pull2[1] ^ 0xffff;
+    if (!clk)
+    {
+        if (chip->w334)
+            chip->w522 = chip->w520;
+    }
+    if (!clk)
+    {
+        if (!chip->w518)
+        {
+            chip->bu2 = 255;
+            chip->w484 = chip->w515;
+        }
+        if (!chip->w519)
+        {
+            chip->bu3 = 255;
+            chip->w513 = (chip->w515 >> 8) & 255;
+        }
+    }
 }
 
 void Z80_BusLogic2(z80_t *chip, int clk)
@@ -1835,23 +1823,7 @@ void Z80_AluLogic2(z80_t *chip, int clk)
         chip->w496 &= 0xfe;
         chip->w496 |= (chip->w484 >> 7) & 1;
     }
-    if (chip->w432)
-        chip->w510 = ((chip->w500 & 15) | ((chip->w496 & 15) << 4)) ^ 255;
-    if (!clk)
-    {
-        if (chip->w480)
-            chip->w511 = chip->w510 ^ 255;
-        if (chip->w491)
-            chip->w511 &= 0x38;
-        if (chip->w490)
-            chip->w511 &= 0x7f;
-        if (chip->w490 && chip->w491)
-            chip->w511 &= 0xc7;
-        if (chip->w492)
-            chip->w511 = chip->w496 ^ 255;
-    }
 
-    chip->w509 = !(chip->w487 || (chip->w503 & 15) != 0 || (chip->w504 & 15) != 0);
     if (!clk)
     {
         if (chip->w436)
@@ -1859,7 +1831,10 @@ void Z80_AluLogic2(z80_t *chip, int clk)
         else if (chip->w382)
             chip->w445 = (chip->w484 & 64) != 0;
         else if (chip->w440)
-            chip->w445 = !chip->w509;
+        {
+            Z80_CalcAlu(chip);
+            chip->w445 = (chip->w487 || (chip->w503 & 15) != 0 || (chip->w504 & 15) != 0);
+        }
     }
     chip->w486 = !chip->w445;
     chip->w487 = !chip->w486;
@@ -1868,46 +1843,18 @@ void Z80_AluLogic2(z80_t *chip, int clk)
 
     if (clk)
         chip->w452 = !chip->w158;
-    chip->w505 = !(((chip->w485 ^ ((chip->w504 & 1) != 0)) ^ ((chip->w504 & 2) != 0)) ^ ((chip->w504 & 4) != 0));
     if (clk)
+    {
+        Z80_CalcAlu(chip);
+        chip->w505 = !(((chip->w485 ^ ((chip->w504 & 1) != 0)) ^ ((chip->w504 & 2) != 0)) ^ ((chip->w504 & 4) != 0));
         chip->l62 = chip->w505;
-    if (chip->w446)
-        chip->l78 = chip->w505;
+    }
     if (clk)
         chip->w449 = !chip->l78;
-    chip->w506 = ((chip->w504 & 8) != 0) ^ ((chip->w503 & 8) != 0);
-    chip->w447 = !(chip->w506 ^ chip->l62);
-
-    if (!clk)
-    {
-        if (chip->w382)
-            chip->w441 = (chip->w484 & 4) == 0;
-        else if (chip->w437)
-            chip->w441 = !chip->w438;
-        else if (chip->w436)
-            chip->w441 = !0;
-        else if (chip->w439)
-            chip->w441 = !chip->w449;
-        else if (chip->w440)
-        {
-            if (chip->w452)
-                chip->w441 = !chip->w451;
-            else
-                chip->w441 = !chip->w447;
-        }
-    }
-    chip->w485 = !chip->w441;
     if (clk)
         chip->l83 = (chip->w484 & 1) != 0;
     if (clk)
         chip->l84 = (chip->w484 & 16) != 0;
-    if (!clk)
-    {
-        if (chip->w382)
-            chip->w450 = (chip->w484 & 128) == 0;
-        else if (chip->w440)
-            chip->w450 = (chip->w504 & 8) != 0;
-    }
     chip->w466 = !clk && chip->w390 && !chip->pla[21];
     chip->w457 = (chip->pla[30] && (chip->w147 & 8) == 0) || !chip->w160;
 
@@ -1975,6 +1922,82 @@ void Z80_AluLogic2(z80_t *chip, int clk)
             chip->w498 ^= (chip->w499 & 15) ^ 15;
         }
     }
+    chip->w502 = !((chip->w498 & 8) != 0 && ((chip->w498 & 4) != 0 || (chip->w498 & 2) != 0));
+    chip->w501 = !((chip->w498 & 128) != 0 && ((chip->w498 & 64) != 0 || (chip->w498 & 32) != 0
+        || ((chip->w498 & 16) != 0) && !chip->w502));
+    chip->w443 = !(chip->pla[21] && chip->l83 && chip->w501);
+    chip->w444 = !(chip->pla[21] && chip->l84 && chip->w502);
+    if (chip->w446)
+        chip->w500 = chip->w498 & 15;
+    else
+        chip->w500 = (chip->w498 >> 4) & 15;
+    if (chip->w432)
+        chip->w510 = ((chip->w500 & 15) | ((chip->w496 & 15) << 4)) ^ 255;
+    if (!clk)
+    {
+        if (chip->w480)
+            chip->w511 = chip->w510 ^ 255;
+        if (chip->w491)
+            chip->w511 &= 0x38;
+        if (chip->w490)
+            chip->w511 &= 0x7f;
+        if (chip->w490 && chip->w491)
+            chip->w511 &= 0xc7;
+        if (chip->w492)
+            chip->w511 = chip->w496 ^ 255;
+    }
+
+    if (chip->w446)
+    {
+        Z80_CalcAlu(chip);
+        chip->w503 = chip->w504;
+    }
+
+    if (chip->w377)
+    {
+        Z80_CalcAlu(chip);
+        chip->w496 = chip->w503 | (chip->w504 << 4);
+    }
+
+    if (!clk)
+    {
+        if (chip->w382)
+            chip->w441 = (chip->w484 & 4) == 0;
+        else if (chip->w437)
+            chip->w441 = !chip->w438;
+        else if (chip->w436)
+            chip->w441 = !0;
+        else if (chip->w439)
+            chip->w441 = !chip->w449;
+        else if (chip->w440)
+        {
+            if (chip->w452)
+                chip->w441 = (chip->w508 ^ chip->w507) && !chip->w453;
+            else
+            {
+                Z80_CalcAlu(chip);
+                chip->w506 = ((chip->w504 & 8) != 0) ^ ((chip->w503 & 8) != 0);
+                chip->w441 = chip->w506 ^ chip->l62;
+            }
+        }
+    }
+    chip->w485 = !chip->w441;
+    if (chip->w446)
+    {
+        Z80_CalcAlu(chip);
+        chip->w505 = !(((chip->w485 ^ ((chip->w504 & 1) != 0)) ^ ((chip->w504 & 2) != 0)) ^ ((chip->w504 & 4) != 0));
+        chip->l78 = chip->w505;
+    }
+    if (!clk)
+    {
+        if (chip->w382)
+            chip->w450 = (chip->w484 & 128) == 0;
+        else if (chip->w440)
+        {
+            Z80_CalcAlu(chip);
+            chip->w450 = (chip->w504 & 8) != 0;
+        }
+    }
 }
 
 void Z80_RegistersLogic3(z80_t *chip, int clk)
@@ -2030,6 +2053,11 @@ void Z80_RegistersLogic3(z80_t *chip, int clk)
     chip->w515 = chip->pull1[1] ^ 0xffff;
     chip->w520 = chip->pull2[0] ^ 0xffff;
     chip->w521 = chip->pull2[1] ^ 0xffff;
+    if (!clk)
+    {
+        if (chip->w334)
+            chip->w522 = chip->w520;
+    }
 }
 
 void Z80_ConditionLogic(z80_t *chip, int clk)
@@ -2058,6 +2086,7 @@ void Z80_Clock(z80_t *chip, int clk)
     chip->bu1 = 0;
     chip->bu2 = 0;
     chip->bu3 = 0;
+    chip->alu_calc = 0;
 
     Z80_ClkLatches(chip, clk);
     Z80_ResetLogic(chip, clk);

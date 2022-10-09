@@ -652,6 +652,8 @@ typedef struct {
     int l84;
     int bu1, bu2, bu3;
 
+    int alu_calc;
+
     int pull1[2];
     int pull2[2];
     int ix;
