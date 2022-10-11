@@ -691,7 +691,7 @@ void FM_FMRegisters1(fm_t *chip)
         if (write_data_en && chip->write_mode_24[1] && !chip->bank_latch)
             chip->mode_timer_a_reg[0] |= (bus & 255) << 2;
         else
-            chip->mode_timer_a_reg[0] |= chip->mode_timer_a_reg[1] & 0x3fe;
+            chip->mode_timer_a_reg[0] |= chip->mode_timer_a_reg[1] & 0x3fc;
         if (write_data_en && chip->write_mode_25[1] && !chip->bank_latch)
             chip->mode_timer_a_reg[0] |= bus & 3;
         else
