@@ -133,6 +133,8 @@ void Z80_InterruptLogic(z80_t *chip, int clk)
 
     if (chip->i_nmi)
         chip->w6 = chip->w7;
+    if (!chip->l2)
+        chip->w6 = 0;
 
     if (!clk)
         chip->w8 = chip->w6;
@@ -526,6 +528,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->w85 = !(chip->w78 && chip->w18);
     chip->w84 = !(!chip->w80 || chip->w85);
     chip->w86 = (chip->w89 && (chip->w84 || chip->w19)) || (!chip->w89 && chip->pla[42]);
+    chip->w88 = !(chip->w87 && chip->w89 && chip->w18);
 
     chip->w148 = !(chip->pla[11] || chip->pla[16] || chip->pla[17] ||
         chip->pla[21] || chip->pla[27] || chip->pla[33] || chip->pla[34]
@@ -569,7 +572,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
         || chip->pla[51] || chip->pla[61] || chip->pla[72]);
     chip->w160 = !(chip->pla[5] || chip->pla[7] || chip->pla[8]
         || chip->pla[16] || chip->pla[17] || chip->pla[19] || chip->pla[20]
-        || chip->pla[22] || chip->pla[23] || chip->pla[25] || chip->pla[26]);
+        || chip->pla[22] || chip->pla[23] || chip->pla[25]);
     chip->w161 = !(chip->pla[29] || chip->pla[30] || chip->w86
         || chip->pla[48] || chip->pla[52] || chip->pla[53] || chip->pla[61]
         || chip->pla[62] || chip->pla[63] || chip->pla[71] || chip->pla[75]);
@@ -595,13 +598,13 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->w169 = !(chip->pla[39] || chip->pla[40] || chip->pla[43]
         || chip->pla[44] || chip->pla[45] || chip->pla[46] || chip->pla[48]
         || chip->pla[49]);
-    chip->w170 = !(chip->pla[49] || chip->pla[55] || chip->pla[56]
+    chip->w170 = !(chip->pla[49] || chip->pla[55] || chip->pla[56] || chip->pla[44]
         || chip->pla[58] || chip->pla[60] || chip->pla[67] || chip->pla[68]
         || chip->pla[69] || chip->pla[74] || chip->pla[91]);
     chip->w171 = !(chip->pla[6] || chip->pla[9] || chip->pla[13]);
     chip->w172 = !(chip->pla[24] || chip->pla[25] || chip->pla[28]
         || chip->pla[31] || chip->pla[32] || chip->pla[35] || chip->pla[37]);
-    chip->w173 = !(chip->w86 || chip->pla[53] || chip->pla[56] || chip->pla[44]
+    chip->w173 = !(chip->w86 || chip->pla[52] ||  chip->pla[53] || chip->pla[56]
         || chip->pla[63] || chip->pla[74] || chip->pla[75] || chip->pla[88]);
     chip->w174 = !(chip->pla[7] || chip->pla[8] || chip->pla[32]
         || chip->pla[36] || chip->pla[50] || chip->pla[51]);
@@ -707,8 +710,6 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
 
     chip->w138 = chip->w161 && !chip->w126;
     chip->w139 = chip->w159 && chip->w161 && chip->w169 && chip->w157;
-
-    chip->w88 = !(chip->w87 && chip->w89 && chip->w18);
     chip->w117 = chip->w55 || chip->w121 || (chip->w123 && !chip->w164) || (chip->w120 && chip->w138 && !chip->w159)
         || (chip->w127 && (chip->pla[98] || (chip->w155 && (!(!chip->w164 || !chip->w151) || !chip->w151))));
     chip->w118 = chip->w117 || chip->w299 || (chip->w131 && chip->w139);
@@ -1164,7 +1165,7 @@ void Z80_InterruptLogic2(z80_t *chip, int clk)
     if (clk)
         chip->l28 = !(chip->pla[2] && chip->w131 && chip->w110);
 
-    chip->w81 = chip->w80 && !(chip->w89 && chip->w78 && chip->w18);
+    chip->w81 = chip->w80 && (chip->w89 && chip->w78 && chip->w18);
     if (clk)
     {
         chip->l37 = chip->w133;
@@ -1788,7 +1789,7 @@ void Z80_AluLogic2(z80_t *chip, int clk)
     else
     {
         if (chip->w407)
-            chip->w425 = 0;
+            chip->w425 = 1;
         else if (chip->w424 && chip->w405)
             chip->w425 = chip->w423;
         else if (chip->w424 && chip->w408)
@@ -1807,7 +1808,7 @@ void Z80_AluLogic2(z80_t *chip, int clk)
     }
     if (chip->w472)
     {
-        chip->w496 = chip->w513 >> 1;
+        chip->w496 = (chip->w513 >> 1) & 0x7f;
         chip->w496 |= chip->w425 << 7;
     }
     chip->w497 = (1 << (((chip->w146 >> 3) & 7) ^ 7)) ^ 255;
@@ -1937,14 +1938,14 @@ void Z80_AluLogic2(z80_t *chip, int clk)
     {
         if (chip->w480)
             chip->w511 = chip->w510 ^ 255;
-        if (chip->w491)
-            chip->w511 &= 0x38;
-        if (chip->w490)
-            chip->w511 &= 0x7f;
-        if (chip->w490 && chip->w491)
-            chip->w511 &= 0xc7;
         if (chip->w492)
             chip->w511 = chip->w496 ^ 255;
+        if (chip->w490 && chip->w491)
+            chip->w511 = 0;
+        else if (chip->w491)
+            chip->w511 &= 0x38;
+        else if (chip->w490)
+            chip->w511 &= 0x7f;
     }
 
     if (chip->w446)
