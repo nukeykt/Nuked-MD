@@ -498,7 +498,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->pla[91] = (chip->w147 & 0xcf) == 0x01 && chip->w90; // ld nn word
     chip->pla[92] = chip->w147 == 0xe9 && chip->w90; // jp (hl)
     chip->pla[93] = chip->w147 == 0xf9 && chip->w90; // ld sp, hl
-    chip->pla[94] = (chip->w147 & 0xe7) == 0x67 && chip->w92; // rrd, rld
+    chip->pla[94] = (chip->w147 & 0xe7) == 0x47 && chip->w92; // ld i,a; ld r,a; ld a,i; ld a,r
     chip->pla[95] = (chip->w147 & 0xdf) == 0xdd && chip->w90; // ix, iy
     chip->pla[96] = chip->w147 == 0xeb && chip->w90; // ex de, hl
     chip->pla[97] = chip->w147 == 0xd9 && chip->w90; // exx
