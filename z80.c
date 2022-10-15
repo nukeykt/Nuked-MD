@@ -1463,7 +1463,7 @@ void Z80_AluControlLogic(z80_t *chip, int clk)
     chip->w385 = !(chip->w114 || chip->w109);
     if (clk)
         chip->l57 = chip->w385;
-    chip->w432 = !clk && !chip->l57;
+    chip->w432 = !clk && chip->l57;
 
     chip->w426 = !(chip->w390 && !chip->w154);
     chip->w427 = !clk && !chip->w426;
@@ -1852,9 +1852,9 @@ void Z80_AluLogic2(z80_t *chip, int clk)
     }
     if (clk)
         chip->w449 = !chip->l78;
-    if (clk)
+    if (chip->w432)
         chip->l83 = (chip->w484 & 1) != 0;
-    if (clk)
+    if (chip->w432)
         chip->l84 = (chip->w484 & 16) != 0;
     chip->w466 = !clk && chip->w390 && !chip->pla[21];
     chip->w457 = (chip->pla[30] && (chip->w147 & 8) == 0) || !chip->w160;
