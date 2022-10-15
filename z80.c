@@ -671,7 +671,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
 
     chip->w209 = !chip->w186 && (chip->w147 & 8) != 0;
     chip->w208 = !(chip->w110 &&
-        ((chip->w120 && chip->w209 && !chip->w88)
+        ((chip->w120 && (chip->w209 || !chip->w88))
             || (chip->w123 && !chip->w173 && !chip->w167)
             || (chip->w127 && chip->w209)));
     if (clk)
