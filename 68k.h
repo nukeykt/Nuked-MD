@@ -1,0 +1,59 @@
+#pragma once
+
+typedef struct {
+    int w1;
+    int l1;
+    int l2;
+    int w2;
+    int l3;
+    int l4;
+    int w3;
+    int w4;
+    int w5;
+    int w6;
+    int w7;
+    int w8;
+    int w9;
+    int w10;
+    int w11;
+    int w12;
+    int w13;
+    int w14;
+    int w15;
+    int w16;
+    int w17;
+    int w18;
+    int w19;
+    int w20;
+    int w21;
+    int w22;
+    int w23;
+    int w24;
+    int w25;
+    int w26;
+    int w27;
+    int w28;
+    int w29;
+    int w30;
+    int w31;
+    int w32;
+    int w33;
+    int w34;
+    int w35;
+    int w36;
+
+    // temp wires
+    int tm_w1;
+    int tm_w2;
+    int tm_w3;
+    int tm_w4;
+    int tm_w5;
+    int tm_w6;
+    int tm_w7;
+    int tm_w8;
+    int tm_w9;
+    int tm_w10;
+    int tm_w11;
+    int tm_w12;
+} m68k_t;
+
