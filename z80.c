@@ -1735,6 +1735,7 @@ void Z80_BusLogic2(z80_t *chip, int clk)
 {
     {
         int val = 0;
+        int val2 = 0;
         int umask = 0;
         if (chip->w369 && chip->w419)
         {
@@ -1742,32 +1743,38 @@ void Z80_BusLogic2(z80_t *chip, int clk)
             val |= (chip->w146 & chip->bu1);
             val |= (chip->w484 & chip->bu2);
             val |= (chip->w513 & chip->bu3);
-            chip->w146 &= ~umask;
-            chip->w484 &= ~umask;
-            chip->w513 &= ~umask;
-            chip->w146 |= val;
-            chip->w484 |= val;
-            chip->w513 |= val;
+            val2 = 255;
+            val2 &= chip->w146;
+            val2 &= chip->w484;
+            val2 &= chip->w513;
+            val2 &= ~umask;
+            chip->w146 = val | val2;
+            chip->w484 = val | val2;
+            chip->w513 = val | val2;
         }
         else if (chip->w369) // bus1, bus2
         {
             umask |= chip->bu1 | chip->bu2;
             val |= (chip->w146 & chip->bu1);
             val |= (chip->w484 & chip->bu2);
-            chip->w146 &= ~umask;
-            chip->w484 &= ~umask;
-            chip->w146 |= val;
-            chip->w484 |= val;
+            val2 = 255;
+            val2 &= chip->w146;
+            val2 &= chip->w484;
+            val2 &= ~umask;
+            chip->w146 = val | val2;
+            chip->w484 = val | val2;
         }
         else if (chip->w419) // bus2, bus3
         {
             umask |= chip->bu2 | chip->bu3;
             val |= (chip->w484 & chip->bu2);
             val |= (chip->w513 & chip->bu3);
-            chip->w484 &= ~umask;
-            chip->w513 &= ~umask;
-            chip->w484 |= val;
-            chip->w513 |= val;
+            val2 = 255;
+            val2 &= chip->w484;
+            val2 &= chip->w513;
+            val2 &= ~umask;
+            chip->w484 = val | val2;
+            chip->w513 = val | val2;
         }
     }
     if (chip->w2)
