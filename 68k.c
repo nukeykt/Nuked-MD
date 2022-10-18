@@ -185,30 +185,156 @@ void M68K_Clock(m68k_t* chip, int clk)
     else
         chip->w36 = 0;
 
-    if (!chip->tm_w1 && !chip->tm_w2)
+    if (!chip->w55 && !chip->w77)
         chip->w37 = chip->w2;
     else
         chip->w37 = 0;
 
-    if (!chip->tm_w1 && !chip->tm_w2)
+    if (!chip->w58 && !chip->w75)
         chip->w38 = chip->w2;
     else
         chip->w38 = 0;
 
-    chip->w39 = !chip->tm_w1 && !chip->tm_w2;
-    chip->w40 = !chip->tm_w1 && chip->tm_w2;
-    chip->w41 = chip->tm_w1 && !chip->tm_w2;
-    chip->w42 = !chip->tm_w1 && !chip->tm_w2;
-    chip->w43 = !chip->tm_w1;
-    chip->w44 = !!chip->tm_w1;
-    chip->w45 = !chip->tm_w1;
-    chip->w46 = !!chip->tm_w1;
-    chip->w47 = !!chip->tm_w1;
-    chip->w48 = !chip->tm_w1;
-    chip->w49 = !chip->tm_w1;
-    chip->w50 = !!chip->tm_w1;
-    chip->w51 = !chip->tm_w1;
-    chip->w52 = !!chip->tm_w1;
-    chip->w53 = !chip->tm_w1;
-    chip->w54 = !!chip->tm_w1;
+    chip->w39 = !chip->w57 && !chip->w73;
+    chip->w40 = !chip->w57 && chip->w73;
+    chip->w41 = chip->w68 && !chip->w60;
+    chip->w42 = !chip->w68 && !chip->w60;
+    chip->w43 = !chip->w67;
+    chip->w44 = !!chip->w67;
+    chip->w45 = !chip->w66;
+    chip->w46 = !!chip->w66;
+    chip->w47 = !!chip->w65;
+    chip->w48 = !chip->w65;
+    chip->w49 = !chip->w64;
+    chip->w50 = !!chip->w64;
+    chip->w51 = !chip->w63;
+    chip->w52 = !!chip->w63;
+    chip->w53 = !chip->w62;
+    chip->w54 = !!chip->w62;
+
+    chip->w55 = !chip->w72;
+    chip->w56 = !(chip->w71 || chip->w77);
+    chip->w57 = chip->w71 || chip->w72 || chip->w77;
+
+    chip->w58 = !chip->w70;
+    chip->w59 = !(chip->w69 || chip->w75);
+    chip->w60 = chip->w69 || chip->w70 || chip->w75;
+
+    chip->w61 = !chip->tm_w1;
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w62 = chip->tm_w1;
+        else
+            chip->w62 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w63 = chip->tm_w2;
+        else
+            chip->w63 = chip->tm_w1;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w64 = chip->tm_w1;
+        else
+            chip->w64 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w64 = chip->tm_w1;
+        else
+            chip->w64 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w65 = chip->tm_w2;
+        else
+            chip->w65 = chip->tm_w1;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w66 = chip->tm_w1;
+        else
+            chip->w66 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w67 = chip->tm_w2;
+        else
+            chip->w67 = chip->tm_w1;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w68 = chip->tm_w1;
+        else
+            chip->w68 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w69 = 0;
+        else
+            chip->w69 = chip->tm_w1;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w70 = chip->tm_w1;
+        else
+            chip->w70 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w71 = chip->tm_w2;
+        else
+            chip->w71 = 0;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w72 = chip->tm_w1;
+        else
+            chip->w72 = chip->tm_w2;
+    }
+
+    if (chip->tm_w3)
+    {
+        if (chip->w61)
+            chip->w73 = chip->tm_w2;
+        else
+            chip->w73 = chip->tm_w1;
+    }
+
+    chip->w74 = !chip->tm_w1;
+
+    if (chip->tm_w3)
+        chip->w75 = !(chip->w74 || chip->tm_w1);
+
+    chip->w76 = !chip->tm_w1;
+
+    if (chip->tm_w3)
+        chip->w77 = !(chip->tm_w1 || chip->w76);
+
+    chip->w78 = !(chip->w74 || chip->w76);
 }
