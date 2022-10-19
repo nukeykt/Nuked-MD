@@ -176,11 +176,11 @@ void M68K_Clock(m68k_t* chip, int clk)
         chip->w34 = chip->w1;
     else
         chip->w34 = 0;
-    if (v1 && chip->w47 && chip->tm_w12)
+    if (v1 && chip->w47 && chip->w88)
         chip->w35 = chip->w1;
     else
         chip->w35 = 0;
-    if (v2 && chip->w50 && chip->tm_w12)
+    if (v2 && chip->w50 && chip->w88)
         chip->w36 = chip->w2;
     else
         chip->w36 = 0;
@@ -337,4 +337,80 @@ void M68K_Clock(m68k_t* chip, int clk)
         chip->w77 = !(chip->tm_w1 || chip->w76);
 
     chip->w78 = !(chip->w74 || chip->w76);
+
+    chip->w79 = chip->tm_w1 ? 0 : chip->tm_w2;
+
+    chip->w80 = chip->w81 ? chip->tm_w2 : 0;
+
+    chip->w81 = !(chip->tm_w1 || !chip->tm_w2);
+
+    chip->w82 = chip->w83 ? chip->tm_w2 : 0;
+
+    chip->w83 = !(!chip->tm_w1 || chip->tm_w2);
+
+    chip->w84 = chip->w85 ? chip->tm_w2 : 0;
+
+    chip->w85 = !(!chip->tm_w1 || !chip->tm_w2);
+
+    chip->w86 = chip->w56 ? 0 : chip->w2;
+
+    chip->w87 = chip->w59 ? 0 : chip->w1;
+
+    chip->w88 = !chip->tm_w1;
+
+    chip->w89 = !(!chip->tm_w1 || chip->tm_w2);
+    chip->w90 = !(!chip->tm_w1 || !chip->tm_w2);
+    chip->w91 = !(chip->tm_w1 || !chip->tm_w2);
+
+    chip->w92 = chip->w90 ? chip->tm_w1 : 0;
+    chip->w93 = chip->w91 ? chip->tm_w1 : 0;
+    chip->w94 = chip->w89 ? chip->tm_w1 : 0;
+
+    if (chip->tm_w2)
+        chip->l5 = chip->tm_w1;
+    chip->w95 = chip->l5 ? chip->tm_w3 : 0;
+
+    chip->w96 = chip->tm_w1;
+    chip->w97 = !chip->tm_w1;
+
+    chip->w98 = chip->tm_w1;
+    chip->w99 = chip->w103;
+    chip->w100 = chip->w105;
+
+    if (chip->tm_w6)
+    {
+        chip->l6 = chip->tm_w1;
+        chip->l7 = chip->tm_w2;
+        chip->l8 = chip->tm_w3;
+        chip->l9 = chip->tm_w4;
+        chip->l10 = chip->tm_w5;
+    }
+
+    if (chip->l7)
+        chip->w101 = 0;
+    else
+    {
+        if (!chip->l6)
+            chip->w101 = chip->tm_w7;
+        if (chip->l8)
+            chip->w101 = chip->tm_w7;
+    }
+
+    if (chip->l9)
+        chip->w102 = 0;
+    else
+    {
+        if (!chip->l10)
+            chip->w102 = chip->tm_w7;
+        if (chip->l8)
+            chip->w102 = chip->tm_w7;
+    }
+
+    if (chip->tm_w2)
+        chip->w103 = !chip->tm_w1;
+    chip->w104 = chip->w103 ? chip->tm_w3 : 0;
+
+    if (chip->tm_w2)
+        chip->w105 = !chip->tm_w1;
+    chip->w106 = chip->w105 ? chip->tm_w3 : 0;
 }

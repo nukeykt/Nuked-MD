@@ -83,6 +83,41 @@ typedef struct {
     int w76;
     int w77;
     int w78;
+    int w79;
+    int w80;
+    int w81;
+    int w82;
+    int w83;
+    int w84;
+    int w85;
+    int w86;
+    int w87;
+    int w88;
+    int w89;
+    int w90;
+    int w91;
+    int w92;
+    int w93;
+    int w94;
+    int w95;
+    int l5;
+    int w96;
+    int w97;
+    int w98;
+    int w99;
+    int w100;
+    int l6;
+    int l7;
+    int l8;
+    int l9;
+    int l10;
+    int w101;
+    int w102;
+    int w103;
+    int w104;
+    int w105;
+    int w106;
+
 
     // temp wires
     int tm_w1;
