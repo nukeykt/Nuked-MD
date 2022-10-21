@@ -1,6 +1,11 @@
 #pragma once
 
 typedef struct {
+    int val;
+    int pull;
+} busstate_t;
+
+typedef struct {
     int w1;
     int l1;
     int l2;
@@ -117,6 +122,11 @@ typedef struct {
     int w104;
     int w105;
     int w106;
+    busstate_t b1[4];
+    int w107;
+    int w108;
+
+    int r1[18];
 
 
     // temp wires

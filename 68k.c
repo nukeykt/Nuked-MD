@@ -1,7 +1,29 @@
 #include "68k.h"
 
+void M68K_RegisterLogic(busstate_t *l, busstate_t *h, int *val)
+{
+    // Update register value if either line pulls to gnd
+    int read1 = l->pull ^ 0xffff;
+    int read2 = h->pull ^ 0xffff;
+    int pg1 = (l->pull & (~l->val)) & 0xffff;
+    int pg2 = (h->pull & (~h->val)) & 0xffff;
+    *val &= ~pg1;
+    *val |= pg2;
+
+    // If 
+    l->val &= ~read1;
+    h->val &= ~read2;
+    l->val |= *val & read1;
+    h->val |= (~*val) & read2;
+}
+
 void M68K_Clock(m68k_t* chip, int clk)
 {
+    chip->b1[0].pull = 0;
+    chip->b1[1].pull = 0;
+    chip->b1[2].pull = 0;
+    chip->b1[3].pull = 0;
+
     int v1, v2;
     if (chip->tm_w1)
         chip->l1 = chip->tm_w2;
@@ -413,4 +435,99 @@ void M68K_Clock(m68k_t* chip, int clk)
     if (chip->tm_w2)
         chip->w105 = !chip->tm_w1;
     chip->w106 = chip->w105 ? chip->tm_w3 : 0;
+
+    if (chip->w80)
+        chip->w107 = (~chip->b1[3].val) & 0xffff;
+    else if (chip->w82)
+        chip->w107 = (~chip->b1[1].val) & 0xffff;
+    else if (chip->w84)
+        chip->w107 = chip->tm_w1;
+    else
+    {
+        // FIXME: can b1[2] 'leak' into w107?
+    }
+    chip->w108 = (~chip->w107) & 0x80ff;
+
+    if (chip->w79)
+    {
+        chip->b1[2].val = (~chip->w107) & 0xffff;
+        chip->b1[2].pull = 0xffff;
+        chip->b1[3].val = chip->w107 & 0xffff;
+        chip->b1[3].pull = 0xffff;
+    }
+
+    if (chip->w38)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[0]);
+    if (chip->w37)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[0]);
+    if (chip->w36)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[1]);
+    if (chip->w35)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[1]);
+    if (chip->w34)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[2]);
+    if (chip->w33)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[2]);
+    if (chip->w32)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[3]);
+    if (chip->w31)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[3]);
+    if (chip->w30)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[4]);
+    if (chip->w29)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[4]);
+    if (chip->w28)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[5]);
+    if (chip->w27)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[5]);
+    if (chip->w26)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[6]);
+    if (chip->w25)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[6]);
+    if (chip->w24)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[7]);
+    if (chip->w23)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[7]);
+    if (chip->w22)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[8]);
+    if (chip->w21)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[8]);
+    if (chip->w20)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[9]);
+    if (chip->w19)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[9]);
+    if (chip->w18)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[10]);
+    if (chip->w17)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[10]);
+    if (chip->w16)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[11]);
+    if (chip->w15)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[11]);
+    if (chip->w14)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[12]);
+    if (chip->w13)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[12]);
+    if (chip->w12)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[13]);
+    if (chip->w11)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[13]);
+    if (chip->w10)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[14]);
+    if (chip->w9)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[14]);
+    if (chip->w8)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[15]);
+    if (chip->w7)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[15]);
+    if (chip->w6)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[16]);
+    if (chip->w5)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[16]);
+    if (chip->w4)
+        M68K_RegisterLogic(&chip->b1[0], &chip->b1[1], &chip->r1[17]);
+    if (chip->w3)
+        M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[17]);
+
+
 }
