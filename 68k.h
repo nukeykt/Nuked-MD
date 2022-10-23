@@ -125,8 +125,22 @@ typedef struct {
     busstate_t b1[4];
     int w107;
     int w108;
-
     int r1[18];
+    int r2;
+    int w109;
+    int w110;
+    int w111;
+    int w112;
+    int w113[4];
+    int w114;
+    int w115[5];
+    int w116[5];
+    int w117[5];
+    int w118;
+    int w119;
+    int w120;
+    int w121;
+    int w122;
 
 
     // temp wires
