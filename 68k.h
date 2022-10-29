@@ -2,7 +2,6 @@
 
 typedef struct {
     int val;
-    int pull;
 } busstate_t;
 
 typedef struct {
@@ -141,6 +140,31 @@ typedef struct {
     int w120;
     int w121;
     int w122;
+    int r3;
+    int w123;
+    int w124;
+    int w125;
+    int w126;
+    int w127;
+    int w128;
+    int w129;
+    int w130;
+    int w131;
+    busstate_t b2[4];
+    int w132;
+    int w133;
+    int w134;
+    int w135[4];
+    int w136[5];
+    int w137[5];
+    int w138[5];
+    int w139[2];
+    int w140;
+    int w141;
+    int w142;
+    int w143;
+    int w144;
+    int w145;
 
 
     // temp wires
