@@ -121,6 +121,56 @@ void M68K_Clock(m68k_t* chip, int clk)
     if (chip->w178)
         M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r5);
 
+    if (chip->w235)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[0]);
+    if (chip->w239)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[0]);
+
+    if (chip->w240)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[1]);
+    if (chip->w241)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[1]);
+
+    if (chip->w242)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[2]);
+    if (chip->w243)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[2]);
+
+    if (chip->w244)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[3]);
+    if (chip->w245)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[3]);
+
+    if (chip->w246)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[4]);
+    if (chip->w247)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[4]);
+
+    if (chip->w248)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[5]);
+    if (chip->w249)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[5]);
+
+    if (chip->w250)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[6]);
+    if (chip->w251)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[6]);
+
+    if (chip->w252)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[7]);
+    if (chip->w253)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[7]);
+
+    if (chip->w254)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[8]);
+    if (chip->w255)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[8]);
+
+    if (chip->w256)
+        M68K_RegisterLogic1(&chip->b2[2], &chip->b2[3], &chip->r6[9]);
+    if (chip->w257)
+        M68K_RegisterLogic1(&chip->b2[0], &chip->b2[1], &chip->r6[9]);
+
     if (chip->tm_w1)
         chip->l1 = chip->tm_w2;
     if (chip->tm_w1)
@@ -1062,6 +1112,150 @@ void M68K_Clock(m68k_t* chip, int clk)
     if (chip->w180)
         chip->w182 = chip->r5;
 
+    chip->w183 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w184 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+
+    chip->w185 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w186 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w187 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w188 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+
+    chip->w189 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w190 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+
+    chip->w191 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w192 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+
+    chip->w193 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w194 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w195 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w196 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w197 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w198 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w199 = chip->tm_w1;
+
+    chip->w200 = chip->tm_w1;
+
+    chip->w201 = chip->tm_w1;
+
+    chip->w202 = chip->tm_w1;
+
+    chip->w203 = chip->tm_w1;
+
+    chip->w204 = chip->tm_w1;
+
+    chip->w205 = chip->tm_w1;
+
+    chip->w206 = chip->tm_w1;
+
+    chip->w207 = chip->tm_w1;
+    chip->w208 = chip->tm_w2;
+
+    chip->w209 = chip->tm_w1;
+
+    chip->w210 = chip->tm_w1;
+
+    chip->w211 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w212 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w213 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w214 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w215 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w216 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w217 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w218 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w219 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w220 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w221 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w222 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+
+    chip->w223 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w224 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4 && chip->tm_w5;
+    chip->w225 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4 && chip->tm_w6;
+
+    chip->w226 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w227 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4 && chip->tm_w5;
+
+    chip->w228 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3 && chip->tm_w4;
+
+    if (chip->tm_w2)
+        chip->w229 = chip->tm_w1;
+
+    chip->w230 = !((chip->tm_w1 && chip->tm_w2 && chip->tm_w3) || chip->w229);
+
+    if (chip->tm_w2)
+        chip->w231 = chip->tm_w1;
+
+    if (chip->tm_w2)
+        chip->w232 = chip->tm_w1;
+
+    chip->w233 = !(chip->w231 || chip->w232);
+    chip->w234 = !(chip->w232 || !chip->w231);
+
+    if (chip->w232)
+        chip->w235 = 0;
+    if (chip->w233)
+        chip->w235 = chip->tm_w1;
+    if (chip->w234)
+        chip->w235 = chip->tm_w2;
+
+    if (chip->tm_w2)
+        chip->w238 = chip->tm_w1;
+
+    chip->w236 = !(!chip->w231 || chip->w238);
+    chip->w237 = !(chip->w238 || chip->w231);
+
+    if (chip->w238)
+        chip->w239 = 0;
+    if (chip->w237)
+        chip->w239 = chip->tm_w1;
+    if (chip->w236)
+        chip->w239 = chip->tm_w2;
+
+    chip->w240 = chip->w228 ? chip->tm_w1 : 0;
+
+    chip->w241 = chip->w225 ? chip->tm_w1 : 0;
+
+    chip->w242 = chip->w224 ? chip->tm_w1 : 0;
+
+    chip->w243 = chip->w227 ? chip->tm_w1 : 0;
+
+    chip->w244 = chip->w226 ? chip->tm_w1 : 0;
+
+    chip->w245 = chip->w223 ? chip->tm_w1 : 0;
+
+    chip->w246 = chip->w216 ? chip->tm_w1 : 0;
+
+    chip->w247 = chip->w222 ? chip->tm_w1 : 0;
+
+    chip->w248 = chip->w221 ? chip->tm_w1 : 0;
+
+    chip->w249 = chip->w215 ? chip->tm_w1 : 0;
+
+    chip->w250 = chip->w214 ? chip->tm_w1 : 0;
+
+    chip->w251 = chip->w220 ? chip->tm_w1 : 0;
+
+    chip->w252 = chip->w219 ? chip->tm_w1 : 0;
+
+    chip->w253 = chip->w213 ? chip->tm_w1 : 0;
+
+    chip->w254 = chip->w212 ? chip->tm_w1 : 0;
+
+    chip->w255 = chip->w218 ? chip->tm_w1 : 0;
+
+    chip->w256 = chip->w217 ? chip->tm_w1 : 0;
+
+    chip->w257 = chip->w211 ? chip->tm_w1 : 0;
+
     if (chip->w38)
         M68K_RegisterLogic(&chip->b1[2], &chip->b1[3], &chip->r1[0]);
     if (chip->w37)
@@ -1163,4 +1357,54 @@ void M68K_Clock(m68k_t* chip, int clk)
         M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r5);
     if (chip->w181)
         chip->r5 = chip->w182;
+
+    if (chip->w235)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[0]);
+    if (chip->w239)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[0]);
+
+    if (chip->w240)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[1]);
+    if (chip->w241)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[1]);
+
+    if (chip->w242)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[2]);
+    if (chip->w243)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[2]);
+
+    if (chip->w244)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[3]);
+    if (chip->w245)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[3]);
+
+    if (chip->w246)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[4]);
+    if (chip->w247)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[4]);
+
+    if (chip->w248)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[5]);
+    if (chip->w249)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[5]);
+
+    if (chip->w250)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[6]);
+    if (chip->w251)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[6]);
+
+    if (chip->w252)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[7]);
+    if (chip->w253)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[7]);
+
+    if (chip->w254)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[8]);
+    if (chip->w255)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[8]);
+
+    if (chip->w256)
+        M68K_RegisterLogic(&chip->b2[2], &chip->b2[3], &chip->r6[9]);
+    if (chip->w257)
+        M68K_RegisterLogic(&chip->b2[0], &chip->b2[1], &chip->r6[9]);
 }
