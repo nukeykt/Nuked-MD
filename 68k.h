@@ -32,6 +32,7 @@ typedef struct {
     int o_fc2;
     int i_dtack;
     int o_rw;
+    int i_berr;
 
     int w1;
     int l1;
@@ -485,6 +486,26 @@ typedef struct {
     int w419;
     int w420;
     int w421[2];
+    int w422;
+    int w423;
+    int w424;
+    int w425;
+    int w426;
+    int w427;
+    int w428;
+    int w429;
+    int w430;
+    int w431;
+    int w432;
+    int w433;
+    int w434;
+    int w435[3];
+    int w436[2];
+    int w437;
+    int w438;
+    int w439[2];
+    int w440;
+    int w441;
 
 
     int jj;
