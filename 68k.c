@@ -2117,6 +2117,90 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w440 = !(chip->w439[1] || chip->w343[2]);
 
     chip->w441 = !(chip->tm_w1 || !chip->tm_w2);
+
+    if (chip->w450)
+        chip->w442[0] = 1;
+    else if (chip->c1)
+        chip->w442[0] = 0;
+    if (chip->w450)
+        chip->w443[0] = 0;
+    else if (chip->c1)
+        chip->w443[0] = 1;
+
+    if (!chip->c1)
+    {
+        chip->w442[1] = chip->w442[0];
+        chip->w443[1] = chip->w443[0];
+    }
+
+    if (chip->w443[1])
+        chip->w444 = 0;
+    else if (chip->w442[1])
+        chip->w444 = chip->c1;
+
+    if (chip->w444)
+        chip->w445 = chip->tm_w1;
+    if (chip->tm_w1)
+        chip->codebus = chip->w445;
+
+    if (chip->c1)
+    {
+        chip->w446 = chip->tm_w1;
+        chip->w447 = chip->tm_w1;
+        chip->w448 = chip->tm_w1;
+    }
+
+    chip->w449 = chip->w448 ? chip->c3 : 0;
+
+    chip->w450 = (chip->w446 || chip->w447) ? chip->c3 : 0;
+
+    if (chip->w449)
+    {
+        chip->w451 = chip->tm_w1;
+        chip->w452 = chip->tm_w1;
+        chip->w453 = chip->tm_w1;
+        chip->w454 = chip->tm_w1;
+        chip->w455 = chip->tm_w1;
+    }
+    if (chip->w450)
+    {
+        chip->w456 = chip->tm_w1;
+        chip->w457 = chip->tm_w1;
+        chip->w458 = chip->tm_w1;
+        chip->w459 = chip->tm_w1;
+        chip->w460 = chip->tm_w1;
+        chip->w461 = chip->tm_w1;
+    }
+
+    chip->w462[0] = chip->w455;
+    chip->w462[1] = !chip->w451 && !chip->w452 && !chip->w454 && !chip->w455 && !chip->w460;
+    chip->w462[2] = !chip->w451 && chip->w452 && !chip->w453 && !chip->w454 && !chip->w455 && !chip->w460;
+    chip->w462[3] = !chip->w451 && chip->w452 && chip->w453 && !chip->w454 && !chip->w455 && chip->w457 && !chip->w460 && chip->w461;
+    chip->w462[4] = !chip->w451 && chip->w452 && chip->w453 && !chip->w454 && !chip->w455 && chip->w456 && !chip->w457 && !chip->w460 && chip->w461;
+    chip->w462[5] = !chip->w451 && chip->w452 && chip->w453 && !chip->w454 && !chip->w455 && !chip->w456 && !chip->w457 && !chip->w458 && !chip->w460 && chip->w461;
+    chip->w462[6] = !chip->w451 && chip->w452 && chip->w453 && !chip->w454 && !chip->w455 && !chip->w456 && !chip->w457 && chip->w458 && chip->w459 && !chip->w460 && chip->w461;
+    chip->w462[7] = !chip->w451 && chip->w452 && chip->w453 && !chip->w454 && !chip->w455 && !chip->w460 && !chip->w461;
+    chip->w462[8] = !chip->w451 && !chip->w454 && !chip->w455 && chip->w460;
+    chip->w462[9] = chip->w451 && !chip->w455;
+    chip->w462[10] = !chip->w451 && chip->w454 && !chip->w455;
+
+    chip->w463 = !chip->w451 && !chip->w454 && !chip->w455;
+
+    chip->w464 = 0x3ff;
+    if (chip->w462[3])
+        chip->w464 &= 0x1c0;
+    if (chip->w462[4])
+        chip->w464 &= 0x1c0;
+    if (chip->w462[5])
+        chip->w464 &= 0x1c0;
+    if (chip->w462[6])
+        chip->w464 &= 0x1c0;
+    if (chip->w462[7])
+        chip->w464 &= 0x1c4;
+    if (chip->w462[8])
+        chip->w464 &= 0x1c0;
+    if (chip->tm_w1)
+        chip->codebus = chip->w464;
 }
 
 int main()

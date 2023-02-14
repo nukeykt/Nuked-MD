@@ -506,7 +506,30 @@ typedef struct {
     int w439[2];
     int w440;
     int w441;
-
+    int w442[2];
+    int w443[2];
+    int w444;
+    int w445; // 10 bit
+    int w446;
+    int w447;
+    int w448;
+    int w449;
+    int w450;
+    int w451;
+    int w452;
+    int w453;
+    int w454;
+    int w455;
+    int w456;
+    int w457;
+    int w458;
+    int w459;
+    int w460;
+    int w461;
+    int w462[11];
+    int w463;
+    int w464; // 10 bit
+    int codebus; // 10 bit
 
     int jj;
     // temp wires
