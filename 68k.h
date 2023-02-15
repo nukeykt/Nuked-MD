@@ -530,6 +530,51 @@ typedef struct {
     int w463;
     int w464; // 10 bit
     int codebus; // 10 bit
+    int w465[5];
+    int w466;
+    int w467;
+    int w468;
+    int w469;
+    int w470;
+    int w471;
+    int codebus2;
+    int w472;
+    int w473;
+    int w474;
+    int w475;
+    int w476;
+    int w477;
+    int w478;
+    int w479;
+    int w480;
+    int w481;
+    int w482[5];
+    int w483;
+    int w484;
+    int w485;
+    int w486;
+    int w487;
+    int w488;
+    int w489;
+    int w490;
+    int w491;
+    int w492;
+    int w493;
+    int w494;
+    int w495;
+    int w496;
+    int w497;
+    int w498;
+    int w499;
+    int w500;
+    int w501;
+    int w502;
+    int w503;
+    int w504;
+    int w505;
+    int w506;
+    int w507;
+    int w508;
 
     int jj;
     // temp wires
