@@ -3,6 +3,8 @@
 #include <string.h>
 #include "68k.h"
 
+#include "68k_ucode.h"
+
 void M68K_RegisterLogic1(busstate_t *l, busstate_t *h, int *val)
 {
     l->val &= *val;
@@ -2374,6 +2376,91 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w507 = !(chip->w356 || chip->w357 || chip->w358);
     chip->w508 = !chip->w507;
+    chip->w509 = !(!chip->w495 || !chip->w500);
+    chip->w510 = !(!chip->w495 || chip->w500);
+    chip->w511 = !(chip->w495 || !chip->w500);
+    chip->w512 = !(chip->w495 || chip->w500);
+    chip->w513 = !(chip->c1 || chip->c2 || !chip->w501);
+    chip->w514 = !(chip->c1 || chip->c2 || chip->w501);
+    chip->w515 = !(chip->w506 || chip->w505);
+    chip->w516 = !(!chip->w506 || chip->w505);
+    chip->w517 = !(chip->w506 || !chip->w505);
+    chip->w518 = !(!chip->w506 || !chip->w505);
+
+    if (chip->c2)
+    {
+        for (i = 0; i < 118; i++)
+            chip->w519[i] = 1;
+    }
+
+    if (chip->w513 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[0] = 0;
+    if (chip->w514 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[1] = 0;
+    if (chip->w513 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[2] = 0;
+    if (chip->w514 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[3] = 0;
+    if (chip->w513 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[4] = 0;
+    if (chip->w514 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[5] = 0;
+    if (chip->w513 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[6] = 0;
+    if (chip->w514 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[7] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[8] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[9] = 0;
+    if (chip->w513 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[10] = 0;
+    if (chip->w514 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[11] = 0;
+    if (chip->w513 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[12] = 0;
+    if (chip->w514 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[13] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[14] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[15] = 0;
+    if (chip->w513 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[16] = 0;
+    if (chip->w514 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[17] = 0;
+    if (chip->w513 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[18] = 0;
+    if (chip->w514 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[19] = 0;
+    if (chip->w513 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[20] = 0;
+    if (chip->w514 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[21] = 0;
+    if (chip->w513 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[22] = 0;
+    if (chip->w514 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[23] = 0;
+    if (chip->w513 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[24] = 0;
+    if (chip->w514 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[25] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[26] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[27] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[28] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[29] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[30] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[31] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[32] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[33] = 0;
 }
 
 int main()

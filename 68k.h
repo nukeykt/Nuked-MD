@@ -575,6 +575,17 @@ typedef struct {
     int w506;
     int w507;
     int w508;
+    int w509;
+    int w510;
+    int w511;
+    int w512;
+    int w513;
+    int w514;
+    int w515;
+    int w516;
+    int w517;
+    int w518;
+    int w519[118];
 
     int jj;
     // temp wires
