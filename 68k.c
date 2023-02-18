@@ -23,7 +23,7 @@ void M68K_RegisterLogic(busstate_t *l, busstate_t *h, int *val)
 void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 {
     int v1, v2;
-    int i;
+    int i, j;
     int t1;
     int t2;
     int t3;
@@ -1823,15 +1823,15 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     if (chip->w330)
     {
-        chip->w322 = !chip->tm_w2 && (chip->tm_w3 || chip->tm_w1);
-        chip->w323 = !chip->tm_w1 && (chip->tm_w2 || !chip->tm_w3);
+        chip->w322 = !chip->w522[15] && (chip->tm_w3 || chip->w522[16]);
+        chip->w323 = !chip->w522[16] && (chip->w522[15] || !chip->tm_w3);
         chip->w324 = !chip->tm_w1;
     }
 
     chip->w325 = chip->w322 || chip->w323 || chip->w324;
 
     if (chip->c1)
-        chip->w326 = chip->tm_w1;
+        chip->w326 = chip->w522[0];
 
     chip->w327 = !(chip->w326 || chip->w267);
 
@@ -1886,7 +1886,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w333 = !chip->tm_w1;
 
-    chip->w334 = !(chip->tm_w1 || chip->w333 || chip->tm_w3);
+    chip->w334 = !(chip->w522[16] || chip->w333 || !chip->w522[15]);
 
     if (chip->c2)
         chip->w335 = !chip->w334;
@@ -1895,7 +1895,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w336 = chip->w335 || chip->w278;
 
-    chip->w337 = !(chip->w333 || chip->tm_w2 || !chip->tm_w3);
+    chip->w337 = !(chip->w333 || chip->w522[15] || !chip->w522[16]);
 
     if (chip->c2)
         chip->w338 = !chip->w334;
@@ -2296,8 +2296,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w473 = chip->w273;
     }
 
-    chip->w475 = !(chip->tm_w3 || !chip->tm_w2);
-    chip->w474 = !(!chip->tm_w1 || chip->w475);
+    chip->w475 = !(chip->w522[1] || !chip->w522[4]);
+    chip->w474 = !(!chip->w522[0] || chip->w475);
 
     chip->w476 = chip->w482[3] || chip->w482[4] || chip->w482[2];
 
@@ -2306,9 +2306,9 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     if (chip->w478)
     {
-        chip->w479 = chip->tm_w1;
-        chip->w480 = chip->tm_w1;
-        chip->w481 = chip->tm_w1;
+        chip->w479 = chip->w522[2];
+        chip->w480 = chip->w522[3];
+        chip->w481 = chip->w522[1];
     }
     if (chip->w477)
     {
@@ -2325,8 +2325,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w483 = !chip->w482[4];
 
-    chip->w484 = !chip->tm_w1;
-    chip->w485 = !chip->tm_w1;
+    chip->w484 = !chip->w522[5];
+    chip->w485 = !chip->w522[6];
 
     if (chip->w482[1])
     {
@@ -2340,7 +2340,14 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->w486)
     {
         chip->codebus2 &= ~0x33f;
-        chip->codebus2 |= chip->tm_w1 & 0x33f;
+        chip->codebus2 |= !chip->w522[11];
+        chip->codebus2 |= (!chip->w522[12]) << 1;
+        chip->codebus2 |= (!chip->w522[7]) << 2;
+        chip->codebus2 |= (!chip->w522[8]) << 3;
+        chip->codebus2 |= (!chip->w522[9]) << 4;
+        chip->codebus2 |= (!chip->w522[10]) << 5;
+        chip->codebus2 |= (!chip->w522[13]) << 8;
+        chip->codebus2 |= (!chip->w522[14]) << 9;
     }
 
     chip->w487 = !((chip->codebus2 & 0x40) != 0 || chip->w508);
@@ -2461,6 +2468,518 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w519[32] = 0;
     if (chip->w514 || chip->w502 || !chip->w503 || !chip->w504)
         chip->w519[33] = 0;
+
+    if (chip->w513 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[34] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[35] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[36] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[37] = 0;
+    if (chip->w513 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[38] = 0;
+    if (chip->w514 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[39] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[40] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[41] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[42] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[43] = 0;
+    if (chip->w513 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[44] = 0;
+    if (chip->w514 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[45] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[46] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[47] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[48] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[49] = 0;
+    if (chip->w513 || chip->w500 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[50] = 0;
+    if (chip->w514 || chip->w500 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[51] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[52] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[53] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[54] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[55] = 0;
+    if (chip->w513 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[56] = 0;
+    if (chip->w514 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
+        chip->w519[57] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[58] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[59] = 0;
+    if (chip->w513 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[60] = 0;
+    if (chip->w514 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[61] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[62] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[63] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[64] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[65] = 0;
+    if (chip->w513 || chip->w500 || !chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[66] = 0;
+    if (chip->w514 || chip->w500 || !chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[67] = 0;
+    if (chip->w513 || !chip->w500 || !chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[68] = 0;
+    if (chip->w514 || !chip->w500 || !chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
+        chip->w519[69] = 0;
+    if (!chip->w503 || chip->w504)
+        chip->w519[70] = 0;
+    if (!chip->w503 || chip->w504)
+        chip->w519[71] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[72] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[73] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[74] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[75] = 0;
+
+    if (chip->w513 || chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[76] = 0;
+    if (chip->w514 || chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[77] = 0;
+    if (chip->w513 || !chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[78] = 0;
+    if (chip->w514 || !chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[79] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[80] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[81] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[82] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[83] = 0;
+    if (chip->w513 || chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[84] = 0;
+    if (chip->w514 || chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[85] = 0;
+    if (chip->w513 || !chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[86] = 0;
+    if (chip->w514 || !chip->w500 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[87] = 0;
+    if (chip->w513 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[88] = 0;
+    if (chip->w514 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[89] = 0;
+    if (chip->w513 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[90] = 0;
+    if (chip->w514 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[91] = 0;
+    if (chip->w513 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[92] = 0;
+    if (chip->w514 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[93] = 0;
+    if (chip->w513 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[94] = 0;
+    if (chip->w514 || !chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
+        chip->w519[95] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[96] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[97] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[98] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[99] = 0;
+    if (chip->w513 || chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[100] = 0;
+    if (chip->w514 || chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[101] = 0;
+    if (chip->w513 || !chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[102] = 0;
+    if (chip->w514 || !chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[103] = 0;
+    if (chip->w513 || chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[104] = 0;
+    if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[105] = 0;
+    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[106] = 0;
+    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[107] = 0;
+    if (chip->w513 || chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[108] = 0;
+    if (chip->w514 || chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[109] = 0;
+    if (chip->w513 || !chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[110] = 0;
+    if (chip->w514 || !chip->w500 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[111] = 0;
+    if (chip->w513 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[112] = 0;
+    if (chip->w514 || chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[113] = 0;
+    if (chip->w513 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[114] = 0;
+    if (chip->w514 || !chip->w495 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[115] = 0;
+    if (chip->w513 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[116] = 0;
+    if (chip->w514 || chip->w502 || !chip->w503 || !chip->w504)
+        chip->w519[117] = 0;
+
+    if (chip->w519[0])
+        chip->w520[0] = chip->w498;
+    if (chip->w519[1])
+        chip->w520[1] = chip->w498;
+    if (chip->w519[2])
+        chip->w520[2] = chip->w499;
+    if (chip->w519[3])
+        chip->w520[3] = chip->w499;
+    if (chip->w519[4])
+        chip->w520[4] = chip->w496;
+    if (chip->w519[5])
+        chip->w520[5] = chip->w496;
+    if (chip->w519[6])
+        chip->w520[6] = chip->w497;
+    if (chip->w519[7])
+        chip->w520[7] = chip->w497;
+    if (chip->w519[8])
+        chip->w520[8] = chip->w498;
+    if (chip->w519[9])
+        chip->w520[9] = chip->w498;
+    if (chip->w519[10])
+        chip->w520[10] = chip->w498;
+    if (chip->w519[11])
+        chip->w520[11] = chip->w498;
+    if (chip->w519[12])
+        chip->w520[12] = chip->w499;
+    if (chip->w519[13])
+        chip->w520[13] = chip->w499;
+    if (chip->w519[14])
+        chip->w520[14] = chip->w497;
+    if (chip->w519[15])
+        chip->w520[15] = chip->w497;
+    if (chip->w519[16])
+        chip->w520[16] = chip->w497;
+    if (chip->w519[17])
+        chip->w520[17] = chip->w497;
+    if (chip->w519[18])
+        chip->w520[18] = chip->w498;
+    if (chip->w519[19])
+        chip->w520[19] = chip->w498;
+    if (chip->w519[20])
+        chip->w520[20] = chip->w499;
+    if (chip->w519[21])
+        chip->w520[21] = chip->w499;
+    if (chip->w519[22])
+        chip->w520[22] = chip->w496;
+    if (chip->w519[23])
+        chip->w520[23] = chip->w496;
+    if (chip->w519[24])
+        chip->w520[24] = chip->w497;
+    if (chip->w519[25])
+        chip->w520[25] = chip->w497;
+    if (chip->w519[26])
+        chip->w520[26] = chip->w498;
+    if (chip->w519[27])
+        chip->w520[27] = chip->w498;
+    if (chip->w519[28])
+        chip->w520[28] = chip->w499;
+    if (chip->w519[29])
+        chip->w520[29] = chip->w499;
+    if (chip->w519[30])
+        chip->w520[30] = chip->w496;
+    if (chip->w519[31])
+        chip->w520[31] = chip->w496;
+    if (chip->w519[32])
+        chip->w520[32] = chip->w497;
+    if (chip->w519[33])
+        chip->w520[33] = chip->w497;
+
+    if (chip->w519[34])
+        chip->w520[34] = chip->w498;
+    if (chip->w519[35])
+        chip->w520[35] = chip->w498;
+    if (chip->w519[36])
+        chip->w520[36] = chip->w498;
+    if (chip->w519[37])
+        chip->w520[37] = chip->w498;
+    if (chip->w519[38])
+        chip->w520[38] = chip->w498;
+    if (chip->w519[39])
+        chip->w520[39] = chip->w498;
+    if (chip->w519[40])
+        chip->w520[40] = chip->w499;
+    if (chip->w519[41])
+        chip->w520[41] = chip->w499;
+    if (chip->w519[42])
+        chip->w520[42] = chip->w499;
+    if (chip->w519[43])
+        chip->w520[43] = chip->w499;
+    if (chip->w519[44])
+        chip->w520[44] = chip->w499;
+    if (chip->w519[45])
+        chip->w520[45] = chip->w499;
+    if (chip->w519[46])
+        chip->w520[46] = chip->w496;
+    if (chip->w519[47])
+        chip->w520[47] = chip->w496;
+    if (chip->w519[48])
+        chip->w520[48] = chip->w496;
+    if (chip->w519[49])
+        chip->w520[49] = chip->w496;
+    if (chip->w519[50])
+        chip->w520[50] = chip->w496;
+    if (chip->w519[51])
+        chip->w520[51] = chip->w496;
+    if (chip->w519[52])
+        chip->w520[52] = chip->w497;
+    if (chip->w519[53])
+        chip->w520[53] = chip->w497;
+    if (chip->w519[54])
+        chip->w520[54] = chip->w497;
+    if (chip->w519[55])
+        chip->w520[55] = chip->w497;
+    if (chip->w519[56])
+        chip->w520[56] = chip->w497;
+    if (chip->w519[57])
+        chip->w520[57] = chip->w497;
+    if (chip->w519[58])
+        chip->w520[58] = chip->w498;
+    if (chip->w519[59])
+        chip->w520[59] = chip->w498;
+    if (chip->w519[60])
+        chip->w520[60] = chip->w498;
+    if (chip->w519[61])
+        chip->w520[61] = chip->w498;
+    if (chip->w519[62])
+        chip->w520[62] = chip->w499;
+    if (chip->w519[63])
+        chip->w520[63] = chip->w499;
+    if (chip->w519[64])
+        chip->w520[64] = chip->w499;
+    if (chip->w519[65])
+        chip->w520[65] = chip->w499;
+    if (chip->w519[66])
+        chip->w520[66] = chip->w499;
+    if (chip->w519[67])
+        chip->w520[67] = chip->w499;
+    if (chip->w519[68])
+        chip->w520[68] = chip->w499;
+    if (chip->w519[69])
+        chip->w520[69] = chip->w499;
+    if (chip->w519[70])
+        chip->w520[70] = chip->w497;
+    if (chip->w519[71])
+        chip->w520[71] = chip->w497;
+    if (chip->w519[72])
+        chip->w520[72] = chip->w498;
+    if (chip->w519[73])
+        chip->w520[73] = chip->w498;
+    if (chip->w519[74])
+        chip->w520[74] = chip->w498;
+    if (chip->w519[75])
+        chip->w520[75] = chip->w498;
+
+    if (chip->w519[76])
+        chip->w520[76] = chip->w498;
+    if (chip->w519[77])
+        chip->w520[77] = chip->w498;
+    if (chip->w519[78])
+        chip->w520[78] = chip->w498;
+    if (chip->w519[79])
+        chip->w520[79] = chip->w498;
+    if (chip->w519[80])
+        chip->w520[80] = chip->w499;
+    if (chip->w519[81])
+        chip->w520[81] = chip->w499;
+    if (chip->w519[82])
+        chip->w520[82] = chip->w499;
+    if (chip->w519[83])
+        chip->w520[83] = chip->w499;
+    if (chip->w519[84])
+        chip->w520[84] = chip->w499;
+    if (chip->w519[85])
+        chip->w520[85] = chip->w499;
+    if (chip->w519[86])
+        chip->w520[86] = chip->w499;
+    if (chip->w519[87])
+        chip->w520[87] = chip->w499;
+    if (chip->w519[88])
+        chip->w520[88] = chip->w496;
+    if (chip->w519[89])
+        chip->w520[89] = chip->w496;
+    if (chip->w519[90])
+        chip->w520[90] = chip->w496;
+    if (chip->w519[91])
+        chip->w520[91] = chip->w496;
+    if (chip->w519[92])
+        chip->w520[92] = chip->w497;
+    if (chip->w519[93])
+        chip->w520[93] = chip->w497;
+    if (chip->w519[94])
+        chip->w520[94] = chip->w497;
+    if (chip->w519[95])
+        chip->w520[95] = chip->w497;
+    if (chip->w519[96])
+        chip->w520[96] = chip->w498;
+    if (chip->w519[97])
+        chip->w520[97] = chip->w498;
+    if (chip->w519[98])
+        chip->w520[98] = chip->w498;
+    if (chip->w519[99])
+        chip->w520[99] = chip->w498;
+    if (chip->w519[100])
+        chip->w520[100] = chip->w498;
+    if (chip->w519[101])
+        chip->w520[101] = chip->w498;
+    if (chip->w519[102])
+        chip->w520[102] = chip->w498;
+    if (chip->w519[103])
+        chip->w520[103] = chip->w498;
+    if (chip->w519[104])
+        chip->w520[104] = chip->w499;
+    if (chip->w519[105])
+        chip->w520[105] = chip->w499;
+    if (chip->w519[106])
+        chip->w520[106] = chip->w499;
+    if (chip->w519[107])
+        chip->w520[107] = chip->w499;
+    if (chip->w519[108])
+        chip->w520[108] = chip->w499;
+    if (chip->w519[109])
+        chip->w520[109] = chip->w499;
+    if (chip->w519[110])
+        chip->w520[110] = chip->w499;
+    if (chip->w519[111])
+        chip->w520[111] = chip->w499;
+    if (chip->w519[112])
+        chip->w520[112] = chip->w496;
+    if (chip->w519[113])
+        chip->w520[113] = chip->w496;
+    if (chip->w519[114])
+        chip->w520[114] = chip->w496;
+    if (chip->w519[115])
+        chip->w520[115] = chip->w496;
+    if (chip->w519[116])
+        chip->w520[116] = chip->w497;
+    if (chip->w519[117])
+        chip->w520[117] = chip->w497;
+
+
+    if (chip->c4)
+    {
+        for (i = 0; i < 68; i++)
+            chip->w521[i] = 1;
+    }
+
+    if (chip->w516)
+    {
+        for (i = 0; i < 34; i++)
+        {
+            if (!chip->w520[i])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[117 - i][j * 4 + 3])
+                    chip->w521[j] = 0;
+            }
+        }
+    }
+    if (chip->w517)
+    {
+        for (i = 0; i < 34; i++)
+        {
+            if (!chip->w520[i])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[117 - i][j * 4 + 2])
+                    chip->w521[j] = 0;
+            }
+        }
+    }
+    if (chip->w518)
+    {
+        for (i = 0; i < 34; i++)
+        {
+            if (!chip->w520[i])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[117 - i][j * 4 + 1])
+                    chip->w521[j] = 0;
+            }
+        }
+    }
+    if (chip->w519)
+    {
+        for (i = 0; i < 34; i++)
+        {
+            if (!chip->w520[i])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[117 - i][j * 4 + 0])
+                    chip->w521[j] = 0;
+            }
+        }
+    }
+
+    if (chip->w512)
+    {
+        for (i = 0; i < 17; i++)
+        {
+            chip->w523[i] = chip->w521[i * 4 + 3];
+        }
+    }
+    if (chip->w511)
+    {
+        for (i = 0; i < 17; i++)
+        {
+            chip->w523[i] = chip->w521[i * 4 + 2];
+        }
+    }
+    if (chip->w510)
+    {
+        for (i = 0; i < 17; i++)
+        {
+            chip->w523[i] = chip->w521[i * 4 + 1];
+        }
+    }
+    if (chip->w509)
+    {
+        for (i = 0; i < 17; i++)
+        {
+            chip->w523[i] = chip->w521[i * 4 + 0];
+        }
+    }
+
+    if (chip->c3)
+    {
+        for (i = 0; i < 17; i++)
+        {
+            chip->w522[i] = !chip->w523[i];
+        }
+    }
+
+    if (chip->c5)
+    {
+        chip->w522[15] = 0;
+        chip->w522[16] = 0;
+    }
 }
 
 int main()
