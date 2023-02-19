@@ -609,6 +609,23 @@ typedef struct {
     int w535; // 10bit
     int w536;
     int w537;
+    int w538; //16 bit
+    int irdbus; // 32 bit
+    int w539;
+    int w540;
+    int w541;
+    int w542;
+    int w543;
+    int w544;
+    int w545;
+    int w546;
+    int w547;
+    int w548;
+    int w549;
+    int w550;
+    int w551;
+    int w552;
+    int w553;
 
     int jj;
     // temp wires
