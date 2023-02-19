@@ -2980,6 +2980,560 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w522[15] = 0;
         chip->w522[16] = 0;
     }
+
+    chip->w524 = !(!chip->w505 || !chip->w506);
+    chip->w525 = !(chip->w505 || !chip->w506);
+    chip->w526 = !(!chip->w505 || chip->w506);
+    chip->w527 = !(chip->w505 || chip->w506);
+
+    if (chip->c4)
+    {
+        for (i = 0; i < 68; i++)
+            chip->w528[i] = 1;
+    }
+
+    if (chip->w527)
+    {
+        for (i = 0; i < 84; i++)
+        {
+            if (!chip->w520[i + 34])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[83 - i][j * 4 + 3])
+                    chip->w528[j] = 0;
+            }
+        }
+    }
+    if (chip->w526)
+    {
+        for (i = 0; i < 84; i++)
+        {
+            if (!chip->w520[i + 34])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[83 - i][j * 4 + 1])
+                    chip->w528[j] = 0;
+            }
+        }
+    }
+    if (chip->w525)
+    {
+        for (i = 0; i < 84; i++)
+        {
+            if (!chip->w520[i + 34])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[83 - i][j * 4 + 2])
+                    chip->w528[j] = 0;
+            }
+        }
+    }
+    if (chip->w524)
+    {
+        for (i = 0; i < 84; i++)
+        {
+            if (!chip->w520[i + 34])
+                continue;
+            for (j = 0; j < 68; j++)
+            {
+                if (ucode[83 - i][j * 4 + 0])
+                    chip->w528[j] = 0;
+            }
+        }
+    }
+
+    if (chip->c3)
+    {
+        for (i = 0; i < 68; i++)
+        {
+            chip->w529[i] = !chip->w528[i];
+        }
+    }
+    if (chip->c5)
+    {
+        for (i = 0; i < 68; i++)
+        {
+            chip->w529[i] = 0;
+        }
+    }
+
+    if (chip->tm_w2)
+        chip->w530 = chip->tm_w1;
+
+    chip->a0_pla[0] = (chip->w530 & 0xf100) == 0x0100;
+    chip->a0_pla[1] = (chip->w530 & 0xd000) == 0x1000;
+    chip->a0_pla[2] = (chip->w530 & 0xf1c0) == 0x4180;
+    chip->a0_pla[3] = (chip->w530 & 0xf1c0) == 0x4000;
+    chip->a0_pla[4] = (chip->w530 & 0xf940) == 0x4040;
+    chip->a0_pla[5] = (chip->w530 & 0xff40) == 0x4a40;
+    chip->a0_pla[6] = (chip->w530 & 0xb080) == 0x8000;
+    chip->a0_pla[7] = (chip->w530 & 0xb040) == 0x8040;
+    chip->a0_pla[8] = (chip->w530 & 0x9080) == 0x9000;
+    chip->a0_pla[9] = (chip->w530 & 0x8140) == 0x8040;
+    chip->a0_pla[10] = (chip->w530 & 0xf080) == 0x5000;
+    chip->a0_pla[11] = (chip->w530 & 0xf040) == 0x5040;
+    chip->a0_pla[12] = (chip->w530 & 0xf8c0) == 0xe0c0;
+    chip->a0_pla[13] = (chip->w530 & 0xf000) == 0x2000;
+    chip->a0_pla[14] = (chip->w530 & 0xf9c0) == 0x4080;
+    chip->a0_pla[15] = (chip->w530 & 0xffc0) == 0x4a80;
+    chip->a0_pla[16] = (chip->w530 & 0xf0c0) == 0x5080;
+    chip->a0_pla[17] = (chip->w530 & 0xa0c0) == 0x8080;
+    chip->a0_pla[18] = (chip->w530 & 0x90c0) == 0x9080;
+    chip->a0_pla[19] = (chip->w530 & 0x9180) == 0x9180;
+    chip->a0_pla[20] = (chip->w530 & 0x003f) == 0x0039;
+    chip->a0_pla[21] = (chip->w530 & 0x003f) == 0x0039;
+    chip->a0_pla[22] = (chip->w530 & 0x003f) == 0x0038;
+    chip->a0_pla[23] = (chip->w530 & 0x003f) == 0x0038;
+    chip->a0_pla[24] = (chip->w530 & 0x0038) == 0x0010;
+    chip->a0_pla[25] = (chip->w530 & 0x0038) == 0x0010;
+    chip->a0_pla[26] = (chip->w530 & 0x0038) == 0x0028;
+    chip->a0_pla[27] = (chip->w530 & 0x003f) == 0x003a;
+    chip->a0_pla[28] = (chip->w530 & 0x0038) == 0x0028;
+    chip->a0_pla[29] = (chip->w530 & 0x003f) == 0x003a;
+    chip->a0_pla[30] = (chip->w530 & 0x0038) == 0x0030;
+    chip->a0_pla[31] = (chip->w530 & 0x003f) == 0x003b;
+    chip->a0_pla[32] = (chip->w530 & 0x0038) == 0x0030;
+    chip->a0_pla[33] = (chip->w530 & 0x003f) == 0x003b;
+    chip->a0_pla[34] = (chip->w530 & 0xb1f8) == 0x8108;
+    chip->a0_pla[35] = (chip->w530 & 0xb1f8) == 0x9188;
+    chip->a0_pla[36] = (chip->w530 & 0xb1b8) == 0x9108;
+    chip->a0_pla[37] = (chip->w530 & 0xffff) == 0x4e71;
+    chip->a0_pla[38] = (chip->w530 & 0xfff8) == 0x4ac0;
+    chip->a0_pla[39] = (chip->w530 & 0xfff0) == 0x4e40;
+    chip->a0_pla[40] = (chip->w530 & 0xffff) == 0x4e76;
+    chip->a0_pla[41] = (chip->w530 & 0xf1f8) == 0x0180;
+    chip->a0_pla[42] = (chip->w530 & 0xf178) == 0x0140;
+    chip->a0_pla[43] = (chip->w530 & 0xfff8) == 0x4a80;
+    chip->a0_pla[44] = (chip->w530 & 0xf1f8) == 0x0100;
+    chip->a0_pla[45] = (chip->w530 & 0xf1f8) == 0x4180;
+    chip->a0_pla[46] = (chip->w530 & 0xf1b8) == 0xb108;
+    chip->a0_pla[47] = (chip->w530 & 0xf1f8) == 0xb188;
+    chip->a0_pla[48] = (chip->w530 & 0xf1f0) == 0xb080;
+    chip->a0_pla[49] = (chip->w530 & 0xf1f0) == 0xb1c0;
+    chip->a0_pla[50] = (chip->w530 & 0xf1f0) == 0xb0c0;
+    chip->a0_pla[51] = (chip->w530 & 0xf1b0) == 0xb000;
+    chip->a0_pla[52] = (chip->w530 & 0xf0f8) == 0x50c8;
+    chip->a0_pla[53] = (chip->w530 & 0xf1f8) == 0x81c0;
+    chip->a0_pla[54] = (chip->w530 & 0xf1f8) == 0x80c0;
+    chip->a0_pla[55] = (chip->w530 & 0xf1f0) == 0xc140;
+    chip->a0_pla[56] = (chip->w530 & 0xf1f8) == 0xc188;
+    chip->a0_pla[57] = (chip->w530 & 0xfff8) == 0x48c0;
+    chip->a0_pla[58] = (chip->w530 & 0x003f) == 0x003c;
+    chip->a0_pla[59] = (chip->w530 & 0x003f) == 0x003c;
+    chip->a0_pla[60] = (chip->w530 & 0xffff) == 0x4ef9;
+    chip->a0_pla[61] = (chip->w530 & 0xffff) == 0x4ef8;
+    chip->a0_pla[62] = (chip->w530 & 0xfff8) == 0x4ed0;
+    chip->a0_pla[63] = (chip->w530 & 0xfff8) == 0x4ee8;
+    chip->a0_pla[64] = (chip->w530 & 0xffff) == 0x4efa;
+    chip->a0_pla[65] = (chip->w530 & 0xfff8) == 0x4ef0;
+    chip->a0_pla[66] = (chip->w530 & 0xffff) == 0x4efb;
+    chip->a0_pla[67] = (chip->w530 & 0xffff) == 0x4eb9;
+    chip->a0_pla[68] = (chip->w530 & 0xffff) == 0x4eb8;
+    chip->a0_pla[69] = (chip->w530 & 0xfff8) == 0x4e90;
+    chip->a0_pla[70] = (chip->w530 & 0xfff8) == 0x4ea8;
+    chip->a0_pla[71] = (chip->w530 & 0xffff) == 0x4eba;
+    chip->a0_pla[72] = (chip->w530 & 0xfff8) == 0x4eb0;
+    chip->a0_pla[73] = (chip->w530 & 0xffff) == 0x4ebb;
+    chip->a0_pla[74] = (chip->w530 & 0xf1ff) == 0x41f9;
+    chip->a0_pla[75] = (chip->w530 & 0xf1ff) == 0x41f8;
+    chip->a0_pla[76] = (chip->w530 & 0xffb8) == 0x4ca8;
+    chip->a0_pla[77] = (chip->w530 & 0xffbf) == 0x4cba;
+    chip->a0_pla[78] = (chip->w530 & 0xffb8) == 0x4c90;
+    chip->a0_pla[79] = (chip->w530 & 0xffb8) == 0x4cb0;
+    chip->a0_pla[80] = (chip->w530 & 0xffbf) == 0x4cbb;
+    chip->a0_pla[81] = (chip->w530 & 0xf1f8) == 0x41d0;
+    chip->a0_pla[82] = (chip->w530 & 0xf1f8) == 0x41e8;
+    chip->a0_pla[83] = (chip->w530 & 0xf1ff) == 0x41fa;
+    chip->a0_pla[84] = (chip->w530 & 0xf1f8) == 0x41f0;
+    chip->a0_pla[85] = (chip->w530 & 0xf1ff) == 0x41fb;
+    chip->a0_pla[86] = (chip->w530 & 0xfff8) == 0x4e50;
+    chip->a0_pla[87] = (chip->w530 & 0xffbf) == 0x4cb9;
+    chip->a0_pla[88] = (chip->w530 & 0xffbf) == 0x4cb8;
+    chip->a0_pla[89] = (chip->w530 & 0xfff8) == 0x4e60;
+    chip->a0_pla[90] = (chip->w530 & 0xf1f8) == 0x0148;
+    chip->a0_pla[91] = (chip->w530 & 0xf1f8) == 0x0108;
+    chip->a0_pla[92] = (chip->w530 & 0xf1f8) == 0x01c8;
+    chip->a0_pla[93] = (chip->w530 & 0xf1f8) == 0x0188;
+    chip->a0_pla[94] = (chip->w530 & 0xf0f8) == 0xc0c0;
+    chip->a0_pla[95] = (chip->w530 & 0xfff8) == 0x4800;
+    chip->a0_pla[96] = (chip->w530 & 0xf9f8) == 0x4080;
+    chip->a0_pla[97] = (chip->w530 & 0xf9b8) == 0x4000;
+    chip->a0_pla[98] = (chip->w530 & 0xfff8) == 0x4880;
+    chip->a0_pla[99] = (chip->w530 & 0xffb8) == 0x4a00;
+    chip->a0_pla[100] = (chip->w530 & 0xf180) == 0x0000;
+    chip->a0_pla[101] = (chip->w530 & 0xfff8) == 0x4e58;
+    chip->a0_pla[102] = (chip->w530 & 0xffff) == 0x4879;
+    chip->a0_pla[103] = (chip->w530 & 0xffff) == 0x4878;
+    chip->a0_pla[104] = (chip->w530 & 0x0038) == 0x0020;
+    chip->a0_pla[105] = (chip->w530 & 0x0038) == 0x0020;
+    chip->a0_pla[106] = (chip->w530 & 0xfff8) == 0x4850;
+    chip->a0_pla[107] = (chip->w530 & 0xfff8) == 0x4868;
+    chip->a0_pla[108] = (chip->w530 & 0xffff) == 0x487a;
+    chip->a0_pla[109] = (chip->w530 & 0xfff8) == 0x4870;
+    chip->a0_pla[110] = (chip->w530 & 0xffff) == 0x487b;
+    chip->a0_pla[111] = (chip->w530 & 0x0038) == 0x0018;
+    chip->a0_pla[112] = (chip->w530 & 0x0038) == 0x0018;
+    chip->a0_pla[113] = (chip->w530 & 0xffb8) == 0x4c98;
+    chip->a0_pla[114] = (chip->w530 & 0xffb8) == 0x48a0;
+    chip->a0_pla[115] = (chip->w530 & 0xfff0) == 0x23c0;
+    chip->a0_pla[116] = (chip->w530 & 0xdff0) == 0x13c0;
+    chip->a0_pla[117] = (chip->w530 & 0xf0f0) == 0x5080;
+    chip->a0_pla[118] = (chip->w530 & 0xf0f8) == 0x5048;
+    chip->a0_pla[119] = (chip->w530 & 0xf0b8) == 0x5000;
+    chip->a0_pla[120] = (chip->w530 & 0xfff0) == 0x21c0;
+    chip->a0_pla[121] = (chip->w530 & 0xdff0) == 0x11c0;
+    chip->a0_pla[122] = (chip->w530 & 0xb1f8) == 0x8100;
+    chip->a0_pla[123] = (chip->w530 & 0xf100) == 0x7000;
+    chip->a0_pla[124] = (chip->w530 & 0xf1f0) == 0x2140;
+    chip->a0_pla[125] = (chip->w530 & 0xd1f0) == 0x1140;
+    chip->a0_pla[126] = (chip->w530 & 0xf1f0) == 0x20c0;
+    chip->a0_pla[127] = (chip->w530 & 0xd1f0) == 0x10c0;
+    chip->a0_pla[128] = (chip->w530 & 0xf1f0) == 0x2100;
+    chip->a0_pla[129] = (chip->w530 & 0xd1f0) == 0x1100;
+    chip->a0_pla[130] = (chip->w530 & 0xf1f0) == 0x2080;
+    chip->a0_pla[131] = (chip->w530 & 0xd1f0) == 0x1080;
+    chip->a0_pla[132] = (chip->w530 & 0xf1f0) == 0x2180;
+    chip->a0_pla[133] = (chip->w530 & 0xd1f0) == 0x1180;
+    chip->a0_pla[134] = (chip->w530 & 0xf1f8) == 0xb180;
+    chip->a0_pla[135] = (chip->w530 & 0xf1b8) == 0xb100;
+    chip->a0_pla[136] = (chip->w530 & 0xa1f0) == 0x8080;
+    chip->a0_pla[137] = (chip->w530 & 0xb1b8) == 0x9180;
+    chip->a0_pla[138] = (chip->w530 & 0xb1f0) == 0x91c0;
+    chip->a0_pla[139] = (chip->w530 & 0xb1f0) == 0x90c0;
+    chip->a0_pla[140] = (chip->w530 & 0xa1b0) == 0x8000;
+    chip->a0_pla[141] = (chip->w530 & 0xb1b8) == 0x9100;
+    chip->a0_pla[142] = (chip->w530 & 0xf1b0) == 0x2000;
+    chip->a0_pla[143] = (chip->w530 & 0xf1f0) == 0x3040;
+    chip->a0_pla[144] = (chip->w530 & 0xd1f0) == 0x1000;
+    chip->a0_pla[145] = (chip->w530 & 0xfdf8) == 0x44c0;
+    chip->a0_pla[146] = (chip->w530 & 0xfffb) == 0x4e73;
+    chip->a0_pla[147] = (chip->w530 & 0xffff) == 0x4e75;
+    chip->a0_pla[148] = (chip->w530 & 0xf0f8) == 0x50c0;
+    chip->a0_pla[149] = (chip->w530 & 0xffbf) == 0x48b9;
+    chip->a0_pla[150] = (chip->w530 & 0xffbf) == 0x48b8;
+    chip->a0_pla[151] = (chip->w530 & 0xf0e0) == 0xe080;
+    chip->a0_pla[152] = (chip->w530 & 0xf0a0) == 0xe000;
+    chip->a0_pla[153] = (chip->w530 & 0xf0e0) == 0xe0a0;
+    chip->a0_pla[154] = (chip->w530 & 0xf0a0) == 0xe020;
+    chip->a0_pla[155] = (chip->w530 & 0xffb8) == 0x48a8;
+    chip->a0_pla[156] = (chip->w530 & 0xffb8) == 0x4890;
+    chip->a0_pla[157] = (chip->w530 & 0xffb8) == 0x48b0;
+    chip->a0_pla[158] = (chip->w530 & 0xffff) == 0x4e72;
+    chip->a0_pla[159] = (chip->w530 & 0xfff8) == 0x40c0;
+    chip->a0_pla[160] = (chip->w530 & 0xfff8) == 0x4e68;
+    chip->a0_pla[161] = (chip->w530 & 0xfff8) == 0x4840;
+    chip->a0_pla[162] = (chip->w530 & 0xffff) == 0x4e70;
+    chip->a0_pla[163] = (chip->w530 & 0xf1c0) == 0x0080;
+    chip->a0_pla[164] = (chip->w530 & 0xf020) == 0x6020;
+    chip->a0_pla[165] = (chip->w530 & 0xf0ff) == 0x6000;
+    chip->a0_pla[166] = (chip->w530 & 0xff00) == 0x6100;
+    chip->a0_pla[167] = (chip->w530 & 0xffff) == 0x6100;
+    chip->a0_pla[168] = (chip->w530 & 0xff80) == 0x0880;
+    chip->a0_pla[169] = (chip->w530 & 0xf000) == 0xf000;
+    chip->a0_pla[170] = (chip->w530 & 0xf000) == 0xa000;
+
+    chip->w531 = 0x3ff;
+    if (chip->a0_pla[20])
+        chip->w531 &= 0x1e6;
+    if (chip->a0_pla[21])
+        chip->w531 &= 0x1e2;
+    if (chip->a0_pla[22])
+        chip->w531 &= 0x00e;
+    if (chip->a0_pla[23])
+        chip->w531 &= 0x00a;
+    if (chip->a0_pla[24])
+        chip->w531 &= 0x00b;
+    if (chip->a0_pla[25])
+        chip->w531 &= 0x006;
+    if (chip->a0_pla[26])
+        chip->w531 &= 0x1c6;
+    if (chip->a0_pla[27])
+        chip->w531 &= 0x1c6;
+    if (chip->a0_pla[28])
+        chip->w531 &= 0x1c2;
+    if (chip->a0_pla[29])
+        chip->w531 &= 0x1c2;
+    if (chip->a0_pla[30])
+        chip->w531 &= 0x1e7;
+    if (chip->a0_pla[31])
+        chip->w531 &= 0x1e7;
+    if (chip->a0_pla[32])
+        chip->w531 &= 0x1e3;
+    if (chip->a0_pla[33])
+        chip->w531 &= 0x1e3;
+    if (chip->a0_pla[34])
+        chip->w531 &= 0x107;
+    if (chip->a0_pla[35])
+        chip->w531 &= 0x10b;
+    if (chip->a0_pla[36])
+        chip->w531 &= 0x10f;
+    if (chip->a0_pla[37])
+        chip->w531 &= 0x363;
+    if (chip->a0_pla[38])
+        chip->w531 &= 0x345;
+    if (chip->a0_pla[39])
+        chip->w531 &= 0x1d0;
+    if (chip->a0_pla[40])
+        chip->w531 &= 0x06d;
+    if (chip->a0_pla[41])
+        chip->w531 &= 0x3eb;
+    if (chip->a0_pla[42])
+        chip->w531 &= 0x3ef;
+    if (chip->a0_pla[43])
+        chip->w531 &= 0x125;
+    if (chip->a0_pla[44])
+        chip->w531 &= 0x3e7;
+    if (chip->a0_pla[45])
+        chip->w531 &= 0x152;
+    if (chip->a0_pla[46])
+        chip->w531 &= 0x06b;
+    if (chip->a0_pla[47])
+        chip->w531 &= 0x06f;
+    if (chip->a0_pla[48])
+        chip->w531 &= 0x1d5;
+    if (chip->a0_pla[49])
+        chip->w531 &= 0x1d5;
+    if (chip->a0_pla[50])
+        chip->w531 &= 0x1d9;
+    if (chip->a0_pla[51])
+        chip->w531 &= 0x1d1;
+    if (chip->a0_pla[52])
+        chip->w531 &= 0x06c;
+    if (chip->a0_pla[53])
+        chip->w531 &= 0x0ae;
+    if (chip->a0_pla[54])
+        chip->w531 &= 0x0a6;
+    if (chip->a0_pla[55])
+        chip->w531 &= 0x3e3;
+    if (chip->a0_pla[56])
+        chip->w531 &= 0x3e3;
+    if (chip->a0_pla[57])
+        chip->w531 &= 0x232;
+    if (chip->a0_pla[58])
+        chip->w531 &= 0x0a7;
+    if (chip->a0_pla[59])
+        chip->w531 &= 0x0ea;
+    if (chip->a0_pla[60])
+        chip->w531 &= 0x1f6;
+    if (chip->a0_pla[61])
+        chip->w531 &= 0x297;
+    if (chip->a0_pla[62])
+        chip->w531 &= 0x255;
+    if (chip->a0_pla[63])
+        chip->w531 &= 0x2b4;
+    if (chip->a0_pla[64])
+        chip->w531 &= 0x2b4;
+    if (chip->a0_pla[65])
+        chip->w531 &= 0x1f7;
+    if (chip->a0_pla[66])
+        chip->w531 &= 0x1f7;
+    if (chip->a0_pla[67])
+        chip->w531 &= 0x1f2;
+    if (chip->a0_pla[68])
+        chip->w531 &= 0x293;
+    if (chip->a0_pla[69])
+        chip->w531 &= 0x273;
+    if (chip->a0_pla[70])
+        chip->w531 &= 0x2b0;
+    if (chip->a0_pla[71])
+        chip->w531 &= 0x2b0;
+    if (chip->a0_pla[72])
+        chip->w531 &= 0x1f3;
+    if (chip->a0_pla[73])
+        chip->w531 &= 0x1f3;
+    if (chip->a0_pla[74])
+        chip->w531 &= 0x3e4;
+    if (chip->a0_pla[75])
+        chip->w531 &= 0x275;
+    if (chip->a0_pla[76])
+        chip->w531 &= 0x1fd;
+    if (chip->a0_pla[77])
+        chip->w531 &= 0x1fd;
+    if (chip->a0_pla[78])
+        chip->w531 &= 0x127;
+    if (chip->a0_pla[79])
+        chip->w531 &= 0x1f5;
+    if (chip->a0_pla[80])
+        chip->w531 &= 0x1f5;
+    if (chip->a0_pla[81])
+        chip->w531 &= 0x2f1;
+    if (chip->a0_pla[82])
+        chip->w531 &= 0x2f2;
+    if (chip->a0_pla[83])
+        chip->w531 &= 0x2f2;
+    if (chip->a0_pla[84])
+        chip->w531 &= 0x1fb;
+    if (chip->a0_pla[85])
+        chip->w531 &= 0x1fb;
+    if (chip->a0_pla[86])
+        chip->w531 &= 0x30b;
+    if (chip->a0_pla[87])
+        chip->w531 &= 0x1e9;
+    if (chip->a0_pla[88])
+        chip->w531 &= 0x1f9;
+    if (chip->a0_pla[89])
+        chip->w531 &= 0x2f5;
+    if (chip->a0_pla[90])
+        chip->w531 &= 0x1d6;
+    if (chip->a0_pla[91])
+        chip->w531 &= 0x1d2;
+    if (chip->a0_pla[92])
+        chip->w531 &= 0x1ce;
+    if (chip->a0_pla[93])
+        chip->w531 &= 0x1ca;
+    if (chip->a0_pla[94])
+        chip->w531 &= 0x15b;
+    if (chip->a0_pla[95])
+        chip->w531 &= 0x13b;
+    if (chip->a0_pla[96])
+        chip->w531 &= 0x137;
+    if (chip->a0_pla[97])
+        chip->w531 &= 0x133;
+    if (chip->a0_pla[98])
+        chip->w531 &= 0x133;
+    if (chip->a0_pla[99])
+        chip->w531 &= 0x12d;
+    if (chip->a0_pla[100])
+        chip->w531 &= 0x2b9;
+    if (chip->a0_pla[101])
+        chip->w531 &= 0x119;
+    if (chip->a0_pla[102])
+        chip->w531 &= 0x1fa;
+    if (chip->a0_pla[103])
+        chip->w531 &= 0x178;
+    if (chip->a0_pla[104])
+        chip->w531 &= 0x179;
+    if (chip->a0_pla[105])
+        chip->w531 &= 0x103;
+    if (chip->a0_pla[106])
+        chip->w531 &= 0x17c;
+    if (chip->a0_pla[107])
+        chip->w531 &= 0x17d;
+    if (chip->a0_pla[108])
+        chip->w531 &= 0x17d;
+    if (chip->a0_pla[109])
+        chip->w531 &= 0x1ff;
+    if (chip->a0_pla[110])
+        chip->w531 &= 0x1ff;
+    if (chip->a0_pla[111])
+        chip->w531 &= 0x00f;
+    if (chip->a0_pla[112])
+        chip->w531 &= 0x21c;
+    if (chip->a0_pla[113])
+        chip->w531 &= 0x123;
+    if (chip->a0_pla[114])
+        chip->w531 &= 0x3a4;
+    if (chip->a0_pla[115])
+        chip->w531 &= 0x1ee;
+    if (chip->a0_pla[116])
+        chip->w531 &= 0x1ea;
+    if (chip->a0_pla[117])
+        chip->w531 &= 0x2dc;
+    if (chip->a0_pla[118])
+        chip->w531 &= 0x2dc;
+    if (chip->a0_pla[119])
+        chip->w531 &= 0x2d8;
+    if (chip->a0_pla[120])
+        chip->w531 &= 0x2dd;
+    if (chip->a0_pla[121])
+        chip->w531 &= 0x2d9;
+    if (chip->a0_pla[122])
+        chip->w531 &= 0x1cd;
+    if (chip->a0_pla[123])
+        chip->w531 &= 0x23b;
+    if (chip->a0_pla[124])
+        chip->w531 &= 0x2de;
+    if (chip->a0_pla[125])
+        chip->w531 &= 0x2da;
+    if (chip->a0_pla[126])
+        chip->w531 &= 0x2fd;
+    if (chip->a0_pla[127])
+        chip->w531 &= 0x2fe;
+    if (chip->a0_pla[128])
+        chip->w531 &= 0x2fc;
+    if (chip->a0_pla[129])
+        chip->w531 &= 0x2f8;
+    if (chip->a0_pla[130])
+        chip->w531 &= 0x2f9;
+    if (chip->a0_pla[131])
+        chip->w531 &= 0x2fa;
+    if (chip->a0_pla[132])
+        chip->w531 &= 0x1ef;
+    if (chip->a0_pla[133])
+        chip->w531 &= 0x1eb;
+    if (chip->a0_pla[134])
+        chip->w531 &= 0x10c;
+    if (chip->a0_pla[135])
+        chip->w531 &= 0x100;
+    if (chip->a0_pla[136])
+        chip->w531 &= 0x1c5;
+    if (chip->a0_pla[137])
+        chip->w531 &= 0x1c5;
+    if (chip->a0_pla[138])
+        chip->w531 &= 0x1c5;
+    if (chip->a0_pla[139])
+        chip->w531 &= 0x1c9;
+    if (chip->a0_pla[140])
+        chip->w531 &= 0x1c1;
+    if (chip->a0_pla[141])
+        chip->w531 &= 0x1c1;
+    if (chip->a0_pla[142])
+        chip->w531 &= 0x129;
+    if (chip->a0_pla[143])
+        chip->w531 &= 0x279;
+    if (chip->a0_pla[144])
+        chip->w531 &= 0x121;
+    if (chip->a0_pla[145])
+        chip->w531 &= 0x301;
+    if (chip->a0_pla[146])
+        chip->w531 &= 0x12a;
+    if (chip->a0_pla[147])
+        chip->w531 &= 0x126;
+    if (chip->a0_pla[148])
+        chip->w531 &= 0x384;
+    if (chip->a0_pla[149])
+        chip->w531 &= 0x1e5;
+    if (chip->a0_pla[150])
+        chip->w531 &= 0x1ed;
+    if (chip->a0_pla[151])
+        chip->w531 &= 0x385;
+    if (chip->a0_pla[152])
+        chip->w531 &= 0x381;
+    if (chip->a0_pla[153])
+        chip->w531 &= 0x386;
+    if (chip->a0_pla[154])
+        chip->w531 &= 0x382;
+    if (chip->a0_pla[155])
+        chip->w531 &= 0x1f1;
+    if (chip->a0_pla[156])
+        chip->w531 &= 0x3a0;
+    if (chip->a0_pla[157])
+        chip->w531 &= 0x325;
+    if (chip->a0_pla[158])
+        chip->w531 &= 0x3a2;
+    if (chip->a0_pla[159])
+        chip->w531 &= 0x3a5;
+    if (chip->a0_pla[160])
+        chip->w531 &= 0x230;
+    if (chip->a0_pla[161])
+        chip->w531 &= 0x341;
+    if (chip->a0_pla[162])
+        chip->w531 &= 0x3a6;
+    if (chip->a0_pla[163])
+        chip->w531 &= 0x3e0;
+    if (chip->a0_pla[164])
+        chip->w531 &= 0x308;
+    if (chip->a0_pla[165])
+        chip->w531 &= 0x068;
+    if (chip->a0_pla[166])
+        chip->w531 &= 0x089;
+    if (chip->a0_pla[167])
+        chip->w531 &= 0x0a9;
+    if (chip->a0_pla[168])
+        chip->w531 &= 0x2b9;
 }
 
 int main()
