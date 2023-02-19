@@ -599,6 +599,16 @@ typedef struct {
     int w530;
     int a0_pla[171];
     int w531;//10 bit
+    int w532;
+    int w533;
+    int a2_pla[150];
+    int a2_pla_g1;
+    int a2_pla_g2;
+    int a2_pla_g3;
+    int w534; // 10bit
+    int w535; // 10bit
+    int w536;
+    int w537;
 
     int jj;
     // temp wires
