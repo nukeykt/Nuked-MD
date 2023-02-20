@@ -626,6 +626,21 @@ typedef struct {
     int w551;
     int w552;
     int w553;
+    int w554;
+    int w555;
+    int w556;
+    int w557;
+    int w558;
+    int w559;
+    int w560;
+    int w561;
+    int w562;
+    int w563;
+    int w564;
+    int w565;
+    int w566;
+    int w567;
+
 
     int jj;
     // temp wires
@@ -641,5 +656,13 @@ typedef struct {
     int tm_w10;
     int tm_w11;
     int tm_w12;
+    int tm_w13;
+    int tm_w14;
+    int tm_w15;
+    int tm_w16;
+    int tm_w17;
+    int tm_w18;
+    int tm_w19;
+    int tm_w20;
 } m68k_t;
 

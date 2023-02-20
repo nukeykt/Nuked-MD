@@ -2058,7 +2058,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
 
     if (chip->c1)
-        chip->w408 = !chip->tm_w1;
+        chip->w408 = !chip->w563;
 
     chip->w409 = !(chip->tm_w1 || chip->w410);
 
@@ -2286,8 +2286,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->w482[0])
     {
         chip->codebus2 &= ~0xc0;
-        chip->codebus2 |= (!chip->tm_w1) << 6;
-        chip->codebus2 |= (!chip->tm_w2) << 7;
+        chip->codebus2 |= (!chip->w472) << 6;
+        chip->codebus2 |= (!chip->w473) << 7;
     }
 
     if (chip->w267)
@@ -4127,8 +4127,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         for (i = 0; i < 16; i++)
         {
             j = (chip->w538 >> i) & 1;
-            chip->irdbus |= j << (i * 2 + 1);
-            chip->irdbus |= (!j) << (i * 2);
+            chip->irdbus |= j << (i * 2);
+            chip->irdbus |= (!j) << (i * 2 + 1);
         }
     }
     
@@ -4158,6 +4158,323 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w551 = chip->w470;
         chip->w552 = chip->w471;
     }
+
+    chip->w553 = !chip->tm_w1;
+    chip->w554 = !chip->tm_w1;
+
+    chip->w555 = 1;
+    chip->w556 = 1;
+    chip->w557 = 1;
+    chip->w558 = 1;
+
+    chip->w559 = chip->w522[2] | (chip->w522[3] << 1) | (chip->w522[4] << 2) | (chip->w522[5] << 3);
+    chip->w560 = ((chip->irdbus >> 16) & 1) | ((chip->irdbus >> 17) & 2) | ((chip->irdbus >> 18) & 4)
+        | ((chip->irdbus >> 19) & 8);
+
+    // w6 - N
+    // w7 - V
+    // w8 - C
+    // w9 - Z
+    if (chip->w559 == 9)
+    {
+        if (chip->w560 == 15 && !chip->tm_w9 && chip->tm_w7 && chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 15 && !chip->tm_w9 && !chip->tm_w7 && !chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 14 && chip->tm_w9)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 13 && chip->tm_w7 && chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 13 && !chip->tm_w7 && !chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if ((chip->w560 & 13) == 12 && !chip->tm_w7 && chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if ((chip->w560 & 13) == 12 && chip->tm_w7 && !chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 11 && !chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 10 && chip->tm_w6)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 9 && !chip->tm_w7)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 8 && chip->tm_w7)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 7 && !chip->tm_w9)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 5 && !chip->tm_w8)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 4 && chip->tm_w8)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 3 && !chip->tm_w9 && !chip->tm_w8)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if ((chip->w560 & 11) == 2 && chip->tm_w9)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 2 && chip->tm_w8)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+        if (chip->w560 == 1)
+        {
+            chip->w555 = 0;
+            chip->w556 = 0;
+        }
+    }
+    if (chip->w559 == 14 && !chip->tm_w5 && (chip->irdbus & (1<<12)) == 0)
+    {
+        chip->w556 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 14 && chip->tm_w5)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+        chip->w558 = 0;
+    }
+    if (chip->w559 == 13 && chip->tm_w7)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 12 && !chip->w554)
+    {
+        chip->w555 = 0;
+        chip->w556 = 0;
+    }
+    if (chip->w559 == 11 && !chip->tm_w6 && !chip->tm_w7)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 10 && !chip->tm_w14)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 8 && (chip->w560 & 1) == 0 && chip->tm_w11)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 8 && (chip->w560 & 1) == 1 && !chip->tm_w11 && chip->tm_w10)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 8 && chip->tm_w4)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 8 && (chip->w560 & 1) == 1 && chip->tm_w11 && !chip->tm_w10)
+    {
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 7 && (chip->w560 & 1) == 1 && chip->tm_w10)
+    {
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 7 && (chip->w560 & 1) == 0 && chip->tm_w10)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 6 && chip->tm_w9)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 6 && chip->tm_w6)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 5 && !chip->tm_w6)
+    {
+        chip->w555 = 0;
+        chip->w556 = 0;
+    }
+    if (chip->w559 == 4 && chip->tm_w6 && !chip->tm_w9)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 4 && !chip->tm_w6 && !chip->tm_w9)
+    {
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 3 && !chip->tm_w9)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 2)
+    {
+        chip->w555 = 0;
+    }
+    if (chip->w559 == 2 && chip->tm_w8)
+    {
+        chip->w556 = 0;
+        chip->w557 = 0;
+    }
+    if (chip->w559 == 1 && chip->tm_w4)
+    {
+        chip->w555 = 0;
+        chip->w556 = 0;
+        chip->w558 = 0;
+    }
+    if (chip->w559 == 0 && !chip->w553)
+    {
+        chip->w555 = 0;
+        chip->w557 = 0;
+    }
+
+    chip->w561 = !(chip->w267 || chip->w522[5]);
+    chip->w562 = !(chip->w561 || chip->w267);
+
+    if (chip->w561)
+    {
+        chip->w472 = chip->w557;
+        chip->w473 = chip->w555;
+    }
+    if (chip->w562)
+    {
+        chip->w472 = chip->w556;
+        chip->w473 = chip->w558;
+    }
+
+    chip->w563 = !(chip->tm_w1 || (chip->w529[25] && chip->tm_w3));
+
+    chip->w564 = !(!chip->w320 || !chip->w267 || !chip->w321);
+    chip->w565 = !(chip->w320 || !chip->w267 || !chip->w321);
+    chip->w566 = !(!chip->w320 || !chip->w267 || chip->w321);
+
+    if (chip->w267)
+    {
+        chip->irdbus = 0;
+        if (chip->w564)
+        {
+            chip->irdbus |= chip->w529[67] << 10;
+            chip->irdbus |= chip->w529[64] << 12;
+            chip->irdbus |= (!chip->w529[61]) << 14;
+            chip->irdbus |= (!chip->w529[58]) << 16;
+            chip->irdbus |= chip->w529[55] << 18;
+            chip->irdbus |= chip->w529[52] << 20;
+            chip->irdbus |= chip->w529[49] << 22;
+            chip->irdbus |= chip->w529[46] << 24;
+            chip->irdbus |= chip->w529[43] << 25;
+            chip->irdbus |= chip->w529[40] << 26;
+            chip->irdbus |= (!chip->w529[37]) << 27;
+            chip->irdbus |= (!chip->w529[34]) << 28;
+            chip->irdbus |= (!chip->w529[31]) << 29;
+            chip->irdbus |= chip->w529[28] << 30;
+            chip->irdbus |= chip->w529[25] << 31;
+            chip->irdbus |= chip->w529[22] << 9;
+            chip->irdbus |= chip->w529[19] << 11;
+            chip->irdbus |= chip->w529[16] << 13;
+            chip->irdbus |= chip->w529[13] << 15;
+            chip->irdbus |= chip->w529[10] << 17;
+            chip->irdbus |= (!chip->w529[7]) << 19;
+            chip->irdbus |= chip->w529[4] << 21;
+            chip->irdbus |= chip->w529[1] << 23;
+        }
+        if (chip->w565)
+        {
+            chip->irdbus |= chip->w529[66] << 10;
+            chip->irdbus |= chip->w529[63] << 12;
+            chip->irdbus |= (!chip->w529[60]) << 14;
+            chip->irdbus |= chip->w529[57] << 16;
+            chip->irdbus |= chip->w529[54] << 18;
+            chip->irdbus |= chip->w529[51] << 20;
+            chip->irdbus |= (!chip->w529[48]) << 22;
+            chip->irdbus |= chip->w529[45] << 24;
+            chip->irdbus |= chip->w529[42] << 25;
+            chip->irdbus |= chip->w529[39] << 26;
+            chip->irdbus |= (!chip->w529[36]) << 27;
+            chip->irdbus |= chip->w529[33] << 28;
+            chip->irdbus |= (!chip->w529[30]) << 29;
+            chip->irdbus |= chip->w529[27] << 30;
+            chip->irdbus |= chip->w529[24] << 31;
+            chip->irdbus |= chip->w529[21] << 9;
+            chip->irdbus |= chip->w529[18] << 11;
+            chip->irdbus |= (!chip->w529[15]) << 13;
+            chip->irdbus |= chip->w529[12] << 15;
+            chip->irdbus |= (!chip->w529[9]) << 17;
+            chip->irdbus |= chip->w529[6] << 19;
+            chip->irdbus |= chip->w529[3] << 21;
+            chip->irdbus |= (!chip->w529[0]) << 23;
+        }
+        if (chip->w566)
+        {
+            chip->irdbus |= chip->w529[65] << 10;
+            chip->irdbus |= (!chip->w529[62]) << 12;
+            chip->irdbus |= (!chip->w529[59]) << 14;
+            chip->irdbus |= (!chip->w529[56]) << 16;
+            chip->irdbus |= chip->w529[53] << 18;
+            chip->irdbus |= chip->w529[50] << 20;
+            chip->irdbus |= chip->w529[47] << 22;
+            chip->irdbus |= chip->w529[44] << 24;
+            chip->irdbus |= chip->w529[41] << 25;
+            chip->irdbus |= chip->w529[38] << 26;
+            chip->irdbus |= (!chip->w529[35]) << 27;
+            chip->irdbus |= (!chip->w529[32]) << 28;
+            chip->irdbus |= (!chip->w529[29]) << 29;
+            chip->irdbus |= chip->w529[26] << 30;
+            chip->irdbus |= chip->w529[23] << 31;
+            chip->irdbus |= chip->w529[20] << 9;
+            chip->irdbus |= (!chip->w529[17]) << 11;
+            chip->irdbus |= chip->w529[14] << 13;
+            chip->irdbus |= chip->w529[11] << 15;
+            chip->irdbus |= chip->w529[8] << 17;
+            chip->irdbus |= chip->w529[5] << 19;
+            chip->irdbus |= chip->w529[2] << 21;
+            chip->irdbus |= chip->w522[0] << 23;
+        }
+    }
+
+    chip->w567 = !(chip->tm_w1 || chip->tm_w2);
 }
 
 int main()
