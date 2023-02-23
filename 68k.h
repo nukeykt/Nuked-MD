@@ -610,7 +610,7 @@ typedef struct {
     int w536;
     int w537;
     int w538; //16 bit
-    int irdbus; // 32 bit
+    unsigned int irdbus; // 32 bit
     int w539;
     int w540;
     int w541;
@@ -640,6 +640,11 @@ typedef struct {
     int w565;
     int w566;
     int w567;
+    int w568;
+    int ird_pla1[50];
+    int ird_pla2[32];
+    int ird_pla3[30];
+    int ird_pla4[22];
 
 
     int jj;

@@ -1866,7 +1866,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->c5 = 0;
     }
 
-    chip->w330 = chip->tm_w1 ? 0 : chip->c2;
+    chip->w330 = chip->w567 ? 0 : chip->c2;
 
     if (chip->w409)
     {
@@ -1884,7 +1884,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w331 = !chip->w323;
     chip->w332 = !chip->w322;
 
-    chip->w333 = !chip->tm_w1;
+    chip->w333 = !chip->w567;
 
     chip->w334 = !(chip->w522[16] || chip->w333 || !chip->w522[15]);
 
@@ -1920,7 +1920,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w347 = !(chip->w340 || chip->w346);
 
     if (chip->c1)
-        chip->w349 = chip->tm_w1;
+        chip->w349 = chip->w567;
 
     if (clk2)
     {
@@ -2032,7 +2032,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w396 = !(chip->w414[2] || chip->w415 || chip->w416);
 
-    chip->w397 = !(chip->w267 || chip->w419 || (!chip->w421[1] && chip->tm_w4) || chip->w426);
+    chip->w397 = !(chip->w267 || chip->w419 || (!chip->w421[1] && chip->w567) || chip->w426);
 
     chip->w399 = chip->w398 ? clk2 : 0;
 
@@ -2051,7 +2051,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w405 = !chip->tm_w1;
 
-    chip->w407 = chip->tm_w1 ? 0 : chip->c2;
+    chip->w407 = chip->w567 ? 0 : chip->c2;
 
     if (chip->w407)
         chip->w406 = !chip->w408;
@@ -2069,7 +2069,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w416 = !(chip->w359[3] || chip->w417);
 
     if (chip->w407)
-        chip->w418[0] = chip->tm_w1;
+        chip->w418[0] = chip->w568;
     else
         chip->w418[0] = chip->w418[1];
     chip->w418[1] = chip->w418[0] && !chip->tm_w2;
@@ -2103,7 +2103,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w430 = !(chip->w423 || chip->w429);
 
-    chip->w431 = !(chip->tm_w1 || chip->w546);
+    chip->w431 = !(chip->w568 || chip->w546);
 
     chip->w432 = !(chip->w269[2] || (chip->w270[0] & 1) == 0 || chip->w268[2] || chip->w276[2]);
 
@@ -2118,7 +2118,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w440 = !(chip->w439[1] || chip->w343[2]);
 
-    chip->w441 = !(chip->tm_w1 || !chip->w544);
+    chip->w441 = !(chip->w568 || !chip->w544);
 
     if (chip->w450)
         chip->w442[0] = 1;
@@ -4474,7 +4474,149 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         }
     }
 
-    chip->w567 = !(chip->tm_w1 || chip->tm_w2);
+    chip->w567 = !(chip->w529[63] || chip->w529[64]);
+
+    chip->w568 = chip->w529[11] || chip->w529[14];
+
+    chip->ird_pla1[0] = !(chip->irdbus & 0x55000580ul);
+    chip->ird_pla1[1] = !(chip->irdbus & 0x9a000000ul) && !chip->ird_pla1[2] && !chip->ird_pla1[3] && !chip->ird_pla1[4];
+    chip->ird_pla1[2] = !(chip->irdbus & 0x9a010000ul);
+    chip->ird_pla1[3] = !(chip->irdbus & 0x9a02a000ul);
+    chip->ird_pla1[4] = !(chip->irdbus & 0x9a000580ul);
+    chip->ird_pla1[5] = !(chip->irdbus & 0xa9010000ul);
+    chip->ird_pla1[6] = !(chip->irdbus & 0xa9020000ul);
+    chip->ird_pla1[7] = !(chip->irdbus & 0xa924a000ul);
+    chip->ird_pla1[8] = !(chip->irdbus & 0xa9000240ul) && !chip->ird_pla1[15];
+    chip->ird_pla1[9] = !(chip->irdbus & 0xa914a000ul);
+    chip->ird_pla1[10] = !(chip->irdbus & 0xa9000140ul) && !chip->ird_pla1[15];
+    chip->ird_pla1[11] = !(chip->irdbus & 0xa928a000ul);
+    chip->ird_pla1[12] = !(chip->irdbus & 0xa9000280ul) && !chip->ird_pla1[15];
+    chip->ird_pla1[13] = !(chip->irdbus & 0xa918a000ul);
+    chip->ird_pla1[14] = !(chip->irdbus & 0xa9000180ul) && !chip->ird_pla1[15];
+    chip->ird_pla1[15] = !(chip->irdbus & 0xa900a000ul);
+    chip->ird_pla1[16] = !(chip->irdbus & 0x65000000ul);
+    chip->ird_pla1[17] = !(chip->irdbus & 0x65029000ul);
+    chip->ird_pla1[18] = !(chip->irdbus & 0x45590000ul);
+    chip->ird_pla1[19] = !(chip->irdbus & 0x45954000ul);
+    chip->ird_pla1[20] = !(chip->irdbus & 0x45650000ul);
+    chip->ird_pla1[21] = !(chip->irdbus & 0x45690000ul);
+    chip->ird_pla1[22] = !(chip->irdbus & 0x45550000ul);
+    chip->ird_pla1[23] = !(chip->irdbus & 0x45990000ul);
+    chip->ird_pla1[24] = !(chip->irdbus & 0x45958000ul);
+    chip->ird_pla1[25] = !(chip->irdbus & 0x55a50000ul);
+    chip->ird_pla1[26] = !(chip->irdbus & 0x55024000ul);
+    chip->ird_pla1[27] = !(chip->irdbus & 0x55028000ul);
+    chip->ird_pla1[28] = !(chip->irdbus & 0x55000000ul);
+    chip->ird_pla1[29] = !(chip->irdbus & 0x46010000ul) && !chip->ird_pla1[31];
+    chip->ird_pla1[30] = !(chip->irdbus & 0x46020000ul) && !chip->ird_pla1[31];
+    chip->ird_pla1[31] = !(chip->irdbus & 0x4600a000ul);
+    chip->ird_pla1[32] = !(chip->irdbus & 0x48000000ul);
+    chip->ird_pla1[33] = !(chip->irdbus & 0x95000000ul);
+    chip->ird_pla1[34] = !(chip->irdbus & 0x85000000ul) && !chip->ird_pla1[35] && !chip->ird_pla1[36];
+    chip->ird_pla1[35] = !(chip->irdbus & 0x85025500ul);
+    chip->ird_pla1[36] = !(chip->irdbus & 0x8500a000ul);
+    chip->ird_pla1[37] = !(chip->irdbus & 0xa5000000ul);
+    chip->ird_pla1[38] = !(chip->irdbus & 0x96000000ul);
+    chip->ird_pla1[39] = !(chip->irdbus & 0x86000000ul) && !chip->ird_pla1[40] && !chip->ird_pla1[41];
+    chip->ird_pla1[40] = !(chip->irdbus & 0x86021500ul);
+    chip->ird_pla1[41] = !(chip->irdbus & 0x86024500ul);
+    chip->ird_pla1[42] = !(chip->irdbus & 0xa6000000ul);
+    chip->ird_pla1[43] = !(chip->irdbus & 0x6599a000ul);
+    chip->ird_pla1[44] = !(chip->irdbus & 0x8600a000ul);
+    chip->ird_pla1[45] = !(chip->irdbus & 0x58016000ul);
+    chip->ird_pla1[46] = !(chip->irdbus & 0x64000580ul);
+    chip->ird_pla1[47] = !(chip->irdbus & 0xa9005000ul);
+    chip->ird_pla1[48] = !(chip->irdbus & 0xa9002000ul);
+    chip->ird_pla1[49] = !(chip->irdbus & 0xa9009000ul);
+
+    chip->ird_pla2[0] = !(chip->irdbus & 0x68008000ul);
+    chip->ird_pla2[1] = !(chip->irdbus & 0x00000500ul);
+    chip->ird_pla2[2] = !(chip->irdbus & 0x8500a000ul);
+    chip->ird_pla2[3] = !(chip->irdbus & 0x6599a000ul);
+    chip->ird_pla2[4] = !(chip->irdbus & 0xa9000000ul);
+    chip->ird_pla2[5] = !(chip->irdbus & 0x66004000ul);
+    chip->ird_pla2[6] = !(chip->irdbus & 0x66001000ul);
+    chip->ird_pla2[7] = !(chip->irdbus & 0x6a010000ul);
+    chip->ird_pla2[8] = !(chip->irdbus & 0x69000000ul);
+    chip->ird_pla2[9] = !(chip->irdbus & 0x55020000ul) && !chip->ird_pla2[1];
+    chip->ird_pla2[10] = !(chip->irdbus & 0x6519a000ul);
+    chip->ird_pla2[11] = !(chip->irdbus & 0x55950000ul) && !chip->ird_pla2[1];
+    chip->ird_pla2[12] = !(chip->irdbus & 0x55024580ul);
+    chip->ird_pla2[13] = !(chip->irdbus & 0x6600a580ul);
+    chip->ird_pla2[14] = !(chip->irdbus & 0x6600a000ul) && !chip->ird_pla2[13];
+    chip->ird_pla2[15] = !(chip->irdbus & 0x55015000ul) && !chip->ird_pla2[16];
+    chip->ird_pla2[16] = !(chip->irdbus & 0x00940500ul);
+    chip->ird_pla2[17] = !(chip->irdbus & 0x80005000ul);
+    chip->ird_pla2[18] = !(chip->irdbus & 0x20005000ul);
+    chip->ird_pla2[19] = !(chip->irdbus & 0x56000000ul);
+    chip->ird_pla2[20] = !(chip->irdbus & 0xa9000a80ul);
+    chip->ird_pla2[21] = !(chip->irdbus & 0x00000a98ul) && !chip->ird_pla2[20] && !chip->w529[24];
+    chip->ird_pla2[22] = !(chip->irdbus & 0x00000a84ul) && !chip->ird_pla2[20] && !chip->w529[24];
+    chip->ird_pla2[23] = !(chip->irdbus & 0x66000000ul);
+    chip->ird_pla2[24] = !(chip->irdbus & 0x55010000ul);
+    chip->ird_pla2[25] = !(chip->irdbus & 0xa9001000ul);
+    chip->ird_pla2[26] = !(chip->irdbus & 0xa9004000ul);
+    chip->ird_pla2[27] = !(chip->irdbus & 0x00000540ul);
+    chip->ird_pla2[28] = !(chip->irdbus & 0x6600a580ul);
+    chip->ird_pla2[29] = !(chip->irdbus & 0x65a96a6aul);
+    chip->ird_pla2[30] = !(chip->irdbus & 0x6565a000ul);
+    chip->ird_pla2[31] = !(chip->irdbus & 0x55015000ul);
+
+    chip->ird_pla3[0] = (chip->tm_w1 & 7) == 0;
+    chip->ird_pla3[1] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00008000ul);
+    chip->ird_pla3[2] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00002000ul);
+    chip->ird_pla3[3] = (chip->tm_w1 & 15) == 3;
+    chip->ird_pla3[4] = (chip->tm_w1 & 15) == 6 && !chip->tm_w2;
+    chip->ird_pla3[5] = (chip->tm_w1 & 15) == 6 && !chip->tm_w2;
+    chip->ird_pla3[6] = (chip->tm_w1 & 15) == 6 && !chip->tm_w2;
+    chip->ird_pla3[7] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65a96a69ul);
+    chip->ird_pla3[8] = (chip->tm_w1 & 15) == 12;
+    chip->ird_pla3[9] = (chip->tm_w1 & 15) == 11;
+    chip->ird_pla3[10] = (chip->tm_w1 & 15) == 4;
+    chip->ird_pla3[11] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65a96500ul);
+    chip->ird_pla3[12] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00000800ul);
+    chip->ird_pla3[13] = (chip->tm_w1 & 15) == 14;
+    chip->ird_pla3[14] = (chip->tm_w1 & 15) == 6;
+    chip->ird_pla3[15] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00000200ul);
+    chip->ird_pla3[16] = (chip->tm_w1 & 15) == 5;
+    chip->ird_pla3[17] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65a96580ul);
+    chip->ird_pla3[18] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00000080ul);
+    chip->ird_pla3[19] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65029000ul);
+    chip->ird_pla3[20] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x9500a000ul);
+    chip->ird_pla3[21] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65a96520ul);
+    chip->ird_pla3[22] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00000020ul);
+    chip->ird_pla3[23] = (chip->tm_w1 & 15) == 13;
+    chip->ird_pla3[24] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65a96502ul);
+    chip->ird_pla3[25] = (chip->tm_w1 & 15) == 0 && !(chip->irdbus & 0x65a96508ul);
+    chip->ird_pla3[26] = (chip->tm_w1 & 15) == 2;
+    chip->ird_pla3[27] = (chip->tm_w1 & 15) == 1;
+    chip->ird_pla3[28] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00000008ul);
+    chip->ird_pla3[29] = (chip->tm_w1 & 15) == 7 && !(chip->irdbus & 0x00000002ul);
+
+
+    chip->ird_pla4[0] = !(chip->irdbus & 0x00000a84ul);
+    chip->ird_pla4[1] = !(chip->irdbus & 0x00000a98ul);
+    chip->ird_pla4[2] = !(chip->irdbus & 0xa9000a80ul);
+    chip->ird_pla4[3] = !(chip->irdbus & 0x65a96900ul);
+    chip->ird_pla4[4] = !(chip->irdbus & 0x66000000ul);
+    chip->ird_pla4[5] = !(chip->irdbus & 0x55010000ul);
+    chip->ird_pla4[6] = !(chip->irdbus & 0x69560000ul);
+    chip->ird_pla4[7] = !(chip->irdbus & 0x65a90000ul);
+    chip->ird_pla4[8] = !(chip->irdbus & 0x65956000ul);
+    chip->ird_pla4[9] = !(chip->irdbus & 0x00080000ul);
+    chip->ird_pla4[10] = !(chip->irdbus & 0x00200000ul);
+    chip->ird_pla4[11] = !(chip->irdbus & 0x00800000ul);
+    chip->ird_pla4[12] = !(chip->irdbus & 0xa5029580ul);
+    chip->ird_pla4[13] = !(chip->irdbus & 0x84020580ul);
+    chip->ird_pla4[14] = !(chip->irdbus & 0x90020580ul);
+    chip->ird_pla4[15] = !(chip->irdbus & 0x8200a000ul);
+    chip->ird_pla4[16] = !(chip->irdbus & 0x6502a000ul);
+    chip->ird_pla4[17] = !(chip->irdbus & 0x52000000ul);
+    chip->ird_pla4[18] = !(chip->irdbus & 0x58000000ul);
+    chip->ird_pla4[19] = !(chip->irdbus & 0x00015000ul);
+    chip->ird_pla4[20] = !(chip->irdbus & 0x65858000ul);
+    chip->ird_pla4[21] = !(chip->irdbus & 0x65958940ul);
+
 }
 
 int main()
