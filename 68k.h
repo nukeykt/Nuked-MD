@@ -645,6 +645,13 @@ typedef struct {
     int ird_pla2[32];
     int ird_pla3[30];
     int ird_pla4[22];
+    int w569; // 15 bits
+    int w570;
+    int w571;
+    int w572;
+    int w573;
+    int w574;
+    int w575;
 
 
     int jj;
