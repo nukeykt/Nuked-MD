@@ -652,6 +652,29 @@ typedef struct {
     int w573;
     int w574;
     int w575;
+    int w576;
+    int w577;
+    int w578;
+    int w579;
+    int w580;
+    int w581;
+    int w582;
+    int w583; // grounded
+    int w584;
+    int w585;
+    int w586;
+    int w587;
+    int w588;
+    int w589;
+    int w590;
+    int w591; // 16 bits
+    int w592;
+    int w593;
+    int w594;
+    int w595;
+    int w596;
+    int w597[18];
+    int w598;
 
 
     int jj;
