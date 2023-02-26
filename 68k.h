@@ -675,7 +675,84 @@ typedef struct {
     int w596;
     int w597[18];
     int w598;
-
+    int w599;
+    int w600;
+    int w601;
+    int alu_io; // 16 bits
+    int w602;
+    int w603;
+    int w604;
+    int w605;
+    int w606;
+    int w607;
+    int w608;
+    int w609;
+    int w610;
+    int w611;
+    int w612;
+    int w613;
+    int w614;
+    int w615;
+    int w616; // 5 bits
+    int w617;
+    int w618;
+    int w619;
+    int w620; // 4 bits
+    int w621; // 4 bits
+    int w622;
+    int w623;
+    int w624;
+    int w625;
+    int w626;
+    int w627;
+    int w628;
+    int w629;
+    int w630;
+    int w631;
+    int w632;
+    int w633;
+    int w634;
+    int w635;
+    int w636;
+    int w637;
+    int w638;
+    int w639;
+    int w640;
+    int w641;
+    int w642;
+    int w643;
+    int w644;
+    int w645;
+    int w646;
+    int c2_delay[3];
+    int c6;
+    int w647;
+    int w648;
+    int w649;
+    int w650;
+    int w651;
+    int w652;
+    int w653;
+    int w654;
+    int w655;
+    int w656;
+    int w657;
+    int w658;
+    int w659;
+    int w660;
+    int w661;
+    int w662;
+    int w663;
+    int w664;
+    int w665;
+    int w666;
+    int w667;
+    int w668;
+    int w669;
+    int w670;
+    int w671;
+    int w672;
+    int w673;
 
     int jj;
     // temp wires
