@@ -753,6 +753,37 @@ typedef struct {
     int w671;
     int w672;
     int w673;
+    int w674;
+    int w675;
+    int w676;
+    int w677;
+    int w678;
+    int w679;
+    int w680;
+    int w681;
+    int w682;
+    int w683;
+    int w684;
+    int w685;
+    int w686;
+    int w687;
+    int w688;
+    int w689;
+    int w690;
+    int w691;
+    int w692;
+    int w693;
+    int w694;
+    int w695;
+    int w696;
+    int w697;
+    int w698;
+    int w699;
+    int w700;
+    int w701;
+    int w702;
+    int w703;
+    int w704;
 
     int jj;
     // temp wires
