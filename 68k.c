@@ -5580,6 +5580,92 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w754 = !chip->w800;
 
     chip->w805 = chip->w753 ^ chip->w752;
+
+    chip->w806 = !(!chip->w724 && !chip->w529[17]);
+
+    if (chip->c1)
+    {
+        chip->w807 = chip->w529[16];
+        chip->w808 = !chip->w529[15];
+    }
+
+    chip->w809 = !(chip->w807 || !chip->w808);
+    chip->w810 = !(chip->w807 || chip->w808);
+    chip->w811 = !chip->w807;
+
+    if (chip->c3)
+        chip->w812 = 0;
+    if (chip->c2)
+        chip->w812 = 1;
+
+    chip->w815 = (chip->w159 & 1) != 0;
+
+    chip->w814 = !(!chip->w815 || !chip->w578);
+
+    chip->w813 = !(chip->w529[14] || chip->w529[11] || chip->w814);
+
+    chip->w816 = !(chip->w815 || !chip->w578);
+
+    chip->w817 = !(chip->w529[14] || chip->w529[11] || chip->w816);
+
+    if (chip->c2 || chip->w812)
+    {
+        chip->w818 = !chip->w813;
+        chip->w819 = !chip->w817;
+    }
+
+    if (chip->w267)
+    {
+        chip->w818 = 0;
+        chip->w819 = 0;
+    }
+
+    chip->w820 = !(chip->w724 || chip->w725);
+
+    chip->w821 = !(chip->w529[10] && !chip->w529[9]);
+
+    chip->w822 = !(chip->w529[8] && !chip->w529[9]);
+
+    chip->w823 = !(chip->w529[11] || chip->w529[14]);
+
+    chip->w824 = !(chip->w823 || chip->w529[12] || chip->w267);
+    chip->w825 = !(chip->w823 || chip->w267 || chip->w578 || chip->w529[13]);
+
+    chip->w826 = chip->w529[13] ^ chip->w529[12];
+
+    chip->w827 = !(!chip->w267 && (chip->w826 || chip->w578));
+
+    chip->w828 = !chip->w529[14];
+
+    chip->w829 = !chip->w529[11];
+
+    chip->w830 = !(chip->w828 || chip->w529[11]);
+    chip->w831 = !(chip->w829 || chip->w529[14]);
+    chip->w832 = !(chip->w829 || chip->w828);
+
+    if (chip->c1)
+    {
+        chip->w833 = !chip->w529[10];
+        chip->w834 = !chip->w529[9];
+        chip->w835 = chip->w529[7];
+    }
+
+    chip->w836 = !(chip->w833 || chip->w834);
+    chip->w837 = !(chip->w833 || !chip->w529[8]);
+
+    if (chip->c2)
+        chip->w838 = 0;
+    if (chip->c3)
+        chip->w838 = chip->w835;
+
+    if (chip->c2)
+    {
+        chip->w839 = !chip->w529[12];
+        chip->w841 = !chip->w529[13];
+    }
+
+    chip->w840 = !(chip->w839 && chip->w838);
+    chip->w842 = !(chip->w841 && chip->w838);
 }
 
 int main()
