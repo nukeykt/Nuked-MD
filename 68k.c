@@ -5666,6 +5666,83 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w840 = !(chip->w839 && chip->w838);
     chip->w842 = !(chip->w841 && chip->w838);
+    chip->w849 = !(!chip->w529[29] || chip->w576);
+
+    if (chip->c1)
+    {
+        chip->w844 = !chip->w529[31];
+        chip->w845 = !chip->w529[30];
+        chip->w846 = chip->w849;
+        chip->w848 = !(chip->w849 || !chip->w529[32]);
+        chip->w850 = chip->w529[33];
+        chip->w851 = !chip->w529[34];
+        chip->w852 = !chip->w529[35];
+    }
+
+    if (chip->w844 && chip->w845)
+        chip->w847 = 0;
+    if (!chip->w844)
+        chip->w847 = chip->c3;
+    if (!chip->w845)
+        chip->w847 = chip->c2;
+
+    if (chip->w851 && chip->w852)
+        chip->w853 = 0;
+    if (!chip->w851)
+        chip->w853 = chip->c3;
+    if (!chip->w852)
+        chip->w853 = chip->c2;
+
+    chip->w854 = chip->w850;
+
+    chip->w855 = chip->w848;
+
+    chip->w856 = chip->w846;
+
+    chip->w857 = chip->w846 ? 0 : chip->c6;
+
+    chip->w843 = chip->w192 ? chip->w853 : 0;
+    chip->w858 = chip->w198 ? chip->w847 : 0;
+    chip->w859 = chip->w197 ? chip->w847 : 0;
+    chip->w860 = chip->w191 ? chip->w853 : 0;
+    chip->w861 = chip->w190 ? chip->w853 : 0;
+    chip->w862 = chip->w196 ? chip->w847 : 0;
+    chip->w863 = chip->w195 ? chip->w847 : 0;
+    chip->w864 = chip->w189 ? chip->w853 : 0;
+    chip->w865 = chip->w188 ? chip->w853 : 0;
+    chip->w866 = chip->w194 ? chip->w847 : 0;
+    chip->w867 = chip->w193 ? chip->w847 : 0;
+    chip->w868 = chip->w187 ? chip->w853 : 0;
+    chip->w869 = chip->w184 ? chip->w853 : 0;
+    chip->w870 = chip->w186 ? chip->w847 : 0;
+    chip->w871 = chip->w185 ? chip->w847 : 0;
+    chip->w872 = chip->w183 ? chip->w853 : 0;
+    chip->w873 = chip->w669 ? chip->w853 : 0;
+    chip->w874 = chip->w676 ? chip->w847 : 0;
+
+    chip->w875 = chip->w836 ? chip->c3 : 0;
+
+    chip->w876 = !chip->tm_w1;
+
+    chip->w877 = chip->w837 ? chip->c2 : 0;
+
+    chip->w878 = chip->w529[20] ? chip->c2 : 0;
+
+    chip->w879 = chip->w529[21] ? chip->c2 : 0;
+
+    chip->w880 = chip->w840 ? 0 : clk1;
+
+    chip->w881 = chip->w842 ? 0 : clk1;
+
+    if (chip->c2)
+        chip->w882 = chip->w827;
+
+    chip->w883 = !chip->w882;
+
+    if (chip->c2)
+        chip->w884 = chip->w825;
+    if (chip->c2)
+        chip->w885 = chip->w824;
 }
 
 int main()
