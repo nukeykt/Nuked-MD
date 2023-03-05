@@ -1042,6 +1042,34 @@ typedef struct {
     int w958;
     int w959;
     int w960;
+    int w961; // 16 bits
+    int w962; // 16 bits
+    int r8;
+    int w963; // 16 bits
+    int w964; // 16 bits
+    int w965;
+    int w966;
+    int w967;
+    int w968;
+    int w969;
+    int w970;
+    int w971;
+    int w972;
+    int w973;
+    int w974;
+    int w975;
+    int w976;
+    int w977;
+    int w978;
+    int w979;
+    int w980; // 16 bits
+    int w981; // 16 bits
+    int w982;
+    int w983;
+    int w984; // 16 bits
+    int w985;
+    int w986;
+    int w987;
 
     int jj;
     // temp wires
