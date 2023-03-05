@@ -25,6 +25,7 @@ See [Progress.md](Progress.md)
 * https://siliconpr0n.org/map/zilog/z0840008psc-z80cpu/ (Antoine Bercovici)
 * https://siliconpr0n.org/map/motorola/mc68000p8-a72e/ (John McMaster)
 * https://og.kervella.org/m68k/ (Olivier Galibert)
+* http://www.visual6502.org/JSSim/expert-z80.html (Visual6502 team)
 
 ## Credits
 * nukeykt - reverse engineering, C implementation
