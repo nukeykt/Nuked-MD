@@ -14,7 +14,7 @@ Sega Mega Drive chipset consist of 6 integrated circuits + RAM chips:
 
 There are number of variations of chipsets across mega drive revisions. For example early revisions use NMOS 68k and Z80 chips, while later models switched to CMOS versions. Yamaha later integrated their chips into one big chip named FC1004.
 
-Nuked MD currently targets NMOS 68k, NMOS Z80 and FC1004. No real mega drive used such combination, but Model VA7 would be closest (CMOS 68k, NMOS Z80 and FC1004). Other variants possibly will be emulated in the future.
+Nuked MD currently targets NMOS 68k, NMOS Z80 and FC1004. No real mega drive used such combination, but Model 1 VA7 would be closest (CMOS 68k, NMOS Z80 and FC1004). Other variants possibly will be emulated in the future.
 
 ## Progress
 See [Progress.md](Progress.md)
