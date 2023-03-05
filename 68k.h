@@ -233,7 +233,7 @@ typedef struct {
     int w180;
     int w181;
     int r5;
-    int w182;
+    //int w182;
     int w183;
     int w184;
     int w185;
@@ -1023,6 +1023,25 @@ typedef struct {
     int w941;
     int w942;
     int w943;
+    int r7[9];
+    int w944; // 5 bits
+    int w945;
+    int w946;
+    int w947; // 16 bits
+    int w948; // 16 bits
+    int data_io; // 16 bits
+    int w949; // 16 bits
+    int w950; // 16 bits
+    int w951; // 16 bits
+    int w952; // 16 bits
+    int w953; // 16 bits
+    int w954[19];
+    int w955;
+    int w956;
+    int w957;
+    int w958;
+    int w959;
+    int w960;
 
     int jj;
     // temp wires
