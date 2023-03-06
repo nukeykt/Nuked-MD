@@ -26,6 +26,7 @@ See [Progress.md](Progress.md)
 * https://siliconpr0n.org/map/motorola/mc68000p8-a72e/ (John McMaster)
 * https://og.kervella.org/m68k/ (Olivier Galibert)
 * http://www.visual6502.org/JSSim/expert-z80.html (Visual6502 team)
+* https://siliconpr0n.org/map/hitachi/hd68hc000u (Digshadow, John McMaster)
 
 ## Credits
 * nukeykt - reverse engineering, C implementation
