@@ -234,6 +234,7 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
         chip->b1[3].val &= chip->w107 & 0xffff;
     }
 
+#if 0
     if (chip->w104)
     {
         chip->b1[0].val &= ~chip->b1[1].val;
@@ -245,6 +246,7 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
         chip->b1[2].val &= ~chip->b1[3].val;
         chip->b1[3].val &= ~chip->b1[2].val;
     }
+#endif
 
     if (chip->c1)
     {
@@ -285,6 +287,7 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
         chip->b2[3].val &= chip->w158 & 0xffff;
     }
 
+#if 0
     if (chip->c6)
     {
         chip->b2[0].val &= ~chip->b2[1].val;
@@ -292,6 +295,7 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
         chip->b2[2].val &= ~chip->b2[3].val;
         chip->b2[3].val &= ~chip->b2[2].val;
     }
+#endif
 
     if (chip->c1)
     {
@@ -301,21 +305,23 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
         chip->b2[3].val = 0xffff;
     }
 
+    // b3
+
+#if 0
     if (chip->c6)
     {
-        chip->b2[0].val &= ~chip->b2[1].val;
-        chip->b2[1].val &= ~chip->b2[0].val;
-        chip->b2[2].val &= ~(chip->b2[3].val & 0xff);
-        chip->b2[3].val &= ~(chip->b2[2].val & 0xff);
+        chip->b3[0].val &= ~chip->b3[1].val;
+        chip->b3[1].val &= ~chip->b3[0].val;
+        chip->b3[2].val &= ~(chip->b3[3].val & 0xff);
+        chip->b3[3].val &= ~(chip->b3[2].val & 0xff);
     }
 
     if (chip->w857)
     {
-        chip->b2[2].val &= ~(chip->b2[3].val & 0xff00);
-        chip->b2[3].val &= ~(chip->b2[2].val & 0xff00);
+        chip->b3[2].val &= ~(chip->b3[3].val & 0xff00);
+        chip->b3[3].val &= ~(chip->b3[2].val & 0xff00);
     }
-
-    // b3
+#endif
 
     if (chip->c1)
     {
@@ -364,6 +370,88 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
 void M68K_AluBusArbitrate(m68k_t *chip)
 {
     int andval[4] = { 0xffff, 0xffff, 0xffff, 0xffff };
+
+    if (chip->w128 && chip->w854)
+    {
+        andval[0] &= chip->b1[0].val;
+        andval[0] &= chip->b2[0].val;
+        andval[0] &= chip->b3[0].val;
+        andval[1] &= chip->b1[1].val;
+        andval[1] &= chip->b2[1].val;
+        andval[1] &= chip->b3[1].val;
+
+        chip->b1[0].val = andval[0];
+        chip->b2[0].val = andval[0];
+        chip->b3[0].val = andval[0];
+        chip->b1[1].val = andval[1];
+        chip->b2[1].val = andval[1];
+        chip->b3[1].val = andval[1];
+    }
+    else if (chip->w128)
+    {
+        andval[0] &= chip->b1[0].val;
+        andval[0] &= chip->b2[0].val;
+        andval[1] &= chip->b1[1].val;
+        andval[1] &= chip->b2[1].val;
+
+        chip->b1[0].val = andval[0];
+        chip->b2[0].val = andval[0];
+        chip->b1[1].val = andval[1];
+        chip->b2[1].val = andval[1];
+    }
+    else if (chip->w854)
+    {
+        andval[0] &= chip->b2[0].val;
+        andval[0] &= chip->b3[0].val;
+        andval[1] &= chip->b2[1].val;
+        andval[1] &= chip->b3[1].val;
+
+        chip->b2[0].val = andval[0];
+        chip->b3[0].val = andval[0];
+        chip->b2[1].val = andval[1];
+        chip->b3[1].val = andval[1];
+    }
+
+    if (chip->w128 && chip->w855)
+    {
+        andval[2] &= chip->b1[2].val;
+        andval[2] &= chip->b2[2].val;
+        andval[2] &= chip->b3[2].val;
+        andval[3] &= chip->b1[3].val;
+        andval[3] &= chip->b2[3].val;
+        andval[3] &= chip->b3[3].val;
+
+        chip->b1[2].val = andval[2];
+        chip->b2[2].val = andval[2];
+        chip->b3[2].val = andval[2];
+        chip->b1[3].val = andval[3];
+        chip->b2[3].val = andval[3];
+        chip->b3[3].val = andval[3];
+    }
+    else if (chip->w128)
+    {
+        andval[2] &= chip->b1[2].val;
+        andval[2] &= chip->b2[2].val;
+        andval[3] &= chip->b1[3].val;
+        andval[3] &= chip->b2[3].val;
+
+        chip->b1[2].val = andval[2];
+        chip->b2[2].val = andval[2];
+        chip->b1[3].val = andval[3];
+        chip->b2[3].val = andval[3];
+    }
+    else if (chip->w855)
+    {
+        andval[2] &= chip->b2[2].val;
+        andval[2] &= chip->b3[2].val;
+        andval[3] &= chip->b2[3].val;
+        andval[3] &= chip->b3[3].val;
+
+        chip->b2[2].val = andval[2];
+        chip->b3[2].val = andval[2];
+        chip->b2[3].val = andval[3];
+        chip->b3[3].val = andval[3];
+    }
 
 }
 
@@ -570,7 +658,7 @@ void M68K_AluBusUpdateRegisters(m68k_t *chip)
         M68K_RegisterLogic(&chip->b3[0], &chip->b3[1], &chip->r8);
 }
 
-// 1. clean bus
+// 1. clean bus (unless c6 is not asserted???)
 // 2. put weak (registers)
 // 3. put strong (buffers)
 // 4. arbitrate segments
@@ -578,6 +666,11 @@ void M68K_AluBusUpdateRegisters(m68k_t *chip)
 
 void M68K_AluBusOps(m68k_t *chip)
 {
+    chip->w104 = chip->w103 ? chip->c6 : 0;
+    chip->w106 = chip->w105 ? chip->c6 : 0;
+    chip->w857 = chip->w846 ? 0 : chip->c6;
+
+#if 0
     chip->b1[0].val = 0xffff;
     chip->b1[1].val = 0xffff;
     chip->b1[2].val = 0xffff;
@@ -590,14 +683,148 @@ void M68K_AluBusOps(m68k_t *chip)
     chip->b3[1].val = 0xffff;
     chip->b3[2].val = 0xffff;
     chip->b3[3].val = 0xffff;
+#endif
+    busstate_t ostate1[4], ostate2[4], ostate3[4];
+    // FIXME
+    if (chip->w104)
+    {
+        ostate1[0] = chip->b1[0];
+        ostate1[1] = chip->b1[1];
+    }
+    else
+    {
+        chip->b1[0].val = 0xffff;
+        chip->b1[1].val = 0xffff;
+    }
+    if (chip->w106)
+    {
+        ostate1[2] = chip->b1[2];
+        ostate1[3] = chip->b1[3];
+    }
+    else
+    {
+        chip->b1[2].val = 0xffff;
+        chip->b1[3].val = 0xffff;
+    }
+    if (chip->c6)
+    {
+        ostate2[0] = chip->b2[0];
+        ostate2[1] = chip->b2[1];
+        ostate2[2] = chip->b2[2];
+        ostate2[3] = chip->b2[3];
+    }
+    else
+    {
+        chip->b2[0].val = 0xffff;
+        chip->b2[1].val = 0xffff;
+        chip->b2[2].val = 0xffff;
+        chip->b2[3].val = 0xffff;
+    }
+    if (chip->c6)
+    {
+        ostate3[0] = chip->b3[0];
+        ostate3[1] = chip->b3[1];
+        ostate3[2] = chip->b3[2];
+        ostate3[3] = chip->b3[3];
+    }
+    else
+    {
+        chip->b3[0].val = 0xffff;
+        chip->b3[1].val = 0xffff;
+        chip->b3[2].val |= 0xff;
+        chip->b3[3].val |= 0xff;
+    }
+    if (chip->w857)
+    {
+        ostate3[2] = chip->b3[2];
+        ostate3[3] = chip->b3[3];
+    }
+    else
+    {
+        chip->b3[2].val |= 0xff00;
+        chip->b3[3].val |= 0xff00;
+    }
 
     M68K_AluBusUpdateWeak(chip);
 
     M68K_AluBusUpdateStrong(chip);
 
+    if (chip->w104)
+    {
+        chip->b1[0] = ostate1[0];
+        chip->b1[1] = ostate1[1];
+    }
+    if (chip->w106)
+    {
+        chip->b1[2] = ostate1[2];
+        chip->b1[3] = ostate1[3];
+    }
+    if (chip->c6)
+    {
+        chip->b2[0] = ostate2[0];
+        chip->b2[1] = ostate2[1];
+        chip->b2[2] = ostate2[2];
+        chip->b2[3] = ostate2[3];
+    }
+    if (chip->c6)
+    {
+        chip->b3[0] = ostate3[0];
+        chip->b3[1] = ostate3[1];
+        chip->b3[2].val &= 0xff00;
+        chip->b3[3].val &= 0xff00;
+        chip->b3[2].val |= ostate3[2].val & 0xff;
+        chip->b3[3].val |= ostate3[3].val & 0xff;
+    }
+    if (chip->w857)
+    {
+        chip->b3[2].val &= 0xff;
+        chip->b3[3].val &= 0xff;
+        chip->b3[2].val |= ostate3[2].val & 0xff00;
+        chip->b3[3].val |= ostate3[3].val & 0xff00;
+    }
+
     M68K_AluBusArbitrate(chip);
 
     M68K_AluBusUpdateRegisters(chip);
+}
+
+void M68K_Clocks(m68k_t* chip, int clk1, int clk2)
+{
+    // FIXME
+    if (clk1)
+    {
+        chip->c1 = chip->c1_l;
+        chip->c2_l = chip->w285;
+        chip->c3_l = chip->w280;
+        chip->c4 = chip->c4_l;
+        chip->c5_l = chip->w288;
+    }
+    else
+    {
+        chip->c1 = 0;
+        chip->c4 = 0;
+    }
+    if (clk2)
+    {
+        chip->c1_l = !chip->w282;
+        chip->c2 = chip->c2_l;
+        chip->c3 = chip->c3_l;
+        chip->c4_l = chip->w282;
+        chip->c5 = chip->c5_l;
+    }
+    else
+    {
+        chip->c2 = 0;
+        chip->c3 = 0;
+        chip->c5 = 0;
+    }
+
+    // needed???
+    chip->c6 = chip->c2_delay[2] && !chip->c1; // FIXME
+
+    chip->c2_delay[2] = chip->c2_delay[1];
+    chip->c2_delay[1] = chip->c2_delay[0];
+    chip->c2_delay[0] = chip->c2;
 }
 
 void M68K_DataBusArbitrate(m68k_t *chip)
@@ -640,30 +867,32 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     int t2;
     int t3;
 
+    M68K_Clocks(chip, clk1, clk2);
+
     M68K_AluBusOps(chip);
     M68K_DataBusArbitrate(chip);
 
-    if (chip->tm_w1)
-        chip->l1 = chip->tm_w2;
-    if (chip->tm_w1)
-        chip->l2 = chip->tm_w3;
+    if (chip->c1)
+        chip->l1 = !chip->w529[60];
+    if (chip->c1)
+        chip->l2 = !chip->w529[59];
     if (chip->l1 && chip->l2)
         chip->w1 = 0;
     else if (!chip->l1)
-        chip->w1 = chip->tm_w4;
+        chip->w1 = chip->c3;
     else if (!chip->l2)
-        chip->w1 = chip->tm_w5;
+        chip->w1 = chip->c2;
 
-    if (chip->tm_w1)
-        chip->l3 = chip->tm_w2;
-    if (chip->tm_w1)
-        chip->l4 = chip->tm_w3;
+    if (chip->c1)
+        chip->l3 = !chip->w529[62];
+    if (chip->c1)
+        chip->l4 = !chip->w529[61];
     if (chip->l3 && chip->l4)
         chip->w2 = 0;
     else if (!chip->l3)
-        chip->w2 = chip->tm_w4;
+        chip->w2 = chip->c3;
     else if (!chip->l4)
-        chip->w2 = chip->tm_w5;
+        chip->w2 = chip->c2;
 
     v1 = chip->w42 && chip->w43 && chip->w45;
     v2 = chip->w51 && chip->w53 && chip->w39;
@@ -808,11 +1037,11 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w32 = chip->w2;
     else
         chip->w32 = 0;
-    if (v2 && chip->w50 && chip->tm_w11)
+    if (v2 && chip->w50 && chip->w634)
         chip->w33 = chip->w2;
     else
         chip->w33 = 0;
-    if (v1 && chip->w47 && chip->tm_w11)
+    if (v1 && chip->w47 && chip->w634)
         chip->w34 = chip->w1;
     else
         chip->w34 = 0;
@@ -860,172 +1089,164 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w59 = !(chip->w69 || chip->w75);
     chip->w60 = chip->w69 || chip->w70 || chip->w75;
 
-    chip->w61 = !chip->tm_w1;
+    chip->w61 = !chip->w529[45];
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w62 = chip->tm_w1;
+            chip->w62 = chip->w655;
         else
-            chip->w62 = chip->tm_w2;
+            chip->w62 = (chip->w626 & 8) != 0;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w63 = chip->tm_w2;
+            chip->w63 = (chip->w626 & 2) != 0;
         else
-            chip->w63 = chip->tm_w1;
+            chip->w63 = chip->w654;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w64 = chip->tm_w1;
+            chip->w64 = chip->w653;
         else
-            chip->w64 = chip->tm_w2;
+            chip->w64 = (chip->w626 & 1) != 0;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w64 = chip->tm_w1;
+            chip->w65 = (chip->w626 & 1) != 0;
         else
-            chip->w64 = chip->tm_w2;
+            chip->w65 = chip->w653;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w65 = chip->tm_w2;
+            chip->w66 = chip->w654;
         else
-            chip->w65 = chip->tm_w1;
+            chip->w66 = (chip->w626 & 2) != 0;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w66 = chip->tm_w1;
+            chip->w67 = (chip->w626 & 8) != 0;
         else
-            chip->w66 = chip->tm_w2;
+            chip->w67 = chip->w655;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w67 = chip->tm_w2;
+            chip->w68 = (chip->w626 & 4) != 0;
         else
-            chip->w67 = chip->tm_w1;
+            chip->w68 = chip->w651;
     }
 
-    if (chip->tm_w3)
-    {
-        if (chip->w61)
-            chip->w68 = chip->tm_w1;
-        else
-            chip->w68 = chip->tm_w2;
-    }
-
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
             chip->w69 = 0;
         else
-            chip->w69 = chip->tm_w1;
+            chip->w69 = chip->w631;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w70 = chip->tm_w1;
+            chip->w70 = chip->w629;
         else
-            chip->w70 = chip->tm_w2;
+            chip->w70 = chip->w630;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w71 = chip->tm_w2;
+            chip->w71 = chip->w631;
         else
             chip->w71 = 0;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w72 = chip->tm_w1;
+            chip->w72 = chip->w630;
         else
-            chip->w72 = chip->tm_w2;
+            chip->w72 = chip->w629;
     }
 
-    if (chip->tm_w3)
+    if (chip->c1)
     {
         if (chip->w61)
-            chip->w73 = chip->tm_w2;
+            chip->w73 = chip->w651;
         else
-            chip->w73 = chip->tm_w1;
+            chip->w73 = (chip->w626 & 4) != 0;
     }
 
-    chip->w74 = !chip->tm_w1;
+    chip->w74 = !chip->w529[66];
 
-    if (chip->tm_w3)
-        chip->w75 = !(chip->w74 || chip->tm_w1);
+    if (chip->c1)
+        chip->w75 = !(chip->w74 || chip->w529[67]);
 
-    chip->w76 = !chip->tm_w1;
+    chip->w76 = !chip->w529[67];
 
-    if (chip->tm_w3)
-        chip->w77 = !(chip->tm_w1 || chip->w76);
+    if (chip->c1)
+        chip->w77 = !(chip->w529[66] || chip->w76);
 
     chip->w78 = !(chip->w74 || chip->w76);
 
-    chip->w79 = chip->tm_w1 ? 0 : chip->tm_w2;
+    chip->w79 = chip->w637 ? 0 : chip->c2;
 
-    chip->w80 = chip->w81 ? chip->tm_w2 : 0;
+    chip->w80 = chip->w81 ? chip->c2 : 0;
 
-    chip->w81 = !(chip->tm_w1 || !chip->tm_w2);
+    chip->w81 = !(chip->w529[63] || !chip->w529[64]);
 
-    chip->w82 = chip->w83 ? chip->tm_w2 : 0;
+    chip->w82 = chip->w83 ? chip->c2 : 0;
 
-    chip->w83 = !(!chip->tm_w1 || chip->tm_w2);
+    chip->w83 = !(!chip->w529[63] || chip->w529[64]);
 
-    chip->w84 = chip->w85 ? chip->tm_w2 : 0;
+    chip->w84 = chip->w85 ? chip->c2 : 0;
 
-    chip->w85 = !(!chip->tm_w1 || !chip->tm_w2);
+    chip->w85 = !(!chip->w529[63] || !chip->w529[64]);
 
     chip->w86 = chip->w56 ? 0 : chip->w2;
 
     chip->w87 = chip->w59 ? 0 : chip->w1;
 
-    chip->w88 = !chip->tm_w1;
+    chip->w88 = !chip->w634;
 
-    chip->w89 = !(!chip->tm_w1 || chip->tm_w2);
-    chip->w90 = !(!chip->tm_w1 || !chip->tm_w2);
-    chip->w91 = !(chip->tm_w1 || !chip->tm_w2);
+    chip->w89 = !(!chip->w529[46] || chip->w529[47]);
+    chip->w90 = !(!chip->w529[46] || !chip->w529[47]);
+    chip->w91 = !(chip->w529[46] || !chip->w529[47]);
 
-    chip->w92 = chip->w90 ? chip->tm_w1 : 0;
-    chip->w93 = chip->w91 ? chip->tm_w1 : 0;
-    chip->w94 = chip->w89 ? chip->tm_w1 : 0;
+    chip->w92 = chip->w90 ? chip->c2 : 0;
+    chip->w93 = chip->w91 ? chip->c2 : 0;
+    chip->w94 = chip->w89 ? chip->c2 : 0;
 
-    if (chip->tm_w2)
-        chip->l5 = chip->tm_w1;
-    chip->w95 = chip->l5 ? chip->tm_w3 : 0;
-    if (chip->tm_w1)
+    if (chip->c1)
+        chip->l5 = !chip->w529[48];
+    chip->w95 = chip->l5 ? chip->c3 : 0;
+    if (chip->c1)
         chip->w95 = 0;
 
-    chip->w96 = chip->tm_w1;
-    chip->w97 = !chip->tm_w1;
+    chip->w96 = chip->w643;
+    chip->w97 = !chip->w643;
 
-    chip->w98 = chip->tm_w1;
+    chip->w98 = chip->w639;
     chip->w99 = chip->w103;
     chip->w100 = chip->w105;
 
-    if (chip->tm_w6)
+    if (chip->c1)
     {
-        chip->l6 = chip->tm_w1;
-        chip->l7 = chip->tm_w2;
-        chip->l8 = chip->tm_w3;
-        chip->l9 = chip->tm_w4;
-        chip->l10 = chip->tm_w5;
+        chip->l6 = chip->w529[57];
+        chip->l7 = !chip->w529[58];
+        chip->l8 = chip->w529[57];
+        chip->l9 = chip->w636;
+        chip->l10 = chip->w529[57];
     }
 
     if (chip->l7)
@@ -1033,9 +1254,9 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     else
     {
         if (!chip->l6)
-            chip->w101 = chip->tm_w7;
+            chip->w101 = chip->c3;
         if (chip->l8)
-            chip->w101 = chip->tm_w7;
+            chip->w101 = chip->c2;
     }
 
     if (chip->l9)
@@ -1043,18 +1264,16 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     else
     {
         if (!chip->l10)
-            chip->w102 = chip->tm_w7;
+            chip->w102 = chip->c3;
         if (chip->l8)
-            chip->w102 = chip->tm_w7;
+            chip->w102 = chip->c2;
     }
 
-    if (chip->tm_w2)
-        chip->w103 = !chip->tm_w1;
-    chip->w104 = chip->w103 ? chip->tm_w3 : 0;
+    if (chip->c1)
+        chip->w103 = !chip->w529[55];
 
-    if (chip->tm_w2)
-        chip->w105 = !chip->tm_w1;
-    chip->w106 = chip->w105 ? chip->tm_w3 : 0;
+    if (chip->c1)
+        chip->w105 = !chip->w529[54];
 
     if (chip->w95)
         chip->w109 = (~chip->w114) & 0xffff;
@@ -1079,7 +1298,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w111 = (~(chip->w110 | chip->b1[1].val)) & 0xffff;
     chip->w112 = (chip->w110 ^ chip->b1[1].val) & 0xffff;
 
-    if (chip->tm_w2)
+    if (chip->c2)
     {
         chip->w113[0] = 1;
         chip->w113[1] = 1;
@@ -1231,38 +1450,38 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w114 = (chip->w112 ^ v1) & 0xffff;
 
-    chip->w123 = !(chip->tm_w1 || chip->tm_w2);
-    if (chip->tm_w3)
+    chip->w123 = !(chip->w100 || (chip->b1[2].val & 32768) != 0);
+    if (chip->c1)
         chip->w123 = 0;
 
-    chip->w124 = !(chip->tm_w1 || chip->tm_w2);
-    if (chip->tm_w3)
+    chip->w124 = !(chip->w99 || (chip->b1[1].val & 32768) != 0);
+    if (chip->c1)
         chip->w124 = 0;
 
-    chip->w125 = !(chip->tm_w1 || chip->tm_w2);
-    if (chip->tm_w3)
+    chip->w125 = !(chip->w99 || (chip->b1[0].val & 32768) != 0);
+    if (chip->c1)
         chip->w125 = 0;
 
-    chip->w126 = !(chip->tm_w1 || chip->tm_w2);
-    if (chip->tm_w3)
+    chip->w126 = !(chip->w100 || (chip->b1[3].val & 32768) != 0);
+    if (chip->c1)
         chip->w126 = 0;
 
-    if (chip->tm_w2)
-        chip->w127 = chip->tm_w1;
+    if (chip->c1)
+        chip->w127 = chip->w529[53];
 
-    if (chip->tm_w2)
-        chip->w128 = chip->tm_w1;
+    if (chip->c1)
+        chip->w128 = chip->w529[52];
 
-    chip->w129 = !chip->tm_w1;
+    chip->w129 = !chip->w639;
 
-    chip->w130 = !chip->tm_w1;
-    chip->w131 = chip->tm_w1;
+    chip->w130 = !chip->w643;
+    chip->w131 = chip->w643;
 
     if (chip->w130)
     {
         chip->w132 = chip->w129 ? 0xfffc : 0;
-        chip->w132 |= chip->tm_w2 ? 2 : 0;
-        chip->w132 |= chip->tm_w1 ? 1 : 0;
+        chip->w132 |= chip->w642 ? 2 : 0;
+        chip->w132 |= chip->w640 ? 1 : 0;
     }
     if (chip->w131)
         chip->w132 = chip->b2[3].val;
@@ -1270,7 +1489,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w133 = (~(chip->w132 | chip->b2[1].val)) & 0xffff;
     chip->w134 = (chip->w132 ^ chip->b2[1].val) & 0xffff;
 
-    if (chip->tm_w2)
+    if (chip->c2)
     {
         chip->w135[0] = 1;
         chip->w135[1] = 1;
@@ -1296,7 +1515,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     }
     else
     {
-        chip->w135[0] = !(chip->tm_w3 && chip->tm_w4);
+        chip->w135[0] = !(chip->w638 && chip->w646);
 
         if (chip->w134 & 1)
             chip->w135[1] &= chip->w135[0];
@@ -1435,33 +1654,33 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w145 = (chip->w112 ^ v1) & 0xffff;
 
-    if (chip->tm_w2)
-        chip->l11 = chip->tm_w1;
-    chip->w148 = chip->l11 ? chip->tm_w3 : 0;
-    if (chip->tm_w2)
+    if (chip->c1)
+        chip->l11 = !chip->w529[48];
+    chip->w148 = chip->l11 ? chip->c3 : 0;
+    if (chip->c1)
         chip->w148 = 0;
-    chip->w149 = !(!chip->tm_w1 || chip->tm_w2);
-    chip->w150 = !(chip->tm_w1 || !chip->tm_w2);
-    chip->w151 = !(!chip->tm_w1 || !chip->tm_w2);
-    chip->w152 = chip->w149 ? chip->tm_w1 : 0;
-    chip->w153 = chip->w150 ? chip->tm_w1 : 0;
-    chip->w154 = chip->w151 ? chip->tm_w1 : 0;
-    chip->w155 = chip->tm_w1 ? 0 : chip->tm_w2;
-    chip->w156 = chip->tm_w1 ? 0 : chip->tm_w2;
+    chip->w149 = !(!chip->w529[46] || chip->w529[47]);
+    chip->w150 = !(chip->w529[46] || !chip->w529[47]);
+    chip->w151 = !(!chip->w529[46] || !chip->w529[47]);
+    chip->w152 = chip->w149 ? chip->c2 : 0;
+    chip->w153 = chip->w150 ? chip->c2 : 0;
+    chip->w154 = chip->w151 ? chip->c2 : 0;
+    chip->w155 = chip->w675 ? 0 : chip->w847;
+    chip->w156 = chip->w668 ? 0 : chip->w853;
 
     if (chip->w148)
         chip->w147 = (~chip->w145) & 0xffff;
 
     chip->w157 = (chip->w147 & 63) == 0;
 
-    chip->w164 = !(!chip->tm_w1 || !chip->tm_w2);
-    chip->w165 = !(!chip->tm_w1 || chip->tm_w2);
-    chip->w166 = !(chip->tm_w1 || !chip->tm_w2);
+    chip->w164 = !(!chip->w529[63] || !chip->w529[64]);
+    chip->w165 = !(!chip->w529[63] || chip->w529[64]);
+    chip->w166 = !(chip->w529[63] || !chip->w529[64]);
 
-    chip->w160 = chip->w164 ? chip->tm_w1 : 0;
-    chip->w161 = chip->w165 ? chip->tm_w1 : 0;
-    chip->w162 = chip->w166 ? chip->tm_w1 : 0;
-    chip->w163 = chip->tm_w1 ? 0 : chip->tm_w2;
+    chip->w160 = chip->w164 ? chip->c2 : 0;
+    chip->w161 = chip->w165 ? chip->c2 : 0;
+    chip->w162 = chip->w166 ? chip->c2 : 0;
+    chip->w163 = chip->w637 ? 0 : chip->c2;
 
     if (chip->w160)
         chip->w158 = chip->w147;
@@ -1475,8 +1694,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     }
     chip->w159 = (~chip->w158) & 0xffff;
 
-    chip->w167 = chip->tm_w1 ? chip->tm_w2 : 0;
-    chip->w168 = chip->tm_w1 ? chip->tm_w2 : 0;
+    chip->w167 = chip->w597[0] ? chip->c3 : 0;
+    chip->w168 = chip->w597[4] ? chip->c2 : 0;
 
     if (chip->w168)
         chip->w169 = chip->b2[2].val;
@@ -1485,10 +1704,10 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w170 = (chip->w169 & 0xffff) == 0;
 
-    if (chip->tm_w1)
+    if (chip->c2)
         chip->w171 = (~chip->w169) & 0xffff;
 
-    if (chip->tm_w1)
+    if (chip->c2)
     {
         chip->w172 = 0xffff;
     }
@@ -1513,99 +1732,99 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w176 = (chip->w173 & 0x0f0f) == 0;
     chip->w177 = (chip->w173 & 0x00ff) == 0;
 
-    chip->w178 = chip->tm_w1 ? (chip->tm_w2 ? chip->tm_w4 : chip->tm_w3) : 0;
-    chip->w179 = chip->tm_w1 ? (chip->tm_w2 ? chip->tm_w4 : chip->tm_w3) : 0;
+    chip->w178 = chip->w597[5] ? (chip->w597[4] ? chip->c3 : chip->c2) : 0;
+    chip->w179 = chip->w597[6] ? (chip->w597[4] ? chip->c3 : chip->c2) : 0;
 
-    chip->w180 = chip->tm_w1;
-    chip->w181 = chip->tm_w1 ? chip->tm_w2 : 0;
+    chip->w180 = chip->w597[7];
+    chip->w181 = chip->w597[8] ? chip->c3 : 0;
 
     if (chip->w180)
         chip->alu_io = chip->r5;
 
-    chip->w183 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
-    chip->w184 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w199 = chip->w660;
 
-    chip->w185 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w186 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w200 = chip->w659;
 
-    chip->w187 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
-    chip->w188 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w201 = chip->w670;
 
-    chip->w189 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
-    chip->w190 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w202 = chip->w671;
 
-    chip->w191 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
-    chip->w192 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
+    chip->w203 = chip->w680;
 
-    chip->w193 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w194 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w204 = chip->w679;
 
-    chip->w195 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w196 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w205 = chip->w678;
 
-    chip->w197 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w198 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w206 = chip->w677;
 
-    chip->w199 = chip->tm_w1;
+    chip->w207 = chip->w658;
+    chip->w208 = chip->w657;
 
-    chip->w200 = chip->tm_w1;
+    chip->w209 = chip->w672;
 
-    chip->w201 = chip->tm_w1;
+    chip->w210 = chip->w673;
 
-    chip->w202 = chip->tm_w1;
+    chip->w183 = chip->w201 && !chip->w199 && !chip->w200;
+    chip->w184 = chip->w201 && !chip->w199 && chip->w200;
 
-    chip->w203 = chip->tm_w1;
+    chip->w185 = chip->w204 && !chip->w207 && !chip->w208;
+    chip->w186 = chip->w204 && !chip->w207 && chip->w208;
 
-    chip->w204 = chip->tm_w1;
+    chip->w187 = chip->w201 && chip->w199 && !chip->w200;
+    chip->w188 = chip->w201 && chip->w199 && chip->w200;
 
-    chip->w205 = chip->tm_w1;
+    chip->w189 = chip->w202 && !chip->w199 && !chip->w200;
+    chip->w190 = chip->w202 && !chip->w199 && chip->w200;
 
-    chip->w206 = chip->tm_w1;
+    chip->w191 = chip->w202 && chip->w199 && !chip->w200;
+    chip->w192 = chip->w202 && chip->w199 && chip->w200;
 
-    chip->w207 = chip->tm_w1;
-    chip->w208 = chip->tm_w2;
+    chip->w193 = chip->w204 && chip->w207 && !chip->w208;
+    chip->w194 = chip->w204 && chip->w207 && chip->w208;
 
-    chip->w209 = chip->tm_w1;
+    chip->w195 = chip->w203 && !chip->w207 && !chip->w208;
+    chip->w196 = chip->w203 && !chip->w207 && chip->w208;
 
-    chip->w210 = chip->tm_w1;
+    chip->w197 = chip->w203 && chip->w207 && !chip->w208;
+    chip->w198 = chip->w203 && chip->w207 && chip->w208;
 
-    chip->w211 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w212 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w211 = chip->w209 && !chip->w199 && !chip->w200;
+    chip->w212 = chip->w209 && !chip->w199 && chip->w200;
 
-    chip->w213 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w214 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w213 = chip->w209 && chip->w199 && !chip->w200;
+    chip->w214 = chip->w209 && chip->w199 && chip->w200;
 
-    chip->w215 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w216 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w215 = chip->w210 && !chip->w199 && !chip->w200;
+    chip->w216 = chip->w210 && !chip->w199 && chip->w200;
 
-    chip->w217 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w218 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w217 = chip->w206 && !chip->w207 && !chip->w208;
+    chip->w218 = chip->w206 && !chip->w207 && chip->w208;
 
-    chip->w219 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w220 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w219 = chip->w206 && chip->w207 && !chip->w208;
+    chip->w220 = chip->w206 && chip->w207 && chip->w208;
 
-    chip->w221 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w222 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4;
+    chip->w221 = chip->w205 && !chip->w207 && !chip->w208;
+    chip->w222 = chip->w205 && !chip->w207 && chip->w208;
 
-    chip->w223 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w224 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4 && chip->tm_w5;
-    chip->w225 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4 && chip->tm_w6;
+    chip->w223 = chip->w210 && chip->w199 && !chip->w200;
+    chip->w224 = chip->w210 && chip->w199 && chip->w200 && chip->w634;
+    chip->w225 = chip->w210 && chip->w199 && chip->w200 && !chip->w634;
 
-    chip->w226 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3;
-    chip->w227 = chip->tm_w1 && chip->tm_w2 && chip->tm_w4 && chip->tm_w5;
+    chip->w226 = chip->w205 && chip->w207 && !chip->w208;
+    chip->w227 = chip->w205 && chip->w207 && chip->w208 && chip->w634;
 
-    chip->w228 = chip->tm_w1 && chip->tm_w2 && chip->tm_w3 && chip->tm_w4;
+    chip->w228 = chip->w205 && !chip->w634 && chip->w207 && chip->w208;
 
-    if (chip->tm_w2)
-        chip->w229 = chip->tm_w1;
+    if (chip->c1)
+        chip->w229 = chip->w576;
 
-    chip->w230 = !((chip->tm_w1 && chip->tm_w2 && chip->tm_w3) || chip->w229);
+    chip->w230 = !((chip->w199 && chip->w210 && chip->w200) || chip->w229);
 
-    if (chip->tm_w2)
-        chip->w231 = chip->tm_w1;
+    if (chip->c1)
+        chip->w231 = chip->w529[38];
 
-    if (chip->tm_w2)
-        chip->w232 = chip->tm_w1;
+    if (chip->c1)
+        chip->w232 = !chip->w529[37];
 
     chip->w233 = !(chip->w231 || chip->w232);
     chip->w234 = !(chip->w232 || !chip->w231);
@@ -1613,12 +1832,12 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->w232)
         chip->w235 = 0;
     if (chip->w233)
-        chip->w235 = chip->tm_w1;
+        chip->w235 = chip->c3;
     if (chip->w234)
-        chip->w235 = chip->tm_w2;
+        chip->w235 = chip->c2;
 
-    if (chip->tm_w2)
-        chip->w238 = chip->tm_w1;
+    if (chip->c1)
+        chip->w238 = !chip->w529[36];
 
     chip->w236 = !(!chip->w231 || chip->w238);
     chip->w237 = !(chip->w238 || chip->w231);
@@ -1626,45 +1845,45 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->w238)
         chip->w239 = 0;
     if (chip->w237)
-        chip->w239 = chip->tm_w1;
+        chip->w239 = chip->c3;
     if (chip->w236)
-        chip->w239 = chip->tm_w2;
+        chip->w239 = chip->c2;
 
-    chip->w240 = chip->w228 ? chip->tm_w1 : 0;
+    chip->w240 = chip->w228 ? chip->w847 : 0;
 
-    chip->w241 = chip->w225 ? chip->tm_w1 : 0;
+    chip->w241 = chip->w225 ? chip->w858 : 0;
 
-    chip->w242 = chip->w224 ? chip->tm_w1 : 0;
+    chip->w242 = chip->w224 ? chip->w858 : 0;
 
-    chip->w243 = chip->w227 ? chip->tm_w1 : 0;
+    chip->w243 = chip->w227 ? chip->w847 : 0;
 
-    chip->w244 = chip->w226 ? chip->tm_w1 : 0;
+    chip->w244 = chip->w226 ? chip->w847 : 0;
 
-    chip->w245 = chip->w223 ? chip->tm_w1 : 0;
+    chip->w245 = chip->w223 ? chip->w858 : 0;
 
-    chip->w246 = chip->w216 ? chip->tm_w1 : 0;
+    chip->w246 = chip->w216 ? chip->w858 : 0;
 
-    chip->w247 = chip->w222 ? chip->tm_w1 : 0;
+    chip->w247 = chip->w222 ? chip->w847 : 0;
 
-    chip->w248 = chip->w221 ? chip->tm_w1 : 0;
+    chip->w248 = chip->w221 ? chip->w847 : 0;
 
-    chip->w249 = chip->w215 ? chip->tm_w1 : 0;
+    chip->w249 = chip->w215 ? chip->w858 : 0;
 
-    chip->w250 = chip->w214 ? chip->tm_w1 : 0;
+    chip->w250 = chip->w214 ? chip->w858 : 0;
 
-    chip->w251 = chip->w220 ? chip->tm_w1 : 0;
+    chip->w251 = chip->w220 ? chip->w847 : 0;
 
-    chip->w252 = chip->w219 ? chip->tm_w1 : 0;
+    chip->w252 = chip->w219 ? chip->w847 : 0;
 
-    chip->w253 = chip->w213 ? chip->tm_w1 : 0;
+    chip->w253 = chip->w213 ? chip->w858 : 0;
 
-    chip->w254 = chip->w212 ? chip->tm_w1 : 0;
+    chip->w254 = chip->w212 ? chip->w858 : 0;
 
-    chip->w255 = chip->w218 ? chip->tm_w1 : 0;
+    chip->w255 = chip->w218 ? chip->w847 : 0;
 
-    chip->w256 = chip->w217 ? chip->tm_w1 : 0;
+    chip->w256 = chip->w217 ? chip->w847 : 0;
 
-    chip->w257 = chip->w211 ? chip->tm_w1 : 0;
+    chip->w257 = chip->w211 ? chip->w858 : 0;
 
     chip->w266 = chip->i_vpa == state_test;
 
@@ -2076,35 +2295,6 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w327 = !(chip->w326 || chip->w267);
 
     chip->w328 = chip->w327 ? 0 : chip->c2;
-
-    // FIXME
-    if (clk1)
-    {
-        chip->c1 = chip->c1_l;
-        chip->c2_l = chip->w285;
-        chip->c3_l = chip->w280;
-        chip->c4 = chip->c4_l;
-        chip->c5_l = chip->w288;
-    }
-    else
-    {
-        chip->c1 = 0;
-        chip->c4 = 0;
-    }
-    if (clk2)
-    {
-        chip->c1_l = !chip->w282;
-        chip->c2 = chip->c2_l;
-        chip->c3 = chip->c3_l;
-        chip->c4_l = chip->w282;
-        chip->c5 = chip->c5_l;
-    }
-    else
-    {
-        chip->c2 = 0;
-        chip->c3 = 0;
-        chip->c5 = 0;
-    }
 
     chip->w330 = chip->w567 ? 0 : chip->c2;
 
@@ -5324,12 +5514,6 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w646 = chip->w645 ? chip->w639 : chip->w641;
 
-    chip->c6 = chip->c2_delay[2] && !chip->c1; // FIXME
-
-    chip->c2_delay[2] = chip->c2_delay[1];
-    chip->c2_delay[1] = chip->c2_delay[0];
-    chip->c2_delay[0] = chip->c2;
-
     chip->w647 = !chip->w529[27];
 
     if (chip->c1)
@@ -5940,8 +6124,6 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w855 = chip->w848;
 
     chip->w856 = chip->w846;
-
-    chip->w857 = chip->w846 ? 0 : chip->c6;
 
     chip->w843 = chip->w192 ? chip->w853 : 0;
     chip->w858 = chip->w198 ? chip->w847 : 0;
