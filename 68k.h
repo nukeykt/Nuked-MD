@@ -1070,28 +1070,10 @@ typedef struct {
     int w985;
     int w986;
     int w987;
-
-    int jj;
-    // temp wires
-    int tm_w1;
-    int tm_w2;
-    int tm_w3;
-    int tm_w4;
-    int tm_w5;
-    int tm_w6;
-    int tm_w7;
-    int tm_w8;
-    int tm_w9;
-    int tm_w10;
-    int tm_w11;
-    int tm_w12;
-    int tm_w13;
-    int tm_w14;
-    int tm_w15;
-    int tm_w16;
-    int tm_w17;
-    int tm_w18;
-    int tm_w19;
-    int tm_w20;
+    int w988;
+    int w989;
+    int w990;
+    int w991;
+    int w992;
 } m68k_t;
 
