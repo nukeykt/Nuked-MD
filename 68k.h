@@ -20,6 +20,7 @@ typedef struct {
     int i_reset;
     int i_halt;
     int o_reset;
+    int o_halt;
     int i_ipl0;
     int i_ipl1;
     int i_ipl2;
@@ -33,6 +34,14 @@ typedef struct {
     int i_dtack;
     int o_rw;
     int i_berr;
+    int i_data;
+    int o_data;
+    int o_data_z;
+    int o_address;
+    int o_address_z;
+    int o_as;
+    int o_lds;
+    int o_uds;
 
     int w1;
     int l1;
@@ -1075,5 +1084,16 @@ typedef struct {
     int w990;
     int w991;
     int w992;
+    int data_l;
+    int address_mux;
+    int as_l1;
+    int as_l2;
+    int as_l3;
+    int uds_l1;
+    int uds_l2;
+    int uds_l3;
+    int lds_l1;
+    int lds_l2;
+    int lds_l3;
 } m68k_t;
 

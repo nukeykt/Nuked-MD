@@ -844,6 +844,20 @@ void M68K_DataBusArbitrate(m68k_t *chip)
         chip->data_io |= (~chip->w964) & 0xff00;
     }
 
+    if (chip->w986)
+    {
+        lowupdate = 1;
+        chip->data_io &= 0xff00;
+        chip->data_io |= (~chip->data_l) & 0xff;
+    }
+
+    if (chip->w987)
+    {
+        lowupdate = 1;
+        chip->data_io &= 0xff;
+        chip->data_io |= (~chip->data_l) & 0xff00;
+    }
+
     if (chip->w883)
     {
         if (lowupdate)
@@ -2205,7 +2219,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w265 = !chip->w264 || (!chip->w343[2] && (chip->w435[2] || chip->w292));
 
-    chip->o_reset = chip->w336 ? state_z : state_1;
+    chip->o_reset = chip->w336 ? state_z : state_0;
+    chip->o_halt = chip->w339 ? state_z : state_0;
 
     chip->w286 = !(chip->w292 || chip->w287 || chip->w289 || clk2 || chip->w430 || chip->w435[2]);
 
@@ -6570,6 +6585,123 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w986 = chip->w818 ? 0 : clk1;
     chip->w987 = chip->w819 ? 0 : clk1;
+
+    if (clk2)
+        chip->data_l = chip->i_data;
+
+    if (chip->w361)
+    {
+        chip->o_data = chip->data_io ^ 0xffff;
+        chip->o_data_z = 0;
+    }
+    else
+        chip->o_data_z = 1;
+    
+    if (chip->w267)
+    {
+        chip->address_mux = 0;
+        if (chip->irdbus & 0x200)
+            chip->address_mux |= 0x8000;
+        if (chip->irdbus & 0x400)
+            chip->address_mux |= 0x1;
+        if (chip->irdbus & 0x800)
+            chip->address_mux |= 0x10000;
+        if (chip->irdbus & 0x1000)
+            chip->address_mux |= 0x2;
+        if (chip->irdbus & 0x2000)
+            chip->address_mux |= 0x20000;
+        if (chip->irdbus & 0x4000)
+            chip->address_mux |= 0x4;
+        if (chip->irdbus & 0x8000)
+            chip->address_mux |= 0x40000;
+        if (chip->irdbus & 0x10000)
+            chip->address_mux |= 0x8;
+        if (chip->irdbus & 0x20000)
+            chip->address_mux |= 0x80000;
+        if (chip->irdbus & 0x40000)
+            chip->address_mux |= 0x10;
+        if (chip->irdbus & 0x80000)
+            chip->address_mux |= 0x100000;
+        if (chip->irdbus & 0x100000)
+            chip->address_mux |= 0x20;
+        if (chip->irdbus & 0x200000)
+            chip->address_mux |= 0x200000;
+        if (chip->irdbus & 0x400000)
+            chip->address_mux |= 0x40;
+        if (chip->irdbus & 0x800000)
+            chip->address_mux |= 0x400000;
+        if (chip->irdbus & 0x1000000)
+            chip->address_mux |= 0x80;
+        if (chip->irdbus & 0x2000000)
+            chip->address_mux |= 0x100;
+        if (chip->irdbus & 0x4000000)
+            chip->address_mux |= 0x200;
+        if (chip->irdbus & 0x8000000)
+            chip->address_mux |= 0x400;
+        if (chip->irdbus & 0x10000000)
+            chip->address_mux |= 0x800;
+        if (chip->irdbus & 0x20000000)
+            chip->address_mux |= 0x1000;
+        if (chip->irdbus & 0x40000000)
+            chip->address_mux |= 0x2000;
+        if (chip->irdbus & 0x80000000)
+            chip->address_mux |= 0x4000;
+    }
+    else
+    {
+        chip->address_mux = (chip->w159 >> 1) & 0x7fff;
+        chip->address_mux |= (chip->w108 << 15) & 0x7f8000;
+    }
+
+    if (chip->w400)
+    {
+        chip->o_address = chip->address_mux ^ 0x7fffff;
+        chip->o_address_z = 0;
+    }
+    else
+        chip->o_address_z = 1;
+
+    if (clk2)
+    {
+        chip->as_l1 = chip->w376;
+        chip->as_l3 = chip->w409;
+    }
+    if (chip->as_l1 && clk1)
+        chip->as_l2 = 0;
+    if (!chip->as_l1)
+        chip->as_l2 = 1;
+    if (chip->as_l3)
+        chip->o_as = state_z;
+    else
+        chip->o_as = !chip->as_l2;
+
+    if (clk2)
+    {
+        chip->uds_l1 = chip->w385;
+        chip->uds_l3 = chip->w409;
+    }
+    if (chip->uds_l1 && clk1)
+        chip->uds_l2 = 0;
+    if (!chip->uds_l1)
+        chip->uds_l2 = chip->w413;
+    if (chip->uds_l3)
+        chip->o_uds = state_z;
+    else
+        chip->o_uds = !chip->uds_l2;
+
+    if (clk2)
+    {
+        chip->lds_l1 = chip->w385;
+        chip->lds_l3 = chip->w409;
+    }
+    if (chip->lds_l1 && clk1)
+        chip->lds_l2 = 0;
+    if (!chip->lds_l1)
+        chip->lds_l2 = chip->w412;
+    if (chip->lds_l3)
+        chip->o_lds = state_z;
+    else
+        chip->o_lds = !chip->lds_l2;
 }
 
 int main()
