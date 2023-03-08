@@ -18,6 +18,9 @@ void M68K_RegisterLogic(busstate_t *l, busstate_t *h, int *val)
     int pg2 = (~h->val) & 0xffff;
     *val &= ~pg1;
     *val |= pg2;
+
+    l->val &= *val;
+    h->val &= (~*val) & 0xffff;
 }
 
 void M68K_AluBusUpdateWeak(m68k_t *chip)
@@ -745,7 +748,7 @@ void M68K_AluBusOps(m68k_t *chip)
         chip->b3[3].val |= 0xff00;
     }
 
-    M68K_AluBusUpdateWeak(chip);
+    //M68K_AluBusUpdateWeak(chip);
 
     M68K_AluBusUpdateStrong(chip);
 
@@ -820,7 +823,11 @@ void M68K_Clocks(m68k_t* chip, int clk1, int clk2)
     }
 
     // needed???
-    chip->c6 = chip->c2_delay[2] && !chip->c1; // FIXME
+    //chip->c6 = chip->c2_delay[2] && !chip->c1; // FIXME
+    if (chip->c2_delay[2])
+        chip->c6 = 1;
+    else if (chip->c1)
+        chip->c6 = 0;
 
     chip->c2_delay[2] = chip->c2_delay[1];
     chip->c2_delay[1] = chip->c2_delay[0];
@@ -1211,6 +1218,11 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->c1)
         chip->w77 = !(chip->w529[66] || chip->w76);
 
+    if (chip->w75 == 1)
+        chip->w75 = 1;
+    if (chip->w77 == 1)
+        chip->w77 = 1;
+
     chip->w78 = !(chip->w74 || chip->w76);
 
     chip->w79 = chip->w637 ? 0 : chip->c2;
@@ -1228,6 +1240,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w85 = !(!chip->w529[63] || !chip->w529[64]);
 
     chip->w86 = chip->w56 ? 0 : chip->w2;
+    if (chip->w86)
+        chip->w86 = 1;
 
     chip->w87 = chip->w59 ? 0 : chip->w1;
 
@@ -1537,11 +1551,6 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
             chip->w135[1] = 0;
 
         if (chip->w134 & 2)
-            chip->w135[1] &= chip->w135[0];
-        if (chip->w133 & 2)
-            chip->w135[1] = 0;
-
-        if (chip->w134 & 2)
             chip->w135[2] &= chip->w135[1];
         if (chip->w133 & 2)
             chip->w135[2] = 0;
@@ -1683,7 +1692,11 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w156 = chip->w668 ? 0 : chip->w853;
 
     if (chip->w148)
+    {
         chip->w147 = (~chip->w145) & 0xffff;
+        if (chip->w147 == 6)
+            chip->w147 *= 1;
+    }
 
     chip->w157 = (chip->w147 & 63) == 0;
 

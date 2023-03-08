@@ -43,6 +43,10 @@ typedef struct {
     int o_lds;
     int o_uds;
 
+    busstate_t b1[4];
+    busstate_t b2[4];
+    busstate_t b3[4];
+
     int w1;
     int l1;
     int l2;
@@ -159,7 +163,6 @@ typedef struct {
     int w104;
     int w105;
     int w106;
-    busstate_t b1[4];
     int w107;
     int w108;
     int r1[18];
@@ -188,7 +191,6 @@ typedef struct {
     int w129;
     int w130;
     int w131;
-    busstate_t b2[4];
     int w132;
     int w133;
     int w134;
@@ -319,7 +321,6 @@ typedef struct {
     int w256;
     int w257;
     int r6[10];
-    busstate_t b3[4];
 
     int w258;
     int w259[2];
