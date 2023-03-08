@@ -1096,6 +1096,7 @@ typedef struct {
     int lds_l1;
     int lds_l2;
     int lds_l3;
+    int rw_l;
 } m68k_t;
 
 void M68K_Clock(m68k_t* chip, int clk1, int clk2);
