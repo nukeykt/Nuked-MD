@@ -415,7 +415,7 @@ void M68K_AluBusArbitrate(m68k_t *chip)
         chip->b3[1].val = andval[1];
     }
 
-    if (chip->w128 && chip->w855)
+    if (chip->w127 && chip->w855)
     {
         andval[2] &= chip->b1[2].val;
         andval[2] &= chip->b2[2].val;
@@ -431,7 +431,7 @@ void M68K_AluBusArbitrate(m68k_t *chip)
         chip->b2[3].val = andval[3];
         chip->b3[3].val = andval[3];
     }
-    else if (chip->w128)
+    else if (chip->w127)
     {
         andval[2] &= chip->b1[2].val;
         andval[2] &= chip->b2[2].val;
@@ -789,6 +789,8 @@ void M68K_AluBusOps(m68k_t *chip)
     M68K_AluBusArbitrate(chip);
 
     M68K_AluBusUpdateRegisters(chip);
+
+    M68K_AluBusArbitrate(chip);
 }
 
 void M68K_Clocks(m68k_t* chip, int clk1, int clk2)
