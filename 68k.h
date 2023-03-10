@@ -93,18 +93,6 @@ typedef struct {
     int w40;
     int w41;
     int w42;
-    int w43;
-    int w44;
-    int w45;
-    int w46;
-    int w47;
-    int w48;
-    int w49;
-    int w50;
-    int w51;
-    int w52;
-    int w53;
-    int w54;
     int w55;
     int w56;
     int w57;
