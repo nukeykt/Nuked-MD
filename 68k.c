@@ -3007,9 +3007,9 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w519[68] = 0;
     if (chip->w514 || !chip->w500 || !chip->w495 || !chip->w502 || !chip->w503 || chip->w504)
         chip->w519[69] = 0;
-    if (!chip->w503 || chip->w504)
+    if (chip->w513 || !chip->w503 || chip->w504)
         chip->w519[70] = 0;
-    if (!chip->w503 || chip->w504)
+    if (chip->w514 || !chip->w503 || chip->w504)
         chip->w519[71] = 0;
     if (chip->w513 || chip->w500 || chip->w495 || !chip->w502 || chip->w503 || !chip->w504)
         chip->w519[72] = 0;
@@ -3456,6 +3456,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     {
         for (i = 0; i < 68; i++)
             chip->w528[i] = 1;
+        chip->dbg_ucode_last = -1;
     }
 
     if (chip->w527)
@@ -3464,11 +3465,14 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         {
             if (!chip->w520[i + 34])
                 continue;
+            if (chip->dbg_ucode_last != i && chip->dbg_ucode_last != -1)
+                chip->dbg_ucode_last *= 1;
             for (j = 0; j < 68; j++)
             {
                 if (ucode[83 - i][j * 4 + 3])
                     chip->w528[j] = 0;
             }
+            chip->dbg_ucode_last = i;
         }
     }
     if (chip->w526)
@@ -3477,11 +3481,14 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         {
             if (!chip->w520[i + 34])
                 continue;
+            if (chip->dbg_ucode_last != i && chip->dbg_ucode_last != -1)
+                chip->dbg_ucode_last *= 1;
             for (j = 0; j < 68; j++)
             {
                 if (ucode[83 - i][j * 4 + 1])
                     chip->w528[j] = 0;
             }
+            chip->dbg_ucode_last = i;
         }
     }
     if (chip->w525)
@@ -3490,11 +3497,14 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         {
             if (!chip->w520[i + 34])
                 continue;
+            if (chip->dbg_ucode_last != i && chip->dbg_ucode_last != -1)
+                chip->dbg_ucode_last *= 1;
             for (j = 0; j < 68; j++)
             {
                 if (ucode[83 - i][j * 4 + 2])
                     chip->w528[j] = 0;
             }
+            chip->dbg_ucode_last = i;
         }
     }
     if (chip->w524)
@@ -3503,11 +3513,14 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         {
             if (!chip->w520[i + 34])
                 continue;
+            if (chip->dbg_ucode_last != i && chip->dbg_ucode_last != -1)
+                chip->dbg_ucode_last *= 1;
             for (j = 0; j < 68; j++)
             {
                 if (ucode[83 - i][j * 4 + 0])
                     chip->w528[j] = 0;
             }
+            chip->dbg_ucode_last = i;
         }
     }
 
