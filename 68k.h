@@ -1088,6 +1088,7 @@ typedef struct {
     int rw_l;
 
     int dbg_ucode_last;
+    int dbg_alucode;
 } m68k_t;
 
 void M68K_Clock(m68k_t* chip, int clk1, int clk2);
