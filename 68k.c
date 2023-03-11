@@ -2963,9 +2963,9 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w519[46] = 0;
     if (chip->w514 || chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
         chip->w519[47] = 0;
-    if (chip->w513 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+    if (chip->w513 || !chip->w500 || chip->w502 || chip->w503 || chip->w504)
         chip->w519[48] = 0;
-    if (chip->w514 || !chip->w500 || chip->w495 || chip->w502 || chip->w503 || chip->w504)
+    if (chip->w514 || !chip->w500 || chip->w502 || chip->w503 || chip->w504)
         chip->w519[49] = 0;
     if (chip->w513 || chip->w500 || !chip->w495 || chip->w502 || chip->w503 || chip->w504)
         chip->w519[50] = 0;
@@ -6501,7 +6501,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->w897)
     {
         chip->w963 &= 1;
-        chip->w963 = (chip->r8 ^ 0xffff) << 1;
+        chip->w963 |= (chip->r8 ^ 0xffff) << 1;
         chip->w963 &= 0xffff;
     }
     if (chip->w900)
