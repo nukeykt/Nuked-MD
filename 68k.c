@@ -3727,9 +3727,9 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->a0_pla[170] = (chip->w530 & 0xf000) == 0xa000;
 
     chip->a0_pla[163] &= (chip->w530 & 0xf1c0) == 0x0080 && !chip->a0_pla[168];
-    chip->a0_pla[165] = (chip->w530 & 0xf0ff) == 0x6000 && !chip->a0_pla[166];
-    chip->a0_pla[166] = (chip->w530 & 0xff00) == 0x6100 && !chip->a0_pla[166];
-    chip->a0_pla[164] &= (chip->w530 & 0xf020) == 0x6020 && !chip->a0_pla[164] && !chip->a0_pla[165] && !chip->a0_pla[166];
+    chip->a0_pla[165] = (chip->w530 & 0xf0ff) == 0x6000 && !chip->a0_pla[167];
+    chip->a0_pla[166] = (chip->w530 & 0xff00) == 0x6100 && !chip->a0_pla[167];
+    chip->a0_pla[164] &= (chip->w530 & 0xf000) == 0x6000 && !chip->a0_pla[165] && !chip->a0_pla[166] && !chip->a0_pla[167];
 
     chip->w531 = 0x3ff;
     if (chip->a0_pla[20])
@@ -4031,8 +4031,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     if (chip->a0_pla[168])
         chip->w531 &= 0x2b9;
 
-    chip->a2_pla[0] = (chip->w530 & 0x003d) == 0x003d && !chip->a2_pla[2] && chip->a2_pla[3];
-    chip->a2_pla[1] = (chip->w530 & 0x003e) == 0x003e && !chip->a2_pla[2] && chip->a2_pla[3];
+    chip->a2_pla[0] = (chip->w530 & 0x003d) == 0x003d && !chip->a2_pla[2] && !chip->a2_pla[3];
+    chip->a2_pla[1] = (chip->w530 & 0x003e) == 0x003e && !chip->a2_pla[2] && !chip->a2_pla[3];
     chip->a2_pla[2] = (chip->w530 & 0xf000) == 0xe000;
     chip->a2_pla[3] = (chip->w530 & 0xe000) == 0x6000;
     chip->a2_pla[4] = (chip->w530 & 0xf1c0) == 0x00c0 && !chip->a2_pla[5];
@@ -4129,7 +4129,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->a2_pla[92] = (chip->w530 & 0x01b8) == 0x0000 && !chip->a2_pla[89] && !chip->a2_pla[90] && !chip->a2_pla[91];
     chip->a2_pla[93] = (chip->w530 & 0x01bf) == 0x003c && !chip->a2_pla_g1;
     chip->a2_pla[94] = (chip->w530 & 0x0e38) == 0x0800 && !chip->a2_pla_g1 && !chip->a2_pla_g2;
-    chip->a2_pla[95] = (chip->w530 & 0x0038) == 0x0000 && !chip->a2_pla_g1 && !chip->a2_pla_g2 && !chip->a2_pla[94] && !chip->a2_pla[95];
+    chip->a2_pla[95] = (chip->w530 & 0x0038) == 0x0000 && !chip->a2_pla_g1 && !chip->a2_pla_g2 && !chip->a2_pla[94] && !chip->a2_pla[96];
     chip->a2_pla[96] = (chip->w530 & 0x0e38) == 0x0c00 && !chip->a2_pla_g1 && !chip->a2_pla_g2;
     chip->a2_pla[97] = (chip->w530 & 0x01c0) == 0x0100 && !chip->a2_pla_g1;
     chip->a2_pla[98] = (chip->w530 & 0x0fc0) == 0x0800 && !chip->a2_pla_g1;
@@ -6126,7 +6126,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     }
 
     chip->w836 = !(chip->w833 || chip->w834);
-    chip->w837 = !(chip->w833 || !chip->w529[8]);
+    chip->w837 = !(chip->w834 || !chip->w529[8]);
 
     if (chip->c2)
         chip->w838 = 0;
