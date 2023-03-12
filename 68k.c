@@ -864,7 +864,7 @@ void M68K_DataBusArbitrate(m68k_t *chip)
 
     if (chip->w987)
     {
-        lowupdate = 1;
+        highupdate = 1;
         chip->data_io &= 0xff;
         chip->data_io |= (~chip->data_l) & 0xff00;
     }
@@ -3551,7 +3551,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->a0_pla[6] = (chip->w530 & 0xb080) == 0x8000;
     chip->a0_pla[7] = (chip->w530 & 0xb040) == 0x8040;
     chip->a0_pla[8] = (chip->w530 & 0x9080) == 0x9000;
-    chip->a0_pla[9] = (chip->w530 & 0x8140) == 0x8040;
+    chip->a0_pla[9] = (chip->w530 & 0x9140) == 0x9040;
     chip->a0_pla[10] = (chip->w530 & 0xf080) == 0x5000;
     chip->a0_pla[11] = (chip->w530 & 0xf040) == 0x5040;
     chip->a0_pla[12] = (chip->w530 & 0xf8c0) == 0xe0c0;
