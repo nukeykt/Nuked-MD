@@ -6,7 +6,7 @@
 * Arbiter (Integrated YM6045C) - Not started
 * IO Chip (Integrated YM6046) - Not started
 * TMSS - Not started
-* 68000 (NMOS) - In progress
+* 68000 (NMOS) - Mostly functional, needs more testing, bugfixing and optimizations
 * Z80 (NMOS) - Done, needs more testing and optimizations
 
 # Extra chips
