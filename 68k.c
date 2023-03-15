@@ -5669,9 +5669,9 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w691 = !chip->w689 && !chip->w570 && !chip->w685 && !chip->w684;
         if (chip->w681 && (chip->w569 & 0x341) != 0)
             chip->w691 = 0;
-        if (chip->w683 && (chip->w569 & 0x69d1) != 0)
+        if (chip->w683 && (chip->w569 & 0x34e9) != 0)
             chip->w691 = 0;
-        if (chip->w682 && (chip->w569 & 0x69d1) != 0)
+        if (chip->w682 && (chip->w569 & 0x34e9) != 0)
             chip->w691 = 0;
 
         chip->w692 = !chip->w689 && !chip->w570;
