@@ -4042,8 +4042,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->a2_pla[8] = (chip->w530 & 0x0fc0) == 0x0800;
     chip->a2_pla[9] = (chip->w530 & 0x01c0) == 0x0100;
     chip->a2_pla[10] = (chip->w530 & 0xf03f) == 0x003c && !chip->a2_pla[9] && !chip->a2_pla[11] && !chip->a2_pla[14];
-    chip->a2_pla[11] = (chip->w530 & 0x0780) == 0x0200 && !chip->a2_pla[12];
-    chip->a2_pla[12] = (chip->w530 & 0xe038) == 0x0008;
+    chip->a2_pla[11] = (chip->w530 & 0x0780) == 0x0200;
+    chip->a2_pla[12] = (chip->w530 & 0xe038) == 0x0008 && !chip->a2_pla[13];
     chip->a2_pla[13] = (chip->w530 & 0x1100) == 0x0100;
     chip->a2_pla[14] = (chip->w530 & 0x0d80) == 0x0000;
     chip->a2_pla[15] = (chip->w530 & 0xf1c0) == 0x1040;
