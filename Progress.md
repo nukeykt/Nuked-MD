@@ -1,7 +1,7 @@
 # Main chips
 
 * FM (CMOS/YM3438) - Done
-* VDP (YM7101) - Not started
+* VDP (YM7101) - In progress
 * PSG (YM7101 PSG) - Done, old code
 * Arbiter (Integrated YM6045C) - Not started
 * IO Chip (Integrated YM6046) - Not started
