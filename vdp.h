@@ -433,6 +433,35 @@ typedef struct {
 #endif
     int w244;
     int w245;
+    int w246;
+    int w247;
+    int w248;
+    int l40[2];
+    int w249;
+    int l41;
+    int w250;
+    int w251;
+    int l42[2];
+    int w252;
+    int l43[2];
+    int l44[2];
+    int l45[2];
+    int w253;
+    int w254;
+    int w255;
+    int l46[2];
+    int w256;
+    int w257;
+    int w258;
+    int w259;
+    int w260;
+    int w261;
+    int w262; // unused??
+    int w263;
+    int w264;
+    int w265;
+    int l47;
+    int w266;
 
     int reg_clk0_sel;
     int reg_test0;
