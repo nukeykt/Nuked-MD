@@ -379,6 +379,60 @@ typedef struct {
     int w202;
     int l29[2];
     int l30[2];
+    int w203;
+    int w204;
+    int l31;
+    int l32;
+    int l33[2];
+    int l34;
+    int w205;
+    int w206;
+    int w207;
+    int w208;
+    int w209;
+    int w210;
+    int w211;
+    int w212;
+    int w213;
+    int w214;
+    int w215;
+    int w216;
+    int w217;
+    int w218;
+    int w219;
+    int w220;
+    int w221;
+    int w222;
+    int w223;
+    int w224;
+    int w225;
+    int w226;
+    int w227;
+    int w228;
+    int w229;
+    int w230;
+    int w231;
+    int w232;
+    int w233;
+    int w234;
+    int w235;
+    int l35; // 17 bits
+    int l36; // 17 bits
+    int l37; // 17 bits
+    int l38; // 17 bits
+    int l39; // 17 bits
+#if 0
+    int w236;
+    int w237;
+    int w238;
+    int w239;
+    int w240;
+    int w241;
+    int w242;
+    int w243;
+#endif
+    int w244;
+    int w245;
 
     int reg_clk0_sel;
     int reg_test0;
@@ -420,6 +474,13 @@ typedef struct {
     int reg_lsm0_latch;
     int reg_lsm1_latch;
     int reg_code;
+    int reg_addr;
+    int reg_inc;
+    dff_t reg_data;
+    int reg_sa_high;
+    int reg_dmd;
+    int reg_lg[2];
+    int reg_sa_low[2];
 
     int hclk1;
     int hclk2;
@@ -438,6 +499,8 @@ typedef struct {
     int i_bg;
     int i_intak;
     int i_bgack;
+
+    int vram_address; // 17 bits
 
     int tm_w1;
     int tm_w2;
