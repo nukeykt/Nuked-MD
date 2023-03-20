@@ -1734,13 +1734,33 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l124[0] = chip->tm_w1;
         chip->l125[0] = chip->tm_w1;
         chip->l126[0] = chip->tm_w1;
-        chip->l128[0] = chip->tm_w1;
-        chip->l129[0] = chip->tm_w1;
+        chip->l128[0] = chip->w397;
+        chip->l129[0] = chip->t30;
         chip->l130[0] = chip->tm_w1;
         chip->l131[0] = chip->tm_w1;
-        chip->l132[0] = chip->tm_w1;
+        chip->l132[0] = chip->w403;
         chip->l133[0] = chip->tm_w1;
         chip->l134[0] = chip->tm_w1;
+        chip->l136[0] = chip->w404;
+        chip->l137[0] = chip->tm_w1;
+        chip->l138[0] = chip->tm_w1;
+        chip->l139[0] = chip->w410;
+        chip->l140[0] = chip->tm_w1;
+        chip->l141[0] = chip->tm_w1;
+        chip->l142[0] = chip->tm_w1;
+        chip->l143[0] = chip->tm_w1;
+        chip->l144[0] = chip->tm_w1;
+        chip->l145[0] = chip->tm_w1;
+        chip->l146[0] = chip->tm_w1;
+        chip->l147[0] = chip->tm_w1;
+        chip->l148[0] = chip->tm_w1;
+        chip->l149[0] = chip->tm_w1;
+        chip->l150[0] = chip->w412;
+        chip->l151[0] = chip->w413;
+        chip->l152[0] = chip->tm_w1;
+        chip->l153[0] = chip->tm_w1;
+        chip->l154[0] = chip->tm_w1;
+        chip->l155[0] = chip->tm_w1;
     }
     if (chip->hclk2)
     {
@@ -1775,6 +1795,26 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l132[1] = chip->l132[0];
         chip->l133[1] = chip->l133[0];
         chip->l134[1] = chip->l134[0];
+        chip->l136[1] = chip->l136[0];
+        chip->l137[1] = chip->l137[0];
+        chip->l138[1] = chip->l138[0];
+        chip->l139[1] = chip->l139[0];
+        chip->l140[1] = chip->l140[0];
+        chip->l141[1] = chip->l141[0];
+        chip->l142[1] = chip->l142[0];
+        chip->l143[1] = chip->l143[0];
+        chip->l144[1] = chip->l144[0];
+        chip->l145[1] = chip->l145[0];
+        chip->l146[1] = chip->l146[0];
+        chip->l147[1] = chip->l147[0];
+        chip->l148[1] = chip->l148[0];
+        chip->l149[1] = chip->l149[0];
+        chip->l150[1] = chip->l150[0];
+        chip->l151[1] = chip->l151[0];
+        chip->l152[1] = chip->l152[0];
+        chip->l153[1] = chip->l153[0];
+        chip->l154[1] = chip->l154[0];
+        chip->l155[1] = chip->l155[0];
     }
 
     chip->w380 = (chip->reg_test1 & 64) == 0 && (chip->reg_test1 & 32) == 0 && (chip->reg_test1 & 16) == 0;
@@ -1792,10 +1832,13 @@ void VDP_ClockHVCounters(vdp_t* chip)
     if (chip->tm_w1)
     {
         chip->io_data &= ~255;
-        chip->io_data |= (!chip->l110[1]) << 8;
-        chip->io_data |= (!chip->w360) << 7;
-        chip->io_data |= (!chip->w379) << 6;
-        chip->io_data |= (!chip->w393) << 5;
+        chip->io_data |= (!chip->l110[1]) << 7;
+        chip->io_data |= (!chip->w360) << 6;
+        chip->io_data |= (!chip->w379) << 5;
+        chip->io_data |= (!chip->w393) << 4;
+        chip->io_data |= (!chip->w402) << 3;
+        chip->io_data |= (!chip->w417) << 2;
+        chip->io_data |= (!chip->w415) << 1;
     }
 
     if (chip->tm_w1)
@@ -1807,8 +1850,13 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->io_data |= (!chip->w372) << 3;
         chip->io_data |= (!chip->w385) << 4;
         chip->io_data |= (!chip->w394) << 5;
-        chip->io_data |= (!chip->l116[1]) << 7;
+        chip->io_data |= (!chip->l116[1]) << 6;
         chip->io_data |= (!chip->l134[1]) << 7;
+        chip->io_data |= (!chip->l141[1]) << 8;
+        chip->io_data |= (!chip->l142[1]) << 9;
+        chip->io_data |= (!chip->l147[1]) << 10;
+
+        chip->io_data |= (!chip->w418) << 12;
     }
 
     chip->w356 = chip->w357 || (chip->l118[1] && chip->w380);
@@ -1889,9 +1937,9 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w390 = chip->tm_w1 || chip->tm_w2;
 
-    chip->w391 = chip->tm_w1 && chip->tm_w2;
+    chip->w391 = chip->t31 && chip->tm_w2;
 
-    chip->w392 = chip->tm_w1 || chip->tm_w2;
+    chip->w392 = chip->reset_comb || chip->tm_w2;
 
     if (chip->l130[1])
         chip->t29 = 1;
@@ -1905,6 +1953,66 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->w395 = !(chip->tm_w1 || chip->tm_w2 || chip->tm_w3 || chip->tm_w4);
 
     chip->w396 = chip->reg_m5 ? (chip->l135[1] & 64) != 0 : chip->tm_w1;
+
+    chip->w397 = !(!chip->reg_80_b0 && chip->w387);
+
+    chip->w398 = !(chip->tm_w1 || chip->tm_w2 || chip->tm_w3);
+
+    chip->w399 = !chip->w398 && chip->t32;
+
+    chip->w400 = chip->w390 && chip->t32;
+
+    if (chip->w401)
+        chip->t30 = 1;
+    else if (chip->l152[1])
+        chip->t30 = 0;
+
+    chip->w401 = chip->reset_comb || chip->l143[1];
+    
+    chip->w402 = chip->w380 && chip->l140[1];
+
+    chip->w403 = chip->l139[1] || chip->w410;
+
+    chip->w404 = !(chip->tm_w1 && !chip->reg_8c_b5);
+
+    chip->w405 = chip->w398 && chip->tm_w2;
+
+    chip->w406 = chip->w398 && chip->tm_w2;
+
+    if (chip->w407)
+        chip->t31 = 1;
+    else if (chip->w408)
+        chip->t31 = 0;
+
+    chip->w407 = chip->l137[1] || chip->l153[1];
+
+    chip->w409 = chip->l131[1] || chip->l144[1];
+    chip->w408 = chip->reset_comb || chip->w409;
+
+    chip->w410 = chip->w361 && chip->w416;
+
+    chip->w411 = chip->reg_8c_b5 && chip->l149[1];
+
+    chip->w412 = chip->w405 || chip->w399;
+
+    chip->w413 = chip->w405 || chip->w400 || chip->w391;
+
+    if (chip->w414)
+        chip->t32 = 1;
+    else if (chip->l138[1])
+        chip->t32 = 0;
+
+    chip->w414 = chip->w409 || chip->reset_comb;
+
+    chip->w415 = chip->w380 && chip->l154[1];
+
+    chip->w416 = !chip->reg_8c_b4 && chip->reg_80_b0;
+
+    chip->w417 = chip->l146[1] || chip->l145[1];
+
+    chip->w418 = chip->l145[1] || chip->l155[1];
+
+    chip->w419 = chip->w381 || (chip->w380 && chip->l148[1]);
 }
 
 vdp_t vdp;
