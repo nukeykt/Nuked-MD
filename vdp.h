@@ -61,6 +61,7 @@ typedef struct {
     int cpu_bg;
     int cpu_intak;
     int cpu_bgack;
+    int cpu_pal;
 
 
     dff_t io_m1_dff1;
@@ -725,6 +726,25 @@ typedef struct {
     int w419;
     int l154[2];
     int l155[2];
+    int l156[2];
+    int w420;
+    int w421;
+    int l157[2];
+    int w422;
+    int l158[2];
+    int t33;
+    int w423;
+    int w424;
+    int w425;
+    int l159[2];
+    int l160[2];
+    int w426;
+    int l161[2];
+    int w427;
+    int w428;
+    int w436;
+    int w437;
+    int w438;
 
     int reg_clk0_sel;
     int reg_test0;
