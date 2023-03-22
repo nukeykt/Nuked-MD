@@ -1716,55 +1716,55 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l135[0] = (chip->l135[1] << 1) | chip->w421;
         chip->l158[0] = (chip->l158[1] << 1) | chip->l129[1];
 
-        chip->l108[0] = chip->tm_w1;
+        chip->l108[0] = chip->w476;
         chip->l109[0] = chip->w359;
-        chip->l110[0] = chip->tm_w1;
-        chip->l111[0] = chip->tm_w1;
-        chip->l112[0] = chip->tm_w1;
+        chip->l110[0] = chip->w504;
+        chip->l111[0] = chip->w503;
+        chip->l112[0] = chip->w490;
         chip->l113[0] = chip->l121[1];
-        chip->l114[0] = chip->tm_w1;
-        chip->l115[0] = chip->tm_w1;
+        chip->l114[0] = chip->w491;
+        chip->l115[0] = chip->w502;
         chip->l116[0] = chip->w384;
-        chip->l117[0] = chip->tm_w1;
-        chip->l118[0] = chip->tm_w1;
-        chip->l119[0] = chip->tm_w1;
+        chip->l117[0] = chip->w505;
+        chip->l118[0] = chip->w477;
+        chip->l119[0] = chip->w478;
         chip->l120[0] = chip->tm_w1;
         chip->l121[0] = chip->w376;
-        chip->l122[0] = chip->tm_w1;
-        chip->l123[0] = chip->tm_w1;
-        chip->l124[0] = chip->tm_w1;
-        chip->l125[0] = chip->tm_w1;
-        chip->l126[0] = chip->tm_w1;
+        chip->l122[0] = chip->w492;
+        chip->l123[0] = chip->w501;
+        chip->l124[0] = chip->w506;
+        chip->l125[0] = chip->w479;
+        chip->l126[0] = chip->w480;
         chip->l128[0] = chip->w397;
         chip->l129[0] = chip->t30;
-        chip->l130[0] = chip->tm_w1;
-        chip->l131[0] = chip->tm_w1;
+        chip->l130[0] = chip->w493;
+        chip->l131[0] = chip->w500;
         chip->l132[0] = chip->w403;
-        chip->l133[0] = chip->tm_w1;
-        chip->l134[0] = chip->tm_w1;
+        chip->l133[0] = chip->w507;
+        chip->l134[0] = chip->w481;
         chip->l136[0] = chip->w404;
-        chip->l137[0] = chip->tm_w1;
-        chip->l138[0] = chip->tm_w1;
+        chip->l137[0] = chip->w494;
+        chip->l138[0] = chip->w499;
         chip->l139[0] = chip->w410;
-        chip->l140[0] = chip->tm_w1;
-        chip->l141[0] = chip->tm_w1;
-        chip->l142[0] = chip->tm_w1;
-        chip->l143[0] = chip->tm_w1;
-        chip->l144[0] = chip->tm_w1;
-        chip->l145[0] = chip->tm_w1;
-        chip->l146[0] = chip->tm_w1;
-        chip->l147[0] = chip->tm_w1;
-        chip->l148[0] = chip->tm_w1;
+        chip->l140[0] = chip->w508;
+        chip->l141[0] = chip->w482;
+        chip->l142[0] = chip->w489;
+        chip->l143[0] = chip->w495;
+        chip->l144[0] = chip->w498;
+        chip->l145[0] = chip->w510;
+        chip->l146[0] = chip->w509;
+        chip->l147[0] = chip->w487;
+        chip->l148[0] = chip->w488;
         chip->l149[0] = chip->tm_w1;
         chip->l150[0] = chip->w412;
         chip->l151[0] = chip->w413;
-        chip->l152[0] = chip->tm_w1;
-        chip->l153[0] = chip->tm_w1;
-        chip->l154[0] = chip->tm_w1;
-        chip->l155[0] = chip->tm_w1;
-        chip->l156[0] = chip->tm_w1;
+        chip->l152[0] = chip->w496;
+        chip->l153[0] = chip->w497;
+        chip->l154[0] = chip->w511;
+        chip->l155[0] = chip->w485;
+        chip->l156[0] = chip->w484;
         chip->l157[0] = chip->l150[1];
-        chip->l159[0] = chip->tm_w1;
+        chip->l159[0] = chip->w512;
 
         i = chip->l160[1] ^ chip->tm_w1;
         if (chip->reset_comb)
@@ -1772,10 +1772,10 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l160[0] = i;
 
         chip->l161[0] = chip->w420;
-        chip->l162[0] = chip->tm_w1;
-        chip->l163[0] = chip->tm_w1;
-        chip->l164[0] = chip->tm_w1;
-        chip->l165[0] = chip->tm_w1;
+        chip->l162[0] = !chip->w475;
+        chip->l163[0] = chip->w474;
+        chip->l164[0] = chip->w373;
+        chip->l165[0] = chip->w472;
 
         i = chip->w446;
         i ^= chip->w455;
@@ -1783,14 +1783,14 @@ void VDP_ClockHVCounters(vdp_t* chip)
             i = 0;
         chip->l166[0] = i;
 
-        chip->l167[0] = chip->tm_w1;
+        chip->l167[0] = chip->w471;
         chip->l168[0] = chip->w456;
-        chip->l169[0] = chip->tm_w1;
-        chip->l170[0] = chip->tm_w1;
+        chip->l169[0] = chip->w470;
+        chip->l170[0] = chip->w469;
         chip->l171[0] = chip->l114[1];
-        chip->l172[0] = chip->tm_w1;
+        chip->l172[0] = !chip->w468;
         chip->l173[0] = chip->l121[1];
-        chip->l174[0] = chip->tm_w1;
+        chip->l174[0] = chip->w467;
         chip->l175[0] = chip->w464;
         chip->l176[0] = chip->l175[1];
     }
@@ -1916,7 +1916,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w356 = chip->w357 || (chip->l118[1] && chip->w380);
 
-    chip->w358 = !(chip->tm_w1 || chip->tm_w2 || chip->tm_w3 || chip->tm_w4);
+    chip->w358 = !(chip->w476 || chip->w477 || chip->w478 || chip->w479);
     chip->w359 = chip->w358 && chip->w386 && chip->w395;
 
     chip->w360 = !chip->l117[1];
@@ -1978,11 +1978,11 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w379 = chip->w378 && chip->w380;
 
-    chip->w384 = !(chip->tm_w1 && !chip->l132[1]);
+    chip->w384 = !(chip->w483 && !chip->l132[1]);
 
     chip->w385 = chip->w382 || (chip->w380 && chip->l125[1]);
 
-    chip->w386 = !(chip->tm_w1 || chip->tm_w2 || chip->tm_w3);
+    chip->w386 = !(chip->w480 || chip->w483 || chip->tm_w3);
 
     chip->w387 = chip->reg_m5 ? (chip->l127[1] & 128) != 0 : chip->w420;
 
@@ -2005,7 +2005,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w394 = chip->w384 || (chip->w380 && chip->l126[1]);
 
-    chip->w395 = !(chip->tm_w1 || chip->tm_w2 || chip->tm_w3 || chip->tm_w4);
+    chip->w395 = !(chip->w486 || chip->tm_w2 || chip->tm_w3 || chip->tm_w4);
 
     chip->w396 = chip->reg_m5 ? (chip->l135[1] & 64) != 0 : chip->w421;
 
@@ -2379,6 +2379,73 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->pla_hcnt2[44] = chip->reg_rs1 && chip->l106[1] == 363;
     chip->pla_hcnt2[45] = !chip->reg_rs1 && chip->l106[1] == 294;
 
+    chip->w467 = chip->pla_vcnt[41] || chip->pla_vcnt[42] || chip->pla_vcnt[43]
+        || chip->pla_vcnt[44] || chip->pla_vcnt[45] || chip->pla_vcnt[46] || chip->pla_vcnt[47];
+    chip->w468 = !chip->pla_vcnt[40];
+    chip->w469 = !(chip->pla_vcnt[37] || chip->pla_vcnt[38] || chip->pla_vcnt[39]);
+    chip->w470 = chip->pla_vcnt[30] || chip->pla_vcnt[31] || chip->pla_vcnt[32]
+        || chip->pla_vcnt[33] || chip->pla_vcnt[34] || chip->pla_vcnt[35] || chip->pla_vcnt[36];
+    chip->w471 = chip->pla_vcnt[25] || chip->pla_vcnt[26] || chip->pla_vcnt[27]
+        || chip->pla_vcnt[28] || chip->pla_vcnt[29];
+    chip->w472 = chip->pla_vcnt[17] || chip->pla_vcnt[18] || chip->pla_vcnt[19] || chip->pla_vcnt[20]
+        || chip->pla_vcnt[21] || chip->pla_vcnt[22] || chip->pla_vcnt[23] || chip->pla_vcnt[24];
+    chip->w473 = chip->pla_vcnt[9] || chip->pla_vcnt[10] || chip->pla_vcnt[11] || chip->pla_vcnt[12]
+        || chip->pla_vcnt[13] || chip->pla_vcnt[14] || chip->pla_vcnt[15] || chip->pla_vcnt[16];
+    chip->w474 = chip->pla_vcnt[1] || chip->pla_vcnt[2] || chip->pla_vcnt[3] || chip->pla_vcnt[4]
+        || chip->pla_vcnt[5] || chip->pla_vcnt[6] || chip->pla_vcnt[7] || chip->pla_vcnt[8];
+    chip->w475 = !chip->pla_vcnt[0];
+
+    chip->w476 = chip->pla_hcnt1[60] || chip->pla_hcnt1[61] || chip->pla_hcnt1[62];
+    chip->w477 = chip->pla_hcnt1[50] || chip->pla_hcnt1[57] || chip->pla_hcnt1[58] || chip->pla_hcnt1[59];
+    chip->w478 = chip->pla_hcnt1[49] || chip->pla_hcnt1[55] || chip->pla_hcnt1[56];
+    chip->w479 = chip->pla_hcnt1[47] || chip->pla_hcnt1[48] || chip->pla_hcnt1[53] || chip->pla_hcnt1[54];
+    chip->w480 = chip->pla_hcnt1[45] || chip->pla_hcnt1[46] || chip->pla_hcnt1[51] || chip->pla_hcnt1[52];
+    chip->w481 = chip->pla_hcnt1[5] || chip->pla_hcnt1[6] || chip->pla_hcnt1[36] ||
+        chip->pla_hcnt1[37] || chip->pla_hcnt1[38] || chip->pla_hcnt1[39];
+    chip->w482 = chip->pla_hcnt1[7] || chip->pla_hcnt1[8] || chip->pla_hcnt1[9] || chip->pla_hcnt1[10]
+        || chip->pla_hcnt1[11] || chip->pla_hcnt1[12] || chip->pla_hcnt1[13] || chip->pla_hcnt1[14]
+        || chip->pla_hcnt1[15] || chip->pla_hcnt1[16] || chip->pla_hcnt1[17] || chip->pla_hcnt1[18]
+        || chip->pla_hcnt1[19] || chip->pla_hcnt1[20] || chip->pla_hcnt1[21] || chip->pla_hcnt1[22]
+        || chip->pla_hcnt1[24] || chip->pla_hcnt1[25] || chip->pla_hcnt1[26] || chip->pla_hcnt1[27]
+        || chip->pla_hcnt1[32] || chip->pla_hcnt1[33] || chip->pla_hcnt1[34] || chip->pla_hcnt1[35];
+    chip->w483 = chip->pla_hcnt1[44];
+    chip->w484 = chip->pla_hcnt1[0] || chip->pla_hcnt1[1] || chip->pla_hcnt1[2] || chip->pla_hcnt1[3] || chip->pla_hcnt1[4];
+    chip->w485 = chip->pla_hcnt1[36] || chip->pla_hcnt1[37] || chip->pla_hcnt1[38] || chip->pla_hcnt1[39]
+        || chip->pla_hcnt1[43];
+    chip->w486 = chip->w403 || chip->pla_hcnt1[40] || chip->pla_hcnt1[41] || chip->pla_hcnt1[42];
+    chip->w487 = chip->pla_hcnt1[7] || chip->pla_hcnt1[8] || chip->pla_hcnt1[9] || chip->pla_hcnt1[10]
+        || chip->pla_hcnt1[11] || chip->pla_hcnt1[12] || chip->pla_hcnt1[13] || chip->pla_hcnt1[14]
+        || chip->pla_hcnt1[17] || chip->pla_hcnt1[18] || chip->pla_hcnt1[19] || chip->pla_hcnt1[22] || chip->pla_hcnt1[23]
+        || chip->pla_hcnt1[24] || chip->pla_hcnt1[25] || chip->pla_hcnt1[26] || chip->pla_hcnt1[27]
+        || chip->pla_hcnt1[40] || chip->pla_hcnt1[41] || chip->pla_hcnt1[42]
+        || chip->pla_hcnt1[46] || chip->pla_hcnt1[47] || chip->pla_hcnt1[48]
+        || chip->pla_hcnt1[49] || chip->pla_hcnt1[50];
+    chip->w488 = chip->pla_hcnt1[23];
+    chip->w489 = chip->pla_hcnt1[31] || chip->pla_hcnt1[28] || chip->pla_hcnt1[29] || chip->pla_hcnt1[30];
+
+    chip->w490 = chip->pla_hcnt2[44] || chip->pla_hcnt2[45];
+    chip->w491 = chip->pla_hcnt2[42] || chip->pla_hcnt2[43];
+    chip->w492 = chip->pla_hcnt2[40] || chip->pla_hcnt2[41];
+    chip->w493 = chip->pla_hcnt2[38] || chip->pla_hcnt2[39];
+    chip->w494 = chip->pla_hcnt2[36] || chip->pla_hcnt2[37];
+    chip->w495 = chip->pla_hcnt2[34] || chip->pla_hcnt2[36];
+    chip->w496 = chip->pla_hcnt2[32] || chip->pla_hcnt2[33];
+    chip->w497 = chip->pla_hcnt2[30] || chip->pla_hcnt2[31];
+    chip->w498 = chip->pla_hcnt2[28] || chip->pla_hcnt2[29];
+    chip->w499 = chip->pla_hcnt2[24] || chip->pla_hcnt2[25] || chip->pla_hcnt2[26] || chip->pla_hcnt2[27];
+    chip->w500 = chip->pla_hcnt2[22] || chip->pla_hcnt2[23];
+    chip->w501 = chip->pla_hcnt2[20] || chip->pla_hcnt2[21];
+    chip->w502 = !(chip->pla_hcnt2[17] || chip->pla_hcnt2[18] || chip->pla_hcnt2[19]);
+    chip->w503 = chip->pla_hcnt2[15] || chip->pla_hcnt2[16];
+    chip->w504 = chip->pla_hcnt2[14];
+    chip->w505 = !(chip->pla_hcnt2[12] || chip->pla_hcnt2[13]);
+    chip->w506 = chip->pla_hcnt2[11];
+    chip->w507 = chip->pla_hcnt2[9] || chip->pla_hcnt2[10];
+    chip->w508 = chip->pla_hcnt2[8];
+    chip->w509 = chip->pla_hcnt2[4] || chip->pla_hcnt2[5] || chip->pla_hcnt2[6] || chip->pla_hcnt2[7];
+    chip->w510 = chip->pla_hcnt2[2] || chip->pla_hcnt2[3];
+    chip->w511 = chip->pla_hcnt2[1];
+    chip->w512 = chip->pla_hcnt2[0];
 }
 
 vdp_t vdp;
