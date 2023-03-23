@@ -844,6 +844,123 @@ typedef struct {
     int w511;
     int w512;
 
+    int w513;
+    int l178[2];
+    int w514;
+    int l179;
+    int w515; // 11 bits
+    int l180; // 11 bits
+    int l181[2];
+    int l182[2];
+    int l183[2];
+    int w516;
+    int w517;
+    int l184;
+    int l185;
+    int l186[2];
+    int w518;
+    int w519;
+    int w520;
+    int w521;
+    int w522;
+    int reg_hsz;
+    int reg_vsz;
+    int w523;
+    int w524;
+    int w525;
+    int w526;
+    int w527;
+    int w528;
+    int w529;
+    int w530;
+    int w531;
+    int reg_sa;
+    int reg_nt; // m4
+    int reg_sb;
+    int w532;
+    int w533;
+    int reg_8e_b0;
+    int reg_8e_b4;
+    int w534;
+    int w535; // 8 bits
+    int w536; // 6 bits
+    int reg_wd;
+    int reg_hs;
+    int w537;
+    int w538;
+    int w539;
+    int w540;
+    int w541;
+    int reg_whp;
+    int reg_rigt;
+    int reg_wvp;
+    int reg_down;
+    int w542;
+    int w543;
+    int w544;
+    int l187;
+    int l188;
+    int l189;
+    int l190;
+    int w545;
+    int w546;
+    int w547;
+    int reg_88; // m4 scroll
+    int l191;
+    int l192;
+    int w548;
+    int w549;
+    int w550;
+    int w551;
+    int w552;
+    int w553;
+    int l193;
+    int w554;
+    int l194;
+    int l195;
+    int w555;
+    int l196[2];
+    int l197[2];
+    int l198[2];
+    int l199[2];
+    int w556;
+    int l200[2];
+    int w557;
+    int l201[2];
+    int w558;
+    int w559;
+    int l202[2];
+    int w560;
+    int l203[2];
+    int l204[2];
+    int l205[2];
+    int w561;
+    int w562;
+    int w563;
+    int w564;
+    int w565;
+    int w566;
+    int w567;
+    int w568;
+    int l206[2];
+    int l207[2];
+    int l208[2];
+    int l209[2];
+    int l210[2];
+    int l211[2];
+    int w569;
+    int l212[2]; // 6 bits
+    int l213;
+    int w570;
+    int l214[2];
+    int w571;
+    int l215[2];
+    int w572;
+    int l216[2];
+    int w573;
+    int w574;
+    int w575;
+
     int reg_clk0_sel;
     int reg_test0;
     int reg_test_18;
@@ -912,6 +1029,7 @@ typedef struct {
 
     int vram_address; // 17 bits
     int vram_data; // 16 bits
+    int vram_serial; // 8 bits
 
     int tm_w1;
     int tm_w2;
