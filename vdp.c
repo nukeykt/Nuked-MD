@@ -468,7 +468,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     chip->w67 = chip->tm_w1 || (chip->reg_test0 & 8) != 0;
 
-    chip->w68 = !(chip->tm_w1 || chip->tm_w2 || (chip->reg_test0 & 8) != 0);
+    chip->w68 = !(chip->t38 || chip->tm_w2 || (chip->reg_test0 & 8) != 0);
 
     if (chip->hclk1)
     {
@@ -3564,7 +3564,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 {
     int i;
-    chip->w650 = chip->l325[1] ? chip->tm_w1 : chip->tm_w2;
+    chip->w650 = chip->l325[1] ? (chip->sat_size << 7) | chip->sat_link : chip->sat_ypos;
 
     if (chip->w651)
         chip->l324 = chip->w650;
@@ -3578,8 +3578,8 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     if (chip->hclk1)
     {
         chip->l325[0] = chip->tm_w1;
-        chip->l326[0] = chip->tm_w1;
-        chip->l327[0] = chip->tm_w1; // 7 link, 2 vsize, 2 hsize
+        chip->l326[0] = chip->w179;
+        chip->l327[0] = (chip->sat_size << 7) | chip->sat_link; // 7 link, 2 vsize, 2 hsize
         chip->l328 = chip->l327[1] ^ 0x7ff;
         chip->l329[0] = chip->l326[1];
         chip->l330[0] = chip->l329[1];
@@ -3590,12 +3590,28 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l338[0] = chip->w656;
         chip->l339[0] = chip->w657;
         chip->l340 = chip->w666 ^ 1023;
-        chip->l345[0] = chip->tm_w1;
+        chip->l345[0] = chip->sat_ypos;
         chip->l346 = chip->l345[1] ^ 1023;
-        chip->l347[0] = chip->tm_w1;
+        chip->l347[0] = chip->l357[1];
         chip->l348[0] = chip->l347[1];
         chip->l349[0] = chip->l348[1];
         chip->l350[0] = chip->l349[1];
+        chip->l352[0] = chip->l353[1];
+        chip->l353[0] = chip->l147[1];
+        chip->l354[0] = chip->tm_w1;
+        chip->l355[0] = chip->l356[1];
+        chip->l356[0] = chip->l162[1];
+        chip->l357[0] = chip->w686;
+        chip->l358[0] = chip->l331[1];
+        chip->l359[0] = chip->l358[1];
+        chip->l360[0] = chip->vram_address & 0x1fa;
+        chip->l361[0] = chip->w179;
+        chip->l362[0] = chip->w691;
+        chip->l363[0] = chip->w693;
+        chip->l364[0] = chip->w694;
+        chip->l365[0] = chip->l351[1] & 31;
+        chip->l365[2] = chip->l365[1];
+        chip->l366[0] = (chip->vram_data >> 8) & 15;
     }
     if (chip->hclk2)
     {
@@ -3616,6 +3632,22 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l348[1] = chip->l348[0];
         chip->l349[1] = chip->l349[0];
         chip->l350[1] = chip->l350[0];
+        chip->l352[1] = chip->l352[0];
+        chip->l353[1] = chip->l353[0];
+        chip->l354[1] = chip->l354[0];
+        chip->l355[1] = chip->l355[0];
+        chip->l356[1] = chip->l356[0];
+        chip->l357[1] = chip->l357[0];
+        chip->l358[1] = chip->l358[0];
+        chip->l359[1] = chip->l359[0];
+        chip->l360[1] = chip->l360[0];
+        chip->l361[1] = chip->l361[0];
+        chip->l362[1] = chip->l362[0];
+        chip->l363[1] = chip->l363[0];
+        chip->l364[1] = chip->l364[0];
+        chip->l365[1] = chip->l365[0];
+        chip->l365[3] = chip->l365[2];
+        chip->l366[1] = chip->l366[0];
     }
 
     chip->w651 = chip->hclk1 && chip->l326[1];
@@ -3699,7 +3731,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w677 = !chip->reg_m5 && chip->l350[1];
 
-    chip->w678 = chip->l347[1] || chip->l348[1] || chip->tm_w3;
+    chip->w678 = chip->l347[1] || chip->l348[1] || chip->l359[1];
 
     chip->w679 = !(chip->reg_m5 ? chip->w678 : chip->l348[1]);
 
@@ -3707,6 +3739,116 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w681 = chip->l348[1] || chip->l349[1];
     chip->w682 = chip->l349[1] || chip->l350[1];
+
+    if (chip->hclk1)
+    {
+        i = chip->w683 ? chip->sat_link : chip->l351[1];
+        chip->l351[0] = i;
+        if (chip->tm_w1)
+            i++;
+        if (chip->l354[1])
+            i = 0;
+        i &= 127;
+    }
+    if (chip->hclk2)
+    {
+        chip->l351[1] = chip->l351[0];
+    }
+
+    chip->w683 = chip->reg_m5 && (chip->l352[1] || chip->l353[1]);
+    chip->w684 = !chip->reg_m5 && chip->l353[1];
+
+    chip->w685 = chip->reset_comb || chip->l115[1] || (!chip->l355[1] && chip->l356[1]);
+
+    chip->w686 = chip->l147[1] && (chip->t38 || chip->l162[1]);
+
+    chip->w687 = chip->l364[1] && (chip->l360[1] & 2) != 0;
+    chip->w688 = chip->l363[1] && (chip->l360[1] & 2) != 0;
+    chip->w689 = chip->l363[1] && (chip->l360[1] & 2) == 0;
+    chip->w690 = chip->l364[1] && (chip->l360[1] & 2) == 0;
+
+    chip->w691 = chip->reg_rs1 && (chip->vram_address & 512) != 0;
+
+    chip->w692 = chip->l358[1] || chip->l363[1] || chip->l364[1] || chip->l361[1];
+
+    chip->w693 = chip->tm_w1 && chip->w283;
+    chip->w694 = chip->tm_w1 && chip->w284;
+
+    if (chip->w692)
+    {
+        chip->w695 = (chip->l360[1] >> 3) & 63;
+        if (chip->l362[1])
+            chip->w695 |= 64;
+    }
+    else
+    {
+        chip->w695 = chip->l351[1];
+    }
+
+    if (chip->reg_m5)
+    {
+        chip->w696 = chip->l351[1];
+    }
+    else
+    {
+        chip->w696 = 64 | (chip->l365[3] << 1);
+        if (chip->l116[1])
+            chip->w696 |= 1;
+    }
+
+    if (chip->w684)
+    {
+        chip->vram_address &= ~255;
+        chip->vram_address |= (chip->l351[1] & 31) << 1;
+    }
+
+    // sat cache
+    {
+        int index = chip->w695;
+        if (chip->hclk1 && chip->w687) // link
+        {
+            if (index < 80)
+            {
+                chip->sat_cache_link[index] = chip->l104[1] & 127;
+            }
+        }
+        if (chip->hclk1 && chip->w688) // size
+        {
+            if (index < 80)
+            {
+                chip->sat_cache_size[index] = chip->l366[1];
+            }
+        }
+        if (chip->hclk1 && chip->w689) // ypos
+        {
+            if (index < 80)
+            {
+                chip->sat_cache_ypos[index] &= ~0x300;
+                chip->sat_cache_ypos[index] |= (chip->l366[1] & 3) << 8;
+            }
+        }
+        if (chip->hclk1 && chip->w690) // ypos
+        {
+            if (index < 80)
+            {
+                chip->sat_cache_ypos[index] &= ~255;
+                chip->sat_cache_ypos[index] |= chip->l104[1] & 255;
+            }
+        }
+        if (index < 80)
+        {
+            chip->sat_link = chip->sat_cache_link[index];
+            chip->sat_size = chip->sat_cache_size[index];
+            chip->sat_ypos = chip->sat_cache_ypos[index];
+        }
+        else
+        {
+            // FIXME: undefined behaviour
+            chip->sat_link = 0;
+            chip->sat_size = 0;
+            chip->sat_ypos = 0;
+        }
+    }
 }
 
 vdp_t vdp;
