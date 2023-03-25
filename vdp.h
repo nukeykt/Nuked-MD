@@ -1297,6 +1297,28 @@ typedef struct {
     int w729;
     int w730;
     int yoff;
+    int l386;
+    int l387;
+    int w731;
+    int w732;
+    int l388[2];
+    int l389[2];
+    int l390[2];
+    int l391[2];
+    int w733;
+    int w734;
+    int w735;
+    int w736;
+    int w737;
+    int w738;
+    int w739;
+    int reg_86_b2;
+    int reg_86_b5;
+    int reg_at;
+    int w740;
+    int w741;
+    int w742;
+
 
     int reg_clk0_sel;
     int reg_test0;
