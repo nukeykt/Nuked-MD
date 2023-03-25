@@ -3561,6 +3561,154 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     }
 }
 
+void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
+{
+    int i;
+    chip->w650 = chip->l325[1] ? chip->tm_w1 : chip->tm_w2;
+
+    if (chip->w651)
+        chip->l324 = chip->w650;
+
+    if (chip->l330[1])
+    {
+        chip->vram_data &= 0x7ff;
+        chip->vram_data |= chip->l324;
+    }
+
+    if (chip->hclk1)
+    {
+        chip->l325[0] = chip->tm_w1;
+        chip->l326[0] = chip->tm_w1;
+        chip->l327[0] = chip->tm_w1; // 7 link, 2 vsize, 2 hsize
+        chip->l328 = chip->l327[1] ^ 0x7ff;
+        chip->l329[0] = chip->l326[1];
+        chip->l330[0] = chip->l329[1];
+        chip->l331[0] = chip->tm_w1;
+        chip->l333 = !chip->w679;
+        chip->l336[0] = (chip->l332 & 1024) == 0;
+        chip->l337[0] = (chip->l332 & 512) == 0;
+        chip->l338[0] = chip->w656;
+        chip->l339[0] = chip->w657;
+        chip->l340 = chip->w666 ^ 1023;
+        chip->l345[0] = chip->tm_w1;
+        chip->l346 = chip->l345[1] ^ 1023;
+        chip->l347[0] = chip->tm_w1;
+        chip->l348[0] = chip->l347[1];
+        chip->l349[0] = chip->l348[1];
+        chip->l350[0] = chip->l349[1];
+    }
+    if (chip->hclk2)
+    {
+        chip->l325[1] = chip->l325[0];
+        chip->l326[1] = chip->l326[0];
+        chip->l327[1] = chip->l327[0];
+        chip->l329[1] = chip->l329[0];
+        chip->l330[1] = chip->l330[0];
+        chip->l331[1] = chip->l331[0];
+        chip->l336[1] = chip->l336[0];
+        chip->l337[1] = chip->l337[0];
+        chip->l338[1] = chip->l338[0];
+        chip->l339[1] = chip->l339[0];
+        chip->l341 = chip->w662 ^ 0x3c0;
+        chip->l344 = chip->l343 ^ 1023;
+        chip->l345[1] = chip->l345[0];
+        chip->l347[1] = chip->l347[0];
+        chip->l348[1] = chip->l348[0];
+        chip->l349[1] = chip->l349[0];
+        chip->l350[1] = chip->l350[0];
+    }
+
+    chip->w651 = chip->hclk1 && chip->l326[1];
+
+    if (chip->w652)
+        chip->l332 = chip->l328;
+
+    chip->w652 = chip->hclk2 && chip->tm_w2 && chip->l333;
+
+    chip->w653 = chip->w355;
+    i = 0;
+    if (chip->w654)
+        i |= 129;
+    if (chip->w106)
+        i |= 258;
+    chip->w653 += i;
+    chip->w653 &= 1023;
+
+    chip->w654 = !chip->w106 && chip->reg_m5;
+
+    chip->w655 = chip->reg_m5 && (chip->l332 & 127) == 127;
+
+    chip->w656 = chip->reg_m5 && (chip->l332 & 512) == 0;
+
+    chip->w657 = chip->reg_m5 ? (chip->l332 & 256) == 0 : chip->reg_81_b1;
+
+    chip->w658 = chip->w676 && (chip->w655 || chip->w667);
+
+    chip->w659 = !(chip->hclk1 && !chip->w679);
+
+    if (clk1)
+    {
+        chip->l334 = !chip->w659;
+        chip->l335[1] = chip->l335[0];
+    }
+    if (clk2)
+    {
+        chip->l335[0] = chip->l334;
+    }
+
+    chip->w660 = chip->l334 && clk2;
+    chip->w661 = chip->l335[1] && clk2;
+
+    chip->w662 = 1 + chip->w653;
+    chip->w662 += chip->l340;
+    chip->w662 &= 1023;
+
+    chip->w663 = !(chip->l338[1] || chip->l339[1]);
+    chip->w664 = chip->l338[1] && !chip->l339[1];
+
+    chip->w665 = chip->w668 && chip->w669 && chip->w670 && chip->w671
+        && chip->w672 && (chip->l341 & 128) != 0 && (chip->l341 & 64) != 0
+        && !chip->w675 && chip->tm_w3;
+
+    chip->w666 = chip->w677 ? (chip->l342 & 255) : chip->tm_w3;
+
+
+    chip->w667 = chip->w666 == 208 && !chip->reg_m5;
+
+    chip->w668 = !(chip->w663 && chip->w673);
+
+    chip->w669 = !(!chip->l338[1] && chip->w674);
+
+    chip->w670 = !(chip->w664 && chip->w673 && chip->w674);
+
+    chip->w671 = (chip->l341 & 512) != 0 || !chip->w106;
+
+    chip->w672 = (chip->l341 & 256) != 0 || !chip->reg_m5;
+
+    if (chip->w661)
+        chip->l342 = chip->vram_serial;
+
+    if (chip->w660)
+        chip->l343 = chip->w680;
+
+    chip->w673 = chip->w106 ? (chip->l341 & 16) != 0 : (chip->l341 & 8) != 0;
+    chip->w674 = chip->w106 ? (chip->l341 & 32) != 0 : (chip->l341 & 16) != 0;
+    chip->w675 = chip->w106 ? 0 : (chip->l341 & 32) != 0;
+
+    chip->w676 = chip->reg_m5 ? chip->w681 : chip->w682;
+
+    chip->w677 = !chip->reg_m5 && chip->l350[1];
+
+    chip->w678 = chip->l347[1] || chip->l348[1] || chip->tm_w3;
+
+    chip->w679 = !(chip->reg_m5 ? chip->w678 : chip->l348[1]);
+
+    chip->w680 = chip->reg_m5 ? chip->l346 : (chip->vram_serial ^ 1023);
+
+    chip->w681 = chip->l348[1] || chip->l349[1];
+    chip->w682 = chip->l349[1] || chip->l350[1];
+}
+
 vdp_t vdp;
 
 int main()
