@@ -3637,6 +3637,9 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l402[0] = chip->l142[1];
         chip->l411[0] = chip->l147[1];
         chip->l412[0] = chip->l134[1];
+        chip->l419[0] = chip->tm_w1;
+        chip->l422[0] = chip->l421[1];
+        chip->l423[0] = chip->t42;
     }
     if (chip->hclk2)
     {
@@ -3697,6 +3700,9 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l402[1] = chip->l402[0];
         chip->l411[1] = chip->l411[0];
         chip->l412[1] = chip->l412[0];
+        chip->l419[1] = chip->l419[0];
+        chip->l422[1] = chip->l422[0];
+        chip->l423[1] = chip->l423[0];
     }
 
     chip->w651 = chip->hclk1 && chip->l326[1];
@@ -3976,9 +3982,9 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w722 = chip->tm_w1 && (chip->l379 & 3) != 0;
 
-    chip->w723 = chip->tm_w1 && (chip->l379 & 3) == 2;
+    chip->w723 = (chip->l387 & 16) != 0 && (chip->l379 & 3) == 2;
 
-    chip->w724 = chip->tm_w1 && (chip->l379 & 2) != 0;
+    chip->w724 = (chip->l387 & 16) != 0 && (chip->l379 & 2) != 0;
 
     chip->w725 = chip->reg_m5 ? ((chip->l380 >> 4) & 3) : ((chip->l380 >> 3) & 3);
     chip->w726 = (chip->w725 + chip->w723) & 3;
@@ -3986,7 +3992,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w727 = !(chip->t40 || !chip->w676);
 
     chip->w728 = chip->l380 & 15;
-    if (chip->tm_w1)
+    if (chip->l387 & 16)
         chip->w728 ^= 15;
 
     chip->w730 = chip->w726;
@@ -4291,6 +4297,211 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         if (chip->l403[1] & 0x8000)
             chip->w757 |= 0x8;
     }
+
+    if (chip->w755)
+    {
+        chip->vram_address &= ~0xff;
+        if (chip->l409[1] & 0x80)
+            chip->vram_address |= 0x80;
+        if (chip->l408[1] & 0x80)
+            chip->vram_address |= 0x40;
+        if (chip->l407[1] & 0x80)
+            chip->vram_address |= 0x20;
+        if (chip->l406[1] & 0x80)
+            chip->vram_address |= 0x10;
+        if (chip->l405[1] & 0x80)
+            chip->vram_address |= 0x8;
+        if (chip->l404[1] & 0x80)
+            chip->vram_address |= 0x4;
+        if (chip->l403[1] & 0x80)
+            chip->vram_address |= 0x2;
+    }
+
+    chip->w759 = chip->tm_w1 && (chip->reg_test0 & 4096) != 0;
+    chip->w760 = chip->tm_w1 && (chip->reg_test0 & 4096) == 0;
+
+    chip->w758 = 0; // h flip
+    if (chip->w759)
+        chip->w758 |= (chip->io_data >> 0) & 1;
+    if (chip->w760)
+        chip->w758 |= (chip->l387 >> 3) & 1;
+
+    chip->w761 = 0; // pal 0
+    if (chip->w759)
+        chip->w761 |= (chip->io_data >> 1) & 3;
+    if (chip->w760)
+        chip->w761 |= (chip->l387 >> 5) & 3;
+
+    chip->w763 = 0; // priority
+    if (chip->w759)
+        chip->w763 |= (chip->io_data >> 3) & 1;
+    if (chip->w760)
+        chip->w763 |= (chip->l387 >> 7) & 1;
+
+    chip->w764 = 0; // xsize 0
+    if (chip->w759)
+        chip->w764 |= (chip->io_data >> 4) & 3;
+    if (chip->w760)
+        chip->w764 |= (chip->l379 >> 2) & 3;
+
+    chip->w766 = 0; // ysize 0
+    if (chip->w759)
+        chip->w766 |= (chip->io_data >> 6) & 3;
+    if (chip->w760)
+        chip->w766 |= (chip->l379 >> 0) & 3;
+
+    chip->w768 = 0; // yoff
+    if (chip->w759)
+        chip->w768 |= (chip->io_data >> 8) & 63;
+    if (chip->w760)
+        chip->w768 |= chip->yoff;
+
+    chip->w769 = chip->hclk1 && (chip->w97 || chip->w772);
+
+    if (chip->w769)
+    {
+        chip->l413 = chip->sprdata_hflip_o;
+        chip->l414 = chip->sprdata_pal_o;
+        chip->l415 = chip->sprdata_priority_o;
+        chip->l416 = chip->sprdata_xs_o;
+        chip->l417 = chip->sprdata_ys_o;
+        chip->l418 = chip->sprdata_yoffset_o;
+    }
+
+    chip->w770 = 0;
+    if (!chip->w705)
+    {
+        chip->w770 |= chip->l413 << 0;
+        chip->w770 |= chip->l414 << 1;
+        chip->w770 |= chip->l415 << 3;
+        chip->w770 |= chip->l416 << 4;
+        chip->w770 |= chip->l417 << 6;
+        chip->w770 |= (chip->l418 & 7) << 8;
+    }
+    if (!chip->w706)
+    {
+        chip->w770 |= chip->l425;
+    }
+    if (!chip->w707)
+    {
+        chip->w770 |= chip->l424;
+    }
+
+    if (chip->w97)
+    {
+        chip->io_data &= ~0x3fff;
+        chip->io_data |= chip->w770 & 0x7ff;
+        chip->io_data |= (chip->l418 & 0x38) << 8;
+    }
+
+    // sprite data ram
+    {
+        int index = chip->w697;
+        if (chip->hclk1 && chip->w712)
+        {
+            if (index < 20)
+            {
+                chip->sprdata_pattern[index] = chip->w774;
+            }
+        }
+        if (chip->hclk1 && chip->w715)
+        {
+            if (index < 20)
+            {
+                chip->sprdata_hpos[index] = chip->tm_w1;
+            }
+        }
+        if (chip->hclk1 && chip->w709)
+        {
+            if (index < 20)
+            {
+                chip->sprdata_hflip[index] = chip->w758;
+                chip->sprdata_pal[index] = chip->w761;
+                chip->sprdata_priority[index] = chip->w763;
+                chip->sprdata_xs[index] = chip->w764;
+                chip->sprdata_ys[index] = chip->w766;
+                chip->sprdata_yoffset[index] = chip->w768;
+            }
+        }
+        if (index < 20)
+        {
+            chip->sprdata_pattern_o = chip->sprdata_pattern[index];
+            chip->sprdata_hpos_o = chip->sprdata_hpos[index];
+            chip->sprdata_hflip_o = chip->sprdata_hflip[index];
+            chip->sprdata_pal_o = chip->sprdata_pal[index];
+            chip->sprdata_priority_o = chip->sprdata_priority[index];
+            chip->sprdata_xs_o = chip->sprdata_xs[index];
+            chip->sprdata_ys_o = chip->sprdata_ys[index];
+            chip->sprdata_yoffset_o = chip->sprdata_yoffset[index];
+        }
+        else
+        {
+            // FIXME: undefined behaviour
+            chip->sprdata_pattern_o = 0;
+            chip->sprdata_hpos_o = 0;
+            chip->sprdata_hflip_o = 0;
+            chip->sprdata_pal_o = 0;
+            chip->sprdata_priority_o = 0;
+            chip->sprdata_xs_o = 0;
+            chip->sprdata_ys_o = 0;
+            chip->sprdata_yoffset_o = 0;
+        }
+    }
+
+    if (chip->hclk1)
+    {
+        i = chip->tm_w1 ? chip->tm_w2 : chip->l420[1];
+        i += chip->l141[1];
+        if (chip->l372[1])
+            i = 0;
+        chip->l420[0] = i & 3;
+    }
+    if (chip->hclk2)
+    {
+        chip->l420[1] = chip->l420[0];
+    }
+
+    chip->w771 = chip->l420[1] == 0;
+
+    chip->w772 = chip->w771 && chip->l141[1];
+
+    if (chip->hclk1)
+    {
+        i = chip->l421[1];
+        i += chip->l419[1];
+        if (chip->w360)
+            i = 0;
+        chip->l421[0] = i & 1;
+    }
+    if (chip->hclk2)
+    {
+        chip->l421[1] = chip->l421[0];
+    }
+
+    if (chip->l372[1])
+        chip->t42 = 1;
+    else if (chip->l369[1])
+        chip->t42 = 0;
+
+    chip->w773 = chip->l423[1] && chip->tm_w2 && chip->w714;
+
+    chip->w774 = 0;
+    if (chip->w759)
+        chip->w774 |= chip->io_data & 0x7ff;
+    if (chip->w760)
+        chip->w774 |= chip->tm_w1;
+
+    if (chip->w769)
+        chip->l424 = chip->sprdata_pattern_o;
+
+    chip->w775 = 0;
+    if (chip->w759)
+        chip->w775 |= chip->io_data & 0x1ff;
+    if (chip->w760)
+        chip->w775 |= chip->tm_w1;
+
+    if (chip->w769)
+        chip->l425 = chip->sprdata_hpos_o;
 }
 
 vdp_t vdp;
