@@ -3655,8 +3655,6 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l470[0] = chip->l471[1];
         chip->l471[0] = chip->w388;
         chip->l475[0] = (chip->w809 >> 3) & 63;
-        chip->l476[0] = chip->w826;
-        chip->l477[0] = chip->l476[1];
         chip->l507[0] = chip->w848;
         chip->l508[0] = chip->l507[1];
         chip->l509[0] = chip->l508[1];
@@ -3741,8 +3739,6 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l470[1] = chip->l470[0];
         chip->l471[1] = chip->l471[0];
         chip->l475[1] = chip->l475[0];
-        chip->l476[1] = chip->l476[0];
-        chip->l477[1] = chip->l477[0];
         chip->l507[1] = chip->l507[0];
         chip->l508[1] = chip->l508[0];
         chip->l509[1] = chip->l509[0];
@@ -4835,14 +4831,6 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     if (chip->w824)
         chip->w825 |= chip->reg_test_18 & 63;
 
-    chip->w826 = chip->reg_m5 ? chip->tm_w1 : chip->tm_w2;
-
-    if (chip->tm_w1)
-    {
-        chip->color_index &= ~2;
-        chip->color_index |= chip->l477[1] << 1;
-    }
-
     chip->vram_serial_swap1 = 0;
     if (chip->vram_data & 1)
         chip->vram_serial_swap1 |= 128;
@@ -5138,6 +5126,586 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w827 = !((chip->l472[1] & 4) == 0 || ((chip->l472[1] & 1) == 0 && (chip->l472[1] & 2) == 0)); // 5, 6, 7
     chip->w870 = (chip->l472[1] & 4) != 0 && (chip->l472[1] & 2) != 0; // 6, 7
     chip->w871 = (chip->l472[1] & 4) != 0 && (chip->l472[1] & 2) != 0 && (chip->l472[1] & 1) != 0; // 7
+
+    
+    chip->w877 = !((chip->reg_test0 & 8192) == 0 && chip->l563);
+
+    chip->w873 = chip->w861 || chip->w877;
+    chip->w876 = chip->w863 || chip->w877;
+    chip->w880 = chip->w864 || chip->w877;
+    chip->w883 = chip->w866 || chip->w877;
+
+    chip->w872 = clk2 && (chip->w860 || chip->w883);
+    chip->w874 = clk2 && (chip->w873 || chip->w860);
+    chip->w875 = clk2 && (chip->w862 || chip->w873);
+    chip->w878 = clk2 && (chip->w876 || chip->w862);
+    chip->w879 = clk2 && (chip->w828 || chip->w876);
+    chip->w881 = clk2 && (chip->w880 || chip->w828);
+    chip->w882 = clk2 && (chip->w865 || chip->w880);
+    chip->w884 = clk2 && (chip->w883 || chip->w865);
+
+    if (chip->w872)
+    {
+        chip->l515 = chip->w845 & 15;
+    }
+
+    if (chip->w874)
+    {
+        chip->l516 = (chip->w845 >> 4) & 15;
+    }
+
+    if (chip->w875)
+    {
+        chip->l517 = chip->w845 & 15;
+    }
+
+    if (chip->w878)
+    {
+        chip->l518 = (chip->w845 >> 4) & 15;
+    }
+
+    if (chip->w879)
+    {
+        chip->l519 = chip->w845 & 15;
+    }
+
+    if (chip->w881)
+    {
+        chip->l520 = (chip->w845 >> 4) & 15;
+    }
+
+    if (chip->w879)
+    {
+        chip->l521 = chip->w845 & 15;
+    }
+
+    if (chip->w881)
+    {
+        chip->l522 = (chip->w845 >> 4) & 15;
+    }
+
+    chip->w885 = clk2 && (chip->l562[1] || chip->l499);
+
+    if (chip->w885)
+    {
+        chip->l523 = chip->l515;
+        chip->l524 = chip->l516;
+        chip->l525 = chip->l517;
+        chip->l526 = chip->l518;
+        chip->l527 = chip->l519;
+        chip->l528 = chip->l520;
+        chip->l529 = chip->l521;
+        chip->l530 = chip->l522;
+    }
+
+    if (clk1)
+    {
+        chip->l531 = !chip->w851;
+        chip->l532 = !chip->w867;
+        chip->l533 = !chip->w868;
+        chip->l534 = !chip->w869;
+        chip->l535 = !chip->w827;
+        chip->l536 = !chip->w870;
+        chip->l537 = !chip->w871;
+    }
+
+    chip->w886 = chip->l531 ^ chip->l461;
+    chip->w887 = chip->l532 ^ chip->l461;
+    chip->w888 = chip->l533 ^ chip->l461;
+    chip->w889 = chip->l534 ^ chip->l461;
+    chip->w890 = chip->l535 ^ chip->l461;
+    chip->w891 = chip->l536 ^ chip->l461;
+    chip->w892 = chip->l537 ^ chip->l461;
+    chip->w893 = !chip->l461;
+
+    chip->w894 = chip->w886 && chip->w815;
+    chip->w895 = chip->w887 && chip->w815;
+    chip->w896 = chip->w888 && chip->w815;
+    chip->w897 = chip->w889 && chip->w815;
+    chip->w898 = chip->w890 && chip->w815;
+    chip->w899 = chip->w891 && chip->w815;
+    chip->w900 = chip->w892 && chip->w815;
+    chip->w901 = chip->w893 && chip->w815;
+
+    chip->w902 = !(chip->w856 || (chip->w894 && chip->w942));
+    chip->w903 = !(chip->w856 || (chip->w895 && chip->w943));
+    chip->w904 = !(chip->w857 || (chip->w896 && chip->w944));
+    chip->w905 = !(chip->w857 || (chip->w897 && chip->w945));
+    chip->w906 = !(chip->w858 || (chip->w898 && chip->w946));
+    chip->w907 = !(chip->w858 || (chip->w899 && chip->w947));
+    chip->w908 = !(chip->w859 || (chip->w900 && chip->w948));
+    chip->w909 = !(chip->w860 || (chip->w901 && chip->w949));
+
+    if (clk2)
+    {
+        chip->l538 = !chip->w902;
+        chip->l539 = !chip->w903;
+        chip->l540 = !chip->w904;
+        chip->l541 = !chip->w905;
+        chip->l542 = !chip->w906;
+        chip->l543 = !chip->w907;
+        chip->l544 = !chip->w908;
+        chip->l545 = !chip->w909;
+    }
+
+    chip->w910 = chip->l538 && clk1;
+    chip->w911 = chip->l539 && clk1;
+    chip->w912 = chip->l540 && clk1;
+    chip->w913 = chip->l541 && clk1;
+    chip->w914 = chip->l542 && clk1;
+    chip->w915 = chip->l543 && clk1;
+    chip->w916 = chip->l544 && clk1;
+    chip->w917 = chip->l545 && clk1;
+
+    {
+        int index = chip->w825;
+        int clk = chip->w817;
+
+        if (clk && chip->w910)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][0].priority = chip->w982;
+                chip->linebuffer[index][0].pal = chip->w983;
+                chip->linebuffer[index][0].index = chip->l523;
+            }
+        }
+        if (clk && chip->w911)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][1].priority = chip->w979;
+                chip->linebuffer[index][1].pal = chip->w980;
+                chip->linebuffer[index][1].index = chip->l524;
+            }
+        }
+        if (clk && chip->w912)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][2].priority = chip->w982;
+                chip->linebuffer[index][2].pal = chip->w983;
+                chip->linebuffer[index][2].index = chip->l525;
+            }
+        }
+        if (clk && chip->w913)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][3].priority = chip->w979;
+                chip->linebuffer[index][3].pal = chip->w980;
+                chip->linebuffer[index][3].index = chip->l526;
+            }
+        }
+        if (clk && chip->w914)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][4].priority = chip->w982;
+                chip->linebuffer[index][4].pal = chip->w983;
+                chip->linebuffer[index][4].index = chip->l527;
+            }
+        }
+        if (clk && chip->w915)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][5].priority = chip->w979;
+                chip->linebuffer[index][5].pal = chip->w980;
+                chip->linebuffer[index][5].index = chip->l528;
+            }
+        }
+        if (clk && chip->w916)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][6].priority = chip->w982;
+                chip->linebuffer[index][6].pal = chip->w983;
+                chip->linebuffer[index][6].index = chip->l529;
+            }
+        }
+        if (clk && chip->w917)
+        {
+            if (index < 40)
+            {
+                chip->linebuffer[index][7].priority = chip->w979;
+                chip->linebuffer[index][7].pal = chip->w980;
+                chip->linebuffer[index][7].index = chip->l530;
+            }
+        }
+        if (!clk)
+        {
+            for (i = 0; i < 8; i++)
+            {
+                chip->linebuffer_out[i].priority = 1;
+                chip->linebuffer_out[i].pal = 3;
+                chip->linebuffer_out[i].index = 15;
+            }
+        }
+        else
+        {
+            if (index < 40)
+            {
+                for (i = 0; i < 8; i++)
+                {
+                    chip->linebuffer_out[i] = chip->linebuffer[index][i];
+                }
+            }
+            else
+            {
+                // FIXME: undefined behaviour
+                for (i = 0; i < 8; i++)
+                {
+                    chip->linebuffer_out[i].priority = 0;
+                    chip->linebuffer_out[i].pal = 0;
+                    chip->linebuffer_out[i].index = 0;
+                }
+            }
+        }
+    }
+
+    chip->w918 = chip->linebuffer_out[0].index != 0;
+    chip->w919 = chip->linebuffer_out[1].index != 0;
+    chip->w920 = chip->linebuffer_out[2].index != 0;
+    chip->w921 = chip->linebuffer_out[3].index != 0;
+    chip->w922 = chip->linebuffer_out[4].index != 0;
+    chip->w923 = chip->linebuffer_out[5].index != 0;
+    chip->w924 = chip->linebuffer_out[6].index != 0;
+    chip->w925 = chip->linebuffer_out[7].index != 0;
+
+    chip->w934 = chip->l523 != 0;
+    chip->w935 = chip->l524 != 0;
+    chip->w936 = chip->l525 != 0;
+    chip->w937 = chip->l526 != 0;
+    chip->w938 = chip->l527 != 0;
+    chip->w939 = chip->l528 != 0;
+    chip->w940 = chip->l529 != 0;
+    chip->w941 = chip->l530 != 0;
+
+    chip->w926 = chip->w918 && chip->w894 && chip->w934;
+    chip->w927 = chip->w919 && chip->w895 && chip->w935;
+    chip->w928 = chip->w920 && chip->w896 && chip->w936;
+    chip->w929 = chip->w921 && chip->w897 && chip->w937;
+    chip->w930 = chip->w922 && chip->w898 && chip->w938;
+    chip->w931 = chip->w923 && chip->w899 && chip->w939;
+    chip->w932 = chip->w924 && chip->w900 && chip->w940;
+    chip->w933 = chip->w925 && chip->w901 && chip->w941;
+
+    chip->w950 = 0;
+    chip->w942 = chip->w950 ? chip->w934 : !chip->w918;
+    chip->w943 = chip->w950 ? chip->w935 : !chip->w919;
+    chip->w944 = chip->w950 ? chip->w936 : !chip->w920;
+    chip->w945 = chip->w950 ? chip->w937 : !chip->w921;
+    chip->w946 = chip->w950 ? chip->w938 : !chip->w922;
+    chip->w947 = chip->w950 ? chip->w939 : !chip->w923;
+    chip->w948 = chip->w950 ? chip->w940 : !chip->w924;
+    chip->w949 = chip->w950 ? chip->w941 : !chip->w925;
+
+    chip->w951 = !chip->w820;
+
+    if (chip->hclk1)
+    {
+        chip->l546[0] = chip->l546[1] >> 1;
+        chip->l547[0] = chip->l547[1] >> 1;
+        chip->l548[0] = chip->l548[1] >> 1;
+        chip->l549[0] = chip->l549[1] >> 1;
+        chip->l550[0] = chip->l550[1] >> 1;
+        chip->l551[0] = chip->l551[1] >> 1;
+        chip->l552[0] = chip->l552[1] >> 1;
+        if (chip->w951)
+        {
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].pal & 1)
+                    chip->l546[0] |= 1 << i;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].pal & 2)
+                    chip->l547[0] |= 1 << i;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].priority)
+                    chip->l548[0] |= 1 << i;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].index & 1)
+                    chip->l549[0] |= 1 << i;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].index & 2)
+                    chip->l550[0] |= 1 << i;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].index & 4)
+                    chip->l551[0] |= 1 << i;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (chip->linebuffer_out[i].index & 8)
+                    chip->l552[0] |= 1 << i;
+            }
+        }
+    }
+    if (chip->hclk2)
+    {
+        chip->l546[1] = chip->l546[0] & 255;
+        chip->l547[1] = chip->l547[0] & 255;
+        chip->l548[1] = chip->l548[0] & 255;
+        chip->l549[1] = chip->l549[0] & 255;
+        chip->l550[1] = chip->l550[0] & 255;
+        chip->l551[1] = chip->l551[0] & 255;
+        chip->l552[1] = chip->l552[0] & 255;
+    }
+
+    chip->w952 = (chip->reg_test_18 & 192) == 0;
+    chip->w953 = (chip->reg_test_18 & 192) == 64;
+    chip->w954 = (chip->reg_test_18 & 192) == 128;
+    chip->w955 = (chip->reg_test_18 & 192) == 192;
+
+    chip->w956 = 0;
+    chip->w957 = 0;
+    chip->w958 = 0;
+    chip->w959 = 0;
+    chip->w960 = 0;
+    chip->w961 = 0;
+    chip->w962 = 0;
+    chip->w963 = 0;
+    chip->w964 = 0;
+    chip->w965 = 0;
+    chip->w966 = 0;
+    chip->w967 = 0;
+    chip->w968 = 0;
+    chip->w969 = 0;
+    if (chip->w952)
+    {
+        if (chip->linebuffer_out[0].pal & 1)
+            chip->w956 = 1;
+        if (chip->linebuffer_out[1].pal & 1)
+            chip->w963 = 1;
+        if (chip->linebuffer_out[0].pal & 2)
+            chip->w957 = 1;
+        if (chip->linebuffer_out[1].pal & 2)
+            chip->w964 = 1;
+        if (chip->linebuffer_out[0].priority)
+            chip->w958 = 1;
+        if (chip->linebuffer_out[1].priority)
+            chip->w965 = 1;
+        if (chip->linebuffer_out[0].index & 1)
+            chip->w959 = 1;
+        if (chip->linebuffer_out[1].index & 1)
+            chip->w966 = 1;
+        if (chip->linebuffer_out[0].index & 2)
+            chip->w960 = 1;
+        if (chip->linebuffer_out[1].index & 2)
+            chip->w967 = 1;
+        if (chip->linebuffer_out[0].index & 4)
+            chip->w961 = 1;
+        if (chip->linebuffer_out[1].index & 4)
+            chip->w968 = 1;
+        if (chip->linebuffer_out[0].index & 8)
+            chip->w962 = 1;
+        if (chip->linebuffer_out[1].index & 8)
+            chip->w969 = 1;
+    }
+    if (chip->w953)
+    {
+        if (chip->linebuffer_out[2].pal & 1)
+            chip->w956 = 1;
+        if (chip->linebuffer_out[3].pal & 1)
+            chip->w963 = 1;
+        if (chip->linebuffer_out[2].pal & 2)
+            chip->w957 = 1;
+        if (chip->linebuffer_out[3].pal & 2)
+            chip->w964 = 1;
+        if (chip->linebuffer_out[2].priority)
+            chip->w958 = 1;
+        if (chip->linebuffer_out[3].priority)
+            chip->w965 = 1;
+        if (chip->linebuffer_out[2].index & 1)
+            chip->w959 = 1;
+        if (chip->linebuffer_out[3].index & 1)
+            chip->w966 = 1;
+        if (chip->linebuffer_out[2].index & 2)
+            chip->w960 = 1;
+        if (chip->linebuffer_out[3].index & 2)
+            chip->w967 = 1;
+        if (chip->linebuffer_out[2].index & 4)
+            chip->w961 = 1;
+        if (chip->linebuffer_out[3].index & 4)
+            chip->w968 = 1;
+        if (chip->linebuffer_out[2].index & 8)
+            chip->w962 = 1;
+        if (chip->linebuffer_out[3].index & 8)
+            chip->w969 = 1;
+    }
+    if (chip->w954)
+    {
+        if (chip->linebuffer_out[4].pal & 1)
+            chip->w956 = 1;
+        if (chip->linebuffer_out[5].pal & 1)
+            chip->w963 = 1;
+        if (chip->linebuffer_out[4].pal & 2)
+            chip->w957 = 1;
+        if (chip->linebuffer_out[5].pal & 2)
+            chip->w964 = 1;
+        if (chip->linebuffer_out[4].priority)
+            chip->w958 = 1;
+        if (chip->linebuffer_out[5].priority)
+            chip->w965 = 1;
+        if (chip->linebuffer_out[4].index & 1)
+            chip->w959 = 1;
+        if (chip->linebuffer_out[5].index & 1)
+            chip->w966 = 1;
+        if (chip->linebuffer_out[4].index & 2)
+            chip->w960 = 1;
+        if (chip->linebuffer_out[5].index & 2)
+            chip->w967 = 1;
+        if (chip->linebuffer_out[4].index & 4)
+            chip->w961 = 1;
+        if (chip->linebuffer_out[5].index & 4)
+            chip->w968 = 1;
+        if (chip->linebuffer_out[4].index & 8)
+            chip->w962 = 1;
+        if (chip->linebuffer_out[5].index & 8)
+            chip->w969 = 1;
+    }
+    if (chip->w955)
+    {
+        if (chip->linebuffer_out[6].pal & 1)
+            chip->w956 = 1;
+        if (chip->linebuffer_out[7].pal & 1)
+            chip->w963 = 1;
+        if (chip->linebuffer_out[6].pal & 2)
+            chip->w957 = 1;
+        if (chip->linebuffer_out[7].pal & 2)
+            chip->w964 = 1;
+        if (chip->linebuffer_out[6].priority)
+            chip->w958 = 1;
+        if (chip->linebuffer_out[7].priority)
+            chip->w965 = 1;
+        if (chip->linebuffer_out[6].index & 1)
+            chip->w959 = 1;
+        if (chip->linebuffer_out[7].index & 1)
+            chip->w966 = 1;
+        if (chip->linebuffer_out[6].index & 2)
+            chip->w960 = 1;
+        if (chip->linebuffer_out[7].index & 2)
+            chip->w967 = 1;
+        if (chip->linebuffer_out[6].index & 4)
+            chip->w961 = 1;
+        if (chip->linebuffer_out[7].index & 4)
+            chip->w968 = 1;
+        if (chip->linebuffer_out[6].index & 8)
+            chip->w962 = 1;
+        if (chip->linebuffer_out[7].index & 8)
+            chip->w969 = 1;
+    }
+    if (chip->w99)
+    {
+        chip->io_data &= ~0x7f7f;
+        chip->io_data |= (!chip->w956) << 0;
+        chip->io_data |= (!chip->w957) << 1;
+        chip->io_data |= (!chip->w958) << 2;
+        chip->io_data |= (!chip->w959) << 3;
+        chip->io_data |= (!chip->w960) << 4;
+        chip->io_data |= (!chip->w961) << 5;
+        chip->io_data |= (!chip->w962) << 6;
+        chip->io_data |= (!chip->w963) << 8;
+        chip->io_data |= (!chip->w964) << 9;
+        chip->io_data |= (!chip->w965) << 10;
+        chip->io_data |= (!chip->w966) << 11;
+        chip->io_data |= (!chip->w967) << 12;
+        chip->io_data |= (!chip->w968) << 13;
+        chip->io_data |= (!chip->w969) << 14;
+    }
+
+    chip->spr_pal = 0;
+    if (chip->l546[1] & 1)
+        chip->spr_pal |= 1;
+    if (chip->l547[1] & 1)
+        chip->spr_pal |= 2;
+    chip->spr_priority = chip->l548[1] & 1;
+    chip->spr_index = 0;
+    if (chip->l549[1] & 1)
+        chip->spr_index |= 1;
+    if (chip->l550[1] & 1)
+        chip->spr_index |= 2;
+    if (chip->l551[1] & 1)
+        chip->spr_index |= 4;
+    if (chip->l552[1] & 1)
+        chip->spr_index |= 8;
+
+    if (chip->hclk1)
+    {
+        chip->l553[0] = chip->spr_pal;
+        chip->l554[0] = chip->spr_priority;
+        chip->l555[0] = chip->spr_index;
+        chip->l556[0] = chip->w970;
+        chip->l557[0] = chip->w971;
+        chip->l558[0] = chip->w972;
+
+        chip->l559[0] = chip->w974;
+        chip->l560[0] = chip->w973;
+        chip->l561[0] = chip->l558[1];
+    }
+    else
+    {
+        chip->l553[1] = chip->l553[0];
+        chip->l554[1] = chip->l554[0];
+        chip->l555[1] = chip->l555[0];
+        chip->l556[1] = chip->l556[0];
+        chip->l557[1] = chip->l557[0];
+        chip->l558[1] = chip->l558[0];
+    }
+
+    chip->w974 = chip->reg_m5 ? chip->l556[1] : 1;
+    chip->w973 = chip->l557[1] && chip->reg_m5;
+
+    chip->w970 = chip->reg_m5 ? chip->l553[1] : chip->spr_pal;
+    chip->w971 = chip->reg_m5 ? chip->l554[1] : chip->spr_priority;
+    chip->w972 = chip->reg_m5 ? chip->l555[1] : chip->spr_index;
+
+    if (chip->tm_w1)
+    {
+        chip->color_pal = chip->l556[1];
+        chip->color_priority = chip->l557[1];
+        chip->color_index = chip->l558[1];
+    }
+
+    chip->w975 = chip->l556[1] == 3;
+    chip->w976 = chip->l558[1] != 0;
+    chip->w977 = chip->l558[1] == 14;
+    chip->w978 = chip->l558[1] == 5;
+
+    if (clk1)
+    {
+        chip->l562[1] = chip->l562[0];
+        chip->l563 = !chip->tm_w1;
+    }
+    if (clk2)
+    {
+        chip->l562[0] = chip->w877;
+    }
+
+    if (chip->reg_test0 & 8192)
+    {
+        chip->w979 = (chip->io_data & 1024) != 0;
+        chip->w980 = (chip->io_data>> 8) & 3;
+        chip->w982 = (chip->io_data & 4) != 0;
+        chip->w983 = chip->io_data & 3;
+    }
+    else
+    {
+        chip->w983 = chip->w812;
+        chip->w980 = chip->w812;
+        chip->w982 = chip->w811;
+        chip->w979 = chip->w811;
+    }
 }
 
 vdp_t vdp;
