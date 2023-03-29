@@ -60,14 +60,14 @@ void VDP_ClockMCLK(vdp_t *chip, int mclk)
     else
         chip->mclk_sbcr = chip->mclk_clk5;
 
-    if (chip->reg_clk0_sel)
+    if (chip->reg_test1 & 1)
         chip->mclk_cpu_clk0 = chip->tm_w1; // ext
     else
         chip->mclk_cpu_clk0 = chip->mclk_clk5;
 
     chip->mclk_cpu_clk1 = !chip->mclk_clk3;
 
-    if (chip->reg_rs0 || chip->reg_clk0_sel)
+    if (chip->reg_rs0 || (chip->reg_test1 & 1) != 0)
         chip->mclk_dclk = chip->tm_w1; // ext
     else if (chip->reg_rs1)
         chip->mclk_dclk = chip->mclk_clk1; // h40
@@ -5653,7 +5653,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l560[0] = chip->w973;
         chip->l561[0] = chip->l558[1];
     }
-    else
+    if (chip->hclk2)
     {
         chip->l553[1] = chip->l553[0];
         chip->l554[1] = chip->l554[0];
@@ -5661,6 +5661,10 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l556[1] = chip->l556[0];
         chip->l557[1] = chip->l557[0];
         chip->l558[1] = chip->l558[0];
+
+        chip->l559[1] = chip->l559[0];
+        chip->l560[1] = chip->l560[0];
+        chip->l561[1] = chip->l561[0];
     }
 
     chip->w974 = chip->reg_m5 ? chip->l556[1] : 1;
@@ -5672,9 +5676,9 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     if (chip->tm_w1)
     {
-        chip->color_pal = chip->l556[1];
-        chip->color_priority = chip->l557[1];
-        chip->color_index = chip->l558[1];
+        chip->color_pal = chip->l559[1];
+        chip->color_priority = chip->l560[1];
+        chip->color_index = chip->l561[1];
     }
 
     chip->w975 = chip->l556[1] == 3;
@@ -5705,6 +5709,18 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->w980 = chip->w812;
         chip->w982 = chip->w811;
         chip->w979 = chip->w811;
+    }
+
+    chip->w1020 = chip->w926 || chip->w927 || chip->w928 || chip->w929
+        || chip->w930 || chip->w931 || chip->w932 || chip->w933;
+
+    if (clk1)
+    {
+        chip->l600[1] = chip->l600[0];
+    }
+    if (clk2)
+    {
+        chip->l600[0] = chip->w1020;
     }
 }
 
@@ -5813,7 +5829,7 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
 
     chip->w1008 = chip->l588[1] || chip->l589[1];
 
-    chip->w1009 = (chip->reg_test0 & 32) != 0 ? chip->tm_w1 : chip->tm_w2;
+    chip->w1009 = (chip->reg_test0 & 32) != 0 ? (chip->vram_address & 0x10000) != 0 : chip->l614[1];
 
     chip->w1010 = chip->reg_m5 && (chip->vram_address & 2) != 0;
     chip->w1011 = chip->w1010 || (!chip->reg_m5 && (chip->vram_address & 0x200) != 0);
@@ -5913,6 +5929,448 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
 
     chip->w1018 = (chip->reg_test0 & 32) != 0 ? (chip->vram_address & 0xff) : chip->w1015;
     chip->w1019 = (chip->reg_test0 & 32) != 0 ? ((chip->vram_address >> 8) & 0xff) : chip->l597;
+}
+
+// FIXME: crude approximation
+
+int rgb_val_m5[15] = {
+    0, 18, 36, 54, 72, 91, 109, 127, 145, 163, 182, 200, 218, 236, 255
+};
+
+int rgb_val_m4_rg[2] = {
+    85, 170
+};
+
+int rgb_val_m4_b[2] = {
+    102, 170
+};
+
+void VDP_ClockVideoMux(vdp_t *chip)
+{
+    int i;
+    int rgb[3];
+    if (chip->hclk1)
+    {
+        chip->l601[0] = chip->w302;
+        chip->l602[0] = chip->w303;
+        chip->l603[0] = chip->w1044;
+        chip->l604[0] = chip->w1051;
+        chip->l605[0] = chip->w1057;
+        chip->l606[0] = chip->w1061;
+        chip->l607[0] = chip->w1066;
+        chip->l608[0] = chip->w1068;
+        chip->l609[0] = chip->w1069;
+        chip->l610[0] = chip->l609[1];
+        chip->l611[0] = chip->w1070;
+        chip->l612[0] = chip->l611[1];
+        chip->l613[0] = chip->w1071;
+        chip->l614[0] = chip->w1074;
+        chip->l615[0] = chip->tm_w1;
+        chip->l616[0] = chip->l616[1] << 1;
+        chip->l616[0] |= chip->w389;
+        chip->l617[0] = chip->w1076;
+        chip->l618[0] = chip->l618[1] << 1;
+        chip->l618[0] |= chip->w1075;
+        chip->l619[0] = chip->w1077;
+        chip->l620[0] = (chip->vram_data >> 9) & 7;
+        chip->l622[0] = chip->color_ram_out;
+        chip->l623[0] = chip->l623[1] << 1;
+        chip->l623[0] |= chip->w178;
+        chip->l624[0] = chip->w1081;
+        chip->l625[0] = chip->l619[1];
+        chip->l626[0] = chip->w1100 | (chip->w1083 << 1) | (chip->w1084 << 2);
+        chip->l627[0] = chip->w1099 | (chip->w1085 << 1) | (chip->w1086 << 2);
+        chip->l628[0] = chip->w1098 | (chip->w1087 << 1) | (chip->w1088 << 2);
+        chip->l629[0] = chip->l610[1];
+        chip->l630[0] = chip->l612[1];
+    }
+    if (chip->hclk2)
+    {
+        chip->l601[1] = chip->l601[0];
+        chip->l602[1] = chip->l602[0];
+        chip->l603[1] = chip->l603[0];
+        chip->l604[1] = chip->l604[0];
+        chip->l605[1] = chip->l605[0];
+        chip->l606[1] = chip->l606[0];
+        chip->l607[1] = chip->l607[0];
+        chip->l608[1] = chip->l608[0];
+        chip->l609[1] = chip->l609[0];
+        chip->l610[1] = chip->l610[0];
+        chip->l611[1] = chip->l611[0];
+        chip->l612[1] = chip->l612[0];
+        chip->l613[1] = chip->l613[0];
+        chip->l614[1] = chip->l614[0];
+        chip->l615[1] = chip->l615[0];
+        chip->l616[1] = chip->l616[0];
+        chip->l617[1] = chip->l617[0];
+        chip->l618[1] = chip->l618[0];
+        chip->l619[1] = chip->l619[0];
+        chip->l620[1] = chip->l620[0];
+        chip->l622[1] = chip->l622[0];
+        chip->l623[1] = chip->l623[0];
+        chip->l624[1] = chip->l624[0];
+        chip->l625[1] = chip->l625[0];
+        chip->l626[1] = chip->l626[0];
+        chip->l627[1] = chip->l627[0];
+        chip->l628[1] = chip->l628[0];
+        chip->l629[1] = chip->l629[0];
+        chip->l630[1] = chip->l630[0];
+    }
+    chip->w1021 = chip->w302 || chip->w178 || chip->w303;
+
+    chip->w1022 = chip->l273[1] ? chip->w973 : !chip->l320[1];
+    chip->w1023 = !chip->l273[1] && chip->w973 && chip->l320[1];
+    chip->w1024 = chip->l273[1] && !chip->w973 && !chip->l320[1];
+    chip->w1025 = !chip->l273[1] && !chip->w973 && chip->l320[1];
+    chip->w1026 = chip->l273[1] && !chip->w973 && chip->l320[1];
+    chip->w1027 = chip->w1029 && !chip->l273[1] && !chip->w973 && !chip->l320[1];
+    chip->w1028 = chip->w1029 && !chip->l273[1] && chip->w973 && !chip->l320[1];
+    chip->w1029 = chip->reg_ste && chip->reg_m5;
+    chip->w1030 = chip->w1029 && chip->w975 && chip->w1065;
+    chip->w1031 = chip->w1030 || !chip->w976;
+
+    chip->w1032 = !chip->w646 && (chip->reg_m5 || chip->w976);
+    chip->w1033 = !chip->reg_m5 || !chip->w648;
+
+    chip->w1034 = (chip->reg_test0 & 384) == 128;
+    chip->w1035 = (chip->reg_test0 & 384) == 256;
+    chip->w1036 = (chip->reg_test0 & 384) == 384;
+    chip->w1037 = (chip->reg_test0 & 384) == 0;
+
+    chip->w1038 = chip->w1032 && chip->w1024;
+    chip->w1039 = chip->w1025 && chip->w1033;
+    chip->w1040 = chip->w1032 && chip->w1033 && chip->w1026;
+    chip->w1041 = chip->w1038 && chip->w1039 && chip->w1040 && chip->w1022 && chip->w1023;
+    chip->w1042 = chip->w1041 && chip->w976 && chip->w1062;
+
+    chip->w1043 = chip->w1042 && !chip->w1030;
+    chip->w1044 = chip->w1043 || chip->w1034;
+
+    chip->w1045 = chip->w1042 && chip->w1030;
+    chip->w1046 = chip->w1031 && chip->w1022;
+
+    chip->w1047 = chip->w1031 && chip->w1033 && chip->w1023;
+    chip->w1048 = chip->w1031 && chip->w1033 && chip->w1025;
+
+    chip->w1049 = chip->w1048 || chip->w1047 || chip->w1046 || chip->w1026 || chip->w1024;
+    chip->w1050 = chip->w1049 && !chip->w1032 && chip->w1062;
+    chip->w1051 = chip->w1050 || chip->w1035;
+
+    chip->w1052 = chip->w1031 && chip->w1023;
+    chip->w1053 = chip->w1032 && chip->w1026;
+    chip->w1054 = chip->w1032 && chip->w1031 && chip->w1022;
+    chip->w1055 = chip->w1032 && chip->w1031 && chip->w1024;
+    chip->w1056 = chip->w1055 || chip->w1053 || chip->w1052 || chip->w1054 || chip->w1025;
+    chip->w1057 = chip->w1056 && !chip->w1033 && chip->w1062;
+    chip->w1058 = chip->w1057 || chip->w1036;
+
+    chip->w1059 = chip->w1032 && chip->w1031 && chip->w1033;
+    chip->w1060 = chip->w1059 || !chip->w1062;
+    chip->w1061 = chip->w1060 && chip->w1037;
+
+    chip->w1062 = (chip->reg_test0 & 64) == 0 && (chip->l618[1] & 4) != 0;
+
+    chip->w1063 = !chip->w1044 && !chip->w977;
+    chip->w1064 = !chip->w1027 && !chip->w1028;
+    chip->w1065 = chip->w977 || chip->w978;
+
+    chip->w1066 = chip->w1064 && chip->w977 && chip->w1045;
+
+    chip->w1067 = (chip->w1045 && chip->w978) || (!chip->w977 && chip->w1027)
+        || (!chip->w1064 && chip->w1063);
+
+    chip->w1068 = chip->w1067 && (chip->l618[1] & 4) != 0;
+
+    chip->w1069 = (chip->reg_test0 & 64) != 0 ? chip->reg_col_b6 : chip->l608[1];
+
+    chip->w1070 = (chip->reg_test0 & 64) != 0 ? chip->reg_col_b7 : chip->l607[1];
+
+    chip->w1071 = !(chip->l603[1] && chip->reg_8c_b4);
+
+    chip->w1072 = chip->reg_m5 && chip->w1021;
+    chip->w1073 = !chip->reg_m5 && chip->w1021;
+
+    if (chip->w221)
+    {
+        chip->reg_col_index = (chip->reg_data.l2 >> 0) & 15;
+        chip->reg_col_pal = (chip->reg_data.l2 >> 4) & 3;
+        chip->reg_col_b6 = (chip->reg_data.l2 >> 6) & 1;
+        chip->reg_col_b7 = (chip->reg_data.l2 >> 7) & 1;
+    }
+
+    if (chip->l606[1])
+    {
+        chip->color_index = chip->reg_col_index;
+        chip->color_pal = chip->reg_m5 ? chip->reg_col_pal : 1;
+        chip->color_priority = 0;
+    }
+
+    chip->w1074 = !(chip->w1082 || (chip->l615[1] && !chip->reg_8c_b4));
+
+    chip->w1075 = chip->reg_m5 ? (chip->l616[1] & 128) != 0 : chip->w389;
+
+    chip->w1076 = 0;
+    if (chip->w1021)
+    {
+        chip->w1076 |= (chip->color_index & 15) | ((chip->color_pal & 3) << 4);
+    }
+    if (chip->w1072)
+    {
+        chip->w1076 |= (chip->vram_address >> 1) & 63;
+    }
+    if (chip->w1073)
+    {
+        chip->w1076 |= chip->vram_address & 31;
+    }
+
+    chip->w1077 = (chip->color_index & 15) == 0;
+
+    if (chip->reg_m5)
+        chip->w1078 = (chip->l104[1] >> 1) & 7;
+    else
+        chip->w1078 = chip->l104[1] & 7;
+
+    if (chip->reg_m5)
+        chip->w1079 = (chip->l104[1] >> 5) & 7;
+    else
+        chip->w1079 = (chip->l104[1] >> 3) & 7;
+
+    // color ram
+    {
+        int index = chip->w1076 & 63;
+        if (chip->hclk1 && chip->l602[1])
+        {
+            chip->color_ram[index] &= ~63;
+            chip->color_ram[index] |= (chip->w1078 & 7) << 0;
+            chip->color_ram[index] |= (chip->w1079 & 7) << 3;
+        }
+        if (chip->hclk1 && chip->l601[1])
+        {
+            chip->color_ram[index] &= ~0x1c0;
+            chip->color_ram[index] |= (chip->l620[1] & 7) << 6;
+        }
+        chip->color_ram_out = chip->color_ram[index];
+    }
+
+    if (chip->w1080)
+    {
+        chip->l621 = chip->color_ram_out;
+    }
+    if (chip->l623[1] & 4)
+    {
+        chip->vram_data &= ~0xeee;
+        chip->vram_data |= (chip->l621 & 7) << 1;
+        chip->vram_data |= (chip->l621 & 0x38) << 2;
+        chip->vram_data |= (chip->l621 & 0x1c0) << 3;
+    }
+
+    chip->w1080 = (chip->l623[1] & 1) != 0 && chip->hclk1;
+
+    if (chip->w91)
+    {
+        chip->io_data &= ~0x7ff;
+        chip->io_data |= (!chip->w1089) << 3;
+        chip->io_data |= (!chip->w1090) << 4;
+        chip->io_data |= (!chip->w1091) << 6;
+        chip->io_data |= (!chip->w1092) << 7;
+        chip->io_data |= (!chip->w1093) << 9;
+        chip->io_data |= (!chip->w1094) << 10;
+        chip->io_data |= (!chip->w1100) << 2;
+        chip->io_data |= (!chip->w1099) << 5;
+        chip->io_data |= (!chip->w1098) << 8;
+        chip->io_data |= (!chip->l612[1]) << 0;
+        chip->io_data |= (!chip->l610[1]) << 1;
+    }
+
+    chip->w1080 = !(chip->w422 || chip->t37);
+
+    chip->w1082 = chip->l625[1] && chip->l624[1];
+
+    chip->w1083 = chip->reg_m5 ? (chip->l622[1] & 2) != 0 : (chip->l622[1] & 1) != 0;
+    chip->w1084 = chip->reg_m5 ? (chip->l622[1] & 4) != 0 : (chip->l622[1] & 2) != 0;
+    chip->w1085 = chip->reg_m5 ? (chip->l622[1] & 16) != 0 : (chip->l622[1] & 4) != 0;
+    chip->w1086 = chip->reg_m5 ? (chip->l622[1] & 32) != 0 : (chip->l622[1] & 8) != 0;
+    chip->w1087 = chip->reg_m5 ? (chip->l622[1] & 128) != 0 : (chip->l622[1] & 16) != 0;
+    chip->w1088 = chip->reg_m5 ? (chip->l622[1] & 256) != 0 : (chip->l622[1] & 32) != 0;
+
+    chip->w1089 = chip->w1083 && chip->l624[1] && chip->reg_80_b2;
+    chip->w1090 = chip->w1084 && chip->l624[1] && chip->reg_80_b2;
+    chip->w1091 = chip->w1085 && chip->l624[1] && chip->reg_80_b2;
+    chip->w1092 = chip->w1086 && chip->l624[1] && chip->reg_80_b2;
+    chip->w1093 = chip->w1087 && chip->l624[1] && chip->reg_80_b2;
+    chip->w1094 = chip->w1088 && chip->l624[1] && chip->reg_80_b2;
+
+    chip->w1098 = (chip->l622[1] & 64) != 0 && chip->l624[1] && chip->reg_m5;
+    chip->w1099 = (chip->l622[1] & 8) != 0 && chip->l624[1] && chip->reg_m5;
+    chip->w1100 = (chip->l622[1] & 1) != 0 && chip->l624[1] && chip->reg_m5;
+
+    chip->w1101 = !(chip->l629[1] || chip->l630[1] || !chip->reg_m5);
+    chip->w1102 = !chip->l630[1] && chip->l629[1];
+
+    rgb[0] = chip->l626[1];
+    rgb[1] = chip->l627[1];
+    rgb[2] = chip->l628[1];
+
+    for (i = 0; i < 3; i++)
+    {
+        chip->w1103[i][0] = 0;
+        chip->w1103[i][1] = 0;
+        chip->w1103[i][2] = 0;
+        chip->w1103[i][3] = 0;
+        chip->w1103[i][4] = 0;
+        chip->w1103[i][5] = 0;
+        chip->w1103[i][6] = 0;
+        chip->w1103[i][7] = 0;
+        chip->w1103[i][0] = 0;
+        if (chip->w1101)
+        {
+            switch (rgb[i])
+            {
+            case 0:
+                chip->w1103[i][0] = 1;
+                break;
+            case 1:
+                chip->w1103[i][2] = 1;
+                break;
+            case 2:
+                chip->w1103[i][4] = 1;
+                break;
+            case 3:
+                chip->w1103[i][7] = 1;
+                break;
+            case 4:
+                chip->w1103[i][9] = 1;
+                break;
+            case 5:
+                chip->w1103[i][12] = 1;
+                break;
+            case 6:
+                chip->w1103[i][14] = 1;
+                break;
+            case 7:
+                chip->w1103[i][16] = 1;
+                break;
+            }
+        }
+        if (!chip->reg_m5)
+        {
+            switch (rgb[i])
+            {
+            case 0:
+            case 1:
+                chip->w1103[i][0] = 1;
+                break;
+            case 2:
+            case 3:
+                chip->w1103[i][5] = 1;
+                break;
+            case 4:
+            case 5:
+                chip->w1103[i][11] = 1;
+                break;
+            case 6:
+            case 7:
+                chip->w1103[i][16] = 1;
+                break;
+            }
+        }
+        if (chip->w1102)
+        {
+            switch (rgb[i])
+            {
+            case 0:
+                chip->w1103[i][0] = 1;
+                break;
+            case 1:
+                chip->w1103[i][1] = 1;
+                break;
+            case 2:
+                chip->w1103[i][2] = 1;
+                break;
+            case 3:
+                chip->w1103[i][3] = 1;
+                break;
+            case 4:
+                chip->w1103[i][4] = 1;
+                break;
+            case 5:
+                chip->w1103[i][6] = 1;
+                break;
+            case 6:
+                chip->w1103[i][7] = 1;
+                break;
+            case 7:
+                chip->w1103[i][8] = 1;
+                break;
+            }
+        }
+        if (chip->l630[1])
+        {
+            switch (rgb[i])
+            {
+            case 0:
+                chip->w1103[i][8] = 1;
+                break;
+            case 1:
+                chip->w1103[i][9] = 1;
+                break;
+            case 2:
+                chip->w1103[i][10] = 1;
+                break;
+            case 3:
+                chip->w1103[i][12] = 1;
+                break;
+            case 4:
+                chip->w1103[i][13] = 1;
+                break;
+            case 5:
+                chip->w1103[i][14] = 1;
+                break;
+            case 6:
+                chip->w1103[i][15] = 1;
+                break;
+            case 7:
+                chip->w1103[i][16] = 1;
+                break;
+            }
+        }
+        chip->rgb_out[i] = 0;
+        // FIXME: S/H and m4 conflict
+        if (chip->w1103[i][0])
+            chip->rgb_out[i] = rgb_val_m5[0];
+        if (chip->w1103[i][1])
+            chip->rgb_out[i] = rgb_val_m5[1];
+        if (chip->w1103[i][2])
+            chip->rgb_out[i] = rgb_val_m5[2];
+        if (chip->w1103[i][3])
+            chip->rgb_out[i] = rgb_val_m5[3];
+        if (chip->w1103[i][4])
+            chip->rgb_out[i] = rgb_val_m5[4];
+        if (chip->w1103[i][5])
+            chip->rgb_out[i] = i == 2 ? rgb_val_m4_b[0] : rgb_val_m4_rg[0];
+        if (chip->w1103[i][6])
+            chip->rgb_out[i] = rgb_val_m5[5];
+        if (chip->w1103[i][7])
+            chip->rgb_out[i] = rgb_val_m5[6];
+        if (chip->w1103[i][8])
+            chip->rgb_out[i] = rgb_val_m5[7];
+        if (chip->w1103[i][9])
+            chip->rgb_out[i] = rgb_val_m5[8];
+        if (chip->w1103[i][10])
+            chip->rgb_out[i] = rgb_val_m5[9];
+        if (chip->w1103[i][11])
+            chip->rgb_out[i] = i == 2 ? rgb_val_m4_b[1] : rgb_val_m4_rg[1];
+        if (chip->w1103[i][12])
+            chip->rgb_out[i] = rgb_val_m5[10];
+        if (chip->w1103[i][13])
+            chip->rgb_out[i] = rgb_val_m5[11];
+        if (chip->w1103[i][14])
+            chip->rgb_out[i] = rgb_val_m5[12];
+        if (chip->w1103[i][15])
+            chip->rgb_out[i] = rgb_val_m5[13];
+        if (chip->w1103[i][16])
+            chip->rgb_out[i] = rgb_val_m5[14];
+    }
 }
 
 vdp_t vdp;
