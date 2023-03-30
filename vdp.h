@@ -1,6 +1,12 @@
 #pragma once
 #include <stdint.h>
 
+enum {
+    state_0 = 0,
+    state_1,
+    state_z
+};
+
 typedef struct {
     int l1;
     int l2;
@@ -617,6 +623,7 @@ typedef struct {
     int l103;
     int w354;
     int l104[2];
+    int w1153;
 
     int l105[2]; // v counter
     int w355;
@@ -850,6 +857,7 @@ typedef struct {
     int w510;
     int w511;
     int w512;
+    int l663[2];
 
     int w513;
     int l178[2];
@@ -1753,6 +1761,7 @@ typedef struct {
     int w983;
     int l600[2];
     int w1020;
+    int w1154;
 
     sprpixel_t linebuffer[40][8];
     sprpixel_t linebuffer_out[8];
@@ -2104,6 +2113,57 @@ typedef struct {
     int i_bg;
     int i_intak;
     int i_bgack;
+    int i_reset;
+    int i_clk1;
+    int i_edclk;
+    int i_dtack;
+    int i_csync;
+    int i_hsync;
+    int i_vram_sd;
+    int i_vram_rd;
+    int i_vram_ad;
+    int i_spa;
+    int i_sel1;
+    int i_data;
+    int i_address;
+
+    int o_vram_se1;
+    int o_vram_se0;
+    int o_vram_sc;
+    int o_vram_ras;
+    int o_vram_cas;
+    int o_vram_we1;
+    int o_vram_we0;
+    int o_vram_oe1;
+    int o_vram_rd;
+    int o_vram_rd_z;
+    int o_vram_ad;
+    int o_vram_ad_z;
+    int o_ys;
+    int o_spa;
+    int o_vsync;
+    int o_csync;
+    int o_hsync;
+    int o_clk1;
+    int o_sbcr;
+    int o_clk0;
+    int o_edclk;
+    int o_data;
+    int o_data_z;
+    int o_address;
+    int o_address_z;
+    int o_zint;
+    int o_br;
+    int o_bgack;
+    int o_ipl1;
+    int o_ipl2;
+    int o_dtack;
+    int o_uwr;
+    int o_lwr;
+    int o_oe0;
+    int o_cas0;
+    int o_ras0;
+    int o_ram_addr;
 
     int vram_address; // 17 bits
     int vram_data; // 16 bits
@@ -2112,11 +2172,4 @@ typedef struct {
     int color_index;
     int color_pal;
     int color_priority;
-
-    int tm_w1;
-    int tm_w2;
-    int tm_w3;
-    int tm_w4;
-    int tm_w5;
-    int tm_w6;
 } vdp_t;
