@@ -1,11 +1,5 @@
 #pragma once
-#include <stdint.h>
-
-enum {
-    state_0 = 0,
-    state_1,
-    state_z
-};
+#include "common.h"
 
 typedef struct {
     int l1;
@@ -2173,3 +2167,7 @@ typedef struct {
     int color_pal;
     int color_priority;
 } vdp_t;
+
+void VDP_ClockMCLK(vdp_t *chip, int mclk);
+void VDP_ClockDCLK(vdp_t *chip, int clk1, int clk2);
+void VDP_ClockPSG(vdp_t *chip);

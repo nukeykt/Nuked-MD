@@ -114,12 +114,6 @@ static void VDP_ResetLogic(vdp_t *chip, int clk1, int clk2)
     chip->reset_ext = !chip->i_reset;
 }
 
-void VDP_ClockDCLK(vdp_t *chip, int clk1, int clk2)
-{
-    VDP_DCLKPrescale(chip, clk1, clk2);
-    VDP_ResetLogic(chip, clk1, clk2);
-}
-
 void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 {
     int i, j;
@@ -1014,6 +1008,13 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
         chip->reg_addr &= ~0x3f00;
         chip->reg_addr |= (chip->w350 & 63) << 8;
     }
+
+    if (chip->w165)
+    {
+        chip->reg_addr &= ~0xff;
+        chip->reg_addr |= chip->io_data & 0xff;
+    }
+
     i = chip->reg_data.l2 + chip->reg_inc + !chip->reg_m5;
     i &= 0x1ffff;
     if (chip->w181)
@@ -2135,7 +2136,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w437 = chip->w438 || chip->reset_comb || chip->w86 || chip->w460;
 
-    chip->w436 = ((chip->reg_test1 & 4) == 0 && chip->l115[1] && !chip->w437) && ((chip->reg_test1 & 4) != 0 && !chip->cpu_bg);
+    chip->w436 = ((chip->reg_test1 & 4) == 0 && chip->l115[1] && !chip->w437) || ((chip->reg_test1 & 4) != 0 && !chip->cpu_bg);
 
     chip->w439 = !(chip->reg_disp && (chip->l162[1] || chip->t38));
 
@@ -5990,7 +5991,7 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
 
     chip->o_vram_se0 = chip->l586[1];
     chip->o_vram_se1 = !chip->l586[1];
-    chip->o_vram_sc = !chip->w1007;
+    chip->o_vram_sc = !chip->w1006;
     chip->o_vram_ras = !chip->w989;
     chip->o_vram_cas = !chip->w988;
     chip->o_vram_we1 = !chip->w987;
@@ -6791,22 +6792,16 @@ void VDP_ClockPSG(vdp_t *chip)
         chip->psg_out += ympsg_vol[chip->w1152];
 }
 
-vdp_t vdp;
 
-int main()
+void VDP_ClockDCLK(vdp_t* chip, int clk1, int clk2)
 {
-#if 0
-    for (int i = 0; i < 100; i++)
-    {
-        VDP_ClockDCLK(&vdp, i & 1, !(i & 1));
-        VDP_ClockDCLK(&vdp, 0, 0);
-        printf("clk1 %i clk2 %i\n", vdp.clk1, vdp.clk2);
-    }
-#endif
-    for (int i = 0; i < 200; i++)
-    {
-        VDP_ClockMCLK(&vdp, i & 1);
-        VDP_ClockMCLK(&vdp, i & 1);
-        printf("clk1 %i clk2 %i clk3 %i clk4 %i clk5 %i\n", vdp.mclk_clk1, vdp.mclk_clk2, vdp.mclk_clk3, vdp.mclk_clk4, vdp.mclk_clk5);
-    }
+    VDP_DCLKPrescale(chip, clk1, clk2);
+    VDP_ResetLogic(chip, clk1, clk2);
+    VDP_ClockAsync(chip, clk1, clk2);
+    VDP_ClockHVCounters(chip);
+    VDP_ClockPlanes(chip, clk1, clk2);
+    VDP_ClockSprites(chip, clk1, clk2);
+    VDP_ClockVRAMCtrl(chip, clk1, clk2);
+    VDP_ClockVideoMux(chip);
 }
+

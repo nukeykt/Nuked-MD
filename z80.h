@@ -1,10 +1,5 @@
 #pragma once
-
-enum {
-    state_0 = 0,
-    state_1,
-    state_z
-};
+#include "common.h"
 
 typedef struct {
     // input
@@ -659,3 +654,5 @@ typedef struct {
     int ix;
 
 } z80_t;
+
+void Z80_Clock(z80_t* chip, int clk);
