@@ -88,8 +88,8 @@ static void VDP_DCLKPrescale(vdp_t *chip, int clk1, int clk2)
     {
         chip->dclk_prescaler_l1[1] = chip->dclk_prescaler_l1[0];
     }
-    DFF_Update(&chip->dclk_prescaler_dff1, clk1, 1, chip->dclk_prescaler_l2 && clk2);
-    DFF_Update(&chip->dclk_prescaler_dff2, clk1, 1, chip->dclk_prescaler_l3 && clk2);
+    DFF_Update(&chip->dclk_prescaler_dff1, !clk1, 1, chip->dclk_prescaler_l2 && clk2);
+    DFF_Update(&chip->dclk_prescaler_dff2, !clk1, 1, chip->dclk_prescaler_l3 && clk2);
 
     chip->hclk1 = !chip->dclk_prescaler_dff1.l2;
     chip->hclk2 = !chip->dclk_prescaler_dff2.l2;
@@ -1635,7 +1635,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->w351 = chip->w331 ? chip->l96 : chip->l97;
     if (chip->w328)
     {
-        chip->vram_address = (chip->w351 & 255) | ((chip->l96 & 255) << 8);
+        chip->vram_data = (chip->w351 & 255) | ((chip->l96 & 255) << 8);
         chip->unk_data = chip->l96;
     }
 
@@ -1647,7 +1647,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->w352 = chip->w331 ? chip->l98 : chip->l99;
     if (chip->w327)
     {
-        chip->vram_address = (chip->w352 & 255) | ((chip->l98 & 255) << 8);
+        chip->vram_data = (chip->w352 & 255) | ((chip->l98 & 255) << 8);
         chip->unk_data = chip->l98;
     }
 
@@ -1659,7 +1659,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->w353 = chip->w331 ? chip->l100 : chip->l101;
     if (chip->w329)
     {
-        chip->vram_address = (chip->w353 & 255) | ((chip->l100 & 255) << 8);
+        chip->vram_data = (chip->w353 & 255) | ((chip->l100 & 255) << 8);
         chip->unk_data = chip->l100;
     }
 
@@ -1671,7 +1671,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->w354 = chip->w331 ? chip->l102 : chip->l103;
     if (chip->w326)
     {
-        chip->vram_address = (chip->w354 & 255) | ((chip->l102 & 255) << 8);
+        chip->vram_data = (chip->w354 & 255) | ((chip->l102 & 255) << 8);
         chip->unk_data = chip->l102;
     }
 
@@ -1779,7 +1779,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l161[0] = chip->w420;
         chip->l162[0] = !chip->w475;
         chip->l163[0] = chip->w474;
-        chip->l164[0] = chip->w373;
+        chip->l164[0] = chip->w473;
         chip->l165[0] = chip->w472;
 
         i = chip->w446;
@@ -2679,12 +2679,12 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     if (chip->w524)
     {
         chip->w527 |= (chip->w528 << 1) & 126;
-        chip->w527 |= (chip->w556 >> 5) & 1;
+        chip->w527 |= (chip->w555 >> 5) & 1;
     }
-    if (chip->w524)
+    if (chip->w525)
     {
         chip->w527 |= (chip->w528 << 2) & 124;
-        chip->w527 |= (chip->w556 >> 5) & 3;
+        chip->w527 |= (chip->w555 >> 5) & 3;
     }
 
     chip->w531 = chip->reg_m5 && chip->w558;
@@ -2875,13 +2875,13 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 
     chip->w559 = chip->w356 && chip->w541;
 
-    chip->w560 = chip->w356 && chip->w549;
+    chip->w560 = chip->w356 || chip->w549;
 
     if (chip->w558)
     {
         chip->vram_address &= ~0x7f;
-        chip->vram_address |= (chip->w527 & 1) << 7;
-        chip->vram_address |= (chip->w556 & 31) << 1;
+        chip->vram_address |= (chip->w527 & 1) << 6;
+        chip->vram_address |= (chip->w555 & 31) << 1;
     }
 
     chip->w561 = chip->reg_rs1 ? chip->w568 : (chip->l106[1] & 256) != 0;
@@ -2933,13 +2933,13 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     if (chip->l196[1])
     {
         chip->vram_address &= ~0x1f;
-        chip->vram_address |= ((chip->w577 & 7) ^ 7) << 2;
+        chip->vram_address |= (chip->w577 & 7) << 2;
         chip->vram_address |= (!chip->l198[1]) << 1;
     }
 
     chip->w578 = chip->w106 ? ((chip->w577 >> 3) & 1) | (chip->l219 << 1) : chip->l219 | ((chip->l220 & 1) << 8);
 
-    if (chip->l198[1])
+    if (chip->l199[1])
     {
         chip->vram_address &= ~0x3fe0;
         chip->vram_address |= chip->w578 << 5;
@@ -5849,8 +5849,8 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
     chip->w986 = chip->l568[1] && chip->l577 && chip->l579;
     chip->w987 = chip->l577 && chip->l584[1] && chip->l579;
 
-    chip->w988 = (chip->w566 && chip->l587[1]) || chip->l579;
-    chip->w989 = (chip->w566 && !chip->l587[1]) || chip->l578;
+    chip->w988 = (chip->l566 && chip->l587[1]) || chip->l579;
+    chip->w989 = (chip->l566 && !chip->l587[1]) || chip->l578;
 
     chip->w990 = (chip->w992 && chip->l579) || chip->l576[1] || (chip->reg_test0 & 32) != 0;
 
@@ -5863,8 +5863,8 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
     chip->w994 = !((chip->l116[1] && !chip->w265 && !chip->w263) || (chip->w265 && chip->l581[1]));
 
     chip->w995 = chip->l565[1];
-    chip->w996 = chip->l576[1] && chip->w567;
-    chip->w997 = chip->l578 && chip->l576[1];
+    chip->w996 = chip->l576[1] && chip->l567; // addr high
+    chip->w997 = chip->l578 && chip->l576[1]; // addr low
 
     chip->w998 = chip->l577 && chip->l579;
 
@@ -5926,11 +5926,11 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
     chip->w1015 = 0;
     if (chip->w997)
     {
-        chip->w1015 |= chip->l592;
+        chip->w1015 |= chip->l592; // addr high
     }
     if (chip->w996)
     {
-        chip->w1015 |= chip->l593;
+        chip->w1015 |= chip->l593; // addr low
     }
     if (chip->w995)
     {
@@ -5982,8 +5982,8 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
 
     if (chip->l583[1])
     {
-        chip->vram_address = chip->l599 & 255;
-        chip->vram_address |= (chip->l598 & 255) << 8;
+        chip->vram_data = chip->l599 & 255;
+        chip->vram_data |= (chip->l598 & 255) << 8;
     }
 
     chip->w1018 = (chip->reg_test0 & 32) != 0 ? (chip->vram_address & 0xff) : chip->w1015;
@@ -6006,7 +6006,10 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
         chip->o_vram_ad_z = 0;
     }
     else
+    {
         chip->o_vram_rd_z = 1;
+        chip->o_vram_ad_z = 1;
+    }
 
     chip->o_ys = chip->w1009;
 
@@ -6060,9 +6063,9 @@ void VDP_ClockVideoMux(vdp_t *chip)
         chip->l623[0] |= chip->w178;
         chip->l624[0] = chip->w1081;
         chip->l625[0] = chip->l619[1];
-        chip->l626[0] = chip->w1100 | (chip->w1083 << 1) | (chip->w1084 << 2);
-        chip->l627[0] = chip->w1099 | (chip->w1085 << 1) | (chip->w1086 << 2);
-        chip->l628[0] = chip->w1098 | (chip->w1087 << 1) | (chip->w1088 << 2);
+        chip->l626[0] = chip->w1100 | (chip->w1089 << 1) | (chip->w1090 << 2);
+        chip->l627[0] = chip->w1099 | (chip->w1091 << 1) | (chip->w1092 << 2);
+        chip->l628[0] = chip->w1098 | (chip->w1093 << 1) | (chip->w1094 << 2);
         chip->l629[0] = chip->l610[1];
         chip->l630[0] = chip->l612[1];
     }
@@ -6192,7 +6195,7 @@ void VDP_ClockVideoMux(vdp_t *chip)
     chip->w1075 = chip->reg_m5 ? (chip->l616[1] & 128) != 0 : chip->w389;
 
     chip->w1076 = 0;
-    if (chip->w1021)
+    if (!chip->w1021)
     {
         chip->w1076 |= (chip->color_index & 15) | ((chip->color_pal & 3) << 4);
     }
@@ -6219,7 +6222,7 @@ void VDP_ClockVideoMux(vdp_t *chip)
 
     // color ram
     {
-        int index = chip->w1076 & 63;
+        int index = chip->l617[1] & 63;
         if (chip->hclk1 && chip->l602[1])
         {
             chip->color_ram[index] &= ~63;
@@ -6264,7 +6267,7 @@ void VDP_ClockVideoMux(vdp_t *chip)
         chip->io_data |= (!chip->l610[1]) << 1;
     }
 
-    chip->w1080 = !(chip->w422 || chip->t37);
+    chip->w1081 = !(chip->w422 || chip->t37);
 
     chip->w1082 = chip->l625[1] && chip->l624[1];
 
@@ -6303,7 +6306,15 @@ void VDP_ClockVideoMux(vdp_t *chip)
         chip->w1103[i][5] = 0;
         chip->w1103[i][6] = 0;
         chip->w1103[i][7] = 0;
-        chip->w1103[i][0] = 0;
+        chip->w1103[i][8] = 0;
+        chip->w1103[i][9] = 0;
+        chip->w1103[i][10] = 0;
+        chip->w1103[i][11] = 0;
+        chip->w1103[i][12] = 0;
+        chip->w1103[i][13] = 0;
+        chip->w1103[i][14] = 0;
+        chip->w1103[i][15] = 0;
+        chip->w1103[i][16] = 0;
         if (chip->w1101)
         {
             switch (rgb[i])
