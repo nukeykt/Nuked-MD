@@ -2283,7 +2283,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->pla_hcnt1[5] = chip->w466 && chip->reg_m5 && chip->reg_rs1 && (chip->l106[1] & 463) == 266;
     chip->pla_hcnt1[6] = chip->w466 && chip->reg_m5 && (chip->l106[1] & 271) == 10;
     chip->pla_hcnt1[7] = chip->w466 && chip->reg_m5 && chip->reg_rs1 && chip->l106[1] == 484;
-    chip->pla_hcnt1[8] = chip->w466 && chip->reg_m5 && chip->reg_rs1 && chip->l106[1] == 462;
+    chip->pla_hcnt1[8] = chip->w466 && chip->reg_m5 && chip->reg_rs1 && chip->l106[1] == 460;
     chip->pla_hcnt1[9] = chip->w466 && chip->reg_m5 && chip->reg_rs1 && chip->l106[1] == 458;
     chip->pla_hcnt1[10] = chip->w466 && !chip->w425 && chip->reg_m5 && chip->reg_rs1 && (chip->l106[1] & 505) == 344;
     chip->pla_hcnt1[11] = chip->w466 && !chip->w416 && chip->reg_m5 && chip->reg_rs1 && chip->l106[1] == 364;
@@ -2366,7 +2366,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->pla_hcnt2[24] = chip->reg_rs1 && chip->l106[1] == 164;
     chip->pla_hcnt2[25] = chip->reg_rs1 && chip->l106[1] == 466;
     chip->pla_hcnt2[26] = !chip->reg_rs1 && chip->l106[1] == 134;
-    chip->pla_hcnt2[27] = !chip->reg_rs1 && chip->l106[1] == 474;
+    chip->pla_hcnt2[27] = !chip->reg_rs1 && chip->l106[1] == 475;
     chip->pla_hcnt2[28] = chip->reg_rs1 && chip->l106[1] == 148;
     chip->pla_hcnt2[29] = !chip->reg_rs1 && chip->l106[1] == 121;
     chip->pla_hcnt2[30] = chip->reg_rs1 && chip->l106[1] == 120;
@@ -2435,7 +2435,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->w492 = chip->pla_hcnt2[40] || chip->pla_hcnt2[41];
     chip->w493 = chip->pla_hcnt2[38] || chip->pla_hcnt2[39];
     chip->w494 = chip->pla_hcnt2[36] || chip->pla_hcnt2[37];
-    chip->w495 = chip->pla_hcnt2[34] || chip->pla_hcnt2[36];
+    chip->w495 = chip->pla_hcnt2[34] || chip->pla_hcnt2[35];
     chip->w496 = chip->pla_hcnt2[32] || chip->pla_hcnt2[33];
     chip->w497 = chip->pla_hcnt2[30] || chip->pla_hcnt2[31];
     chip->w498 = chip->pla_hcnt2[28] || chip->pla_hcnt2[29];
@@ -4028,7 +4028,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w701 = chip->w360 || chip->l110[1];
 
-    chip->w702 = !chip->reg_m5 || chip->l374[1] || chip->w784;
+    chip->w702 = !chip->reg_m5 || chip->l375[1] || chip->w784;
 
     chip->w703 = chip->w702 && !0;
     chip->w704 = chip->w702 && 0;
@@ -5157,7 +5157,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         i += !chip->w846;
         chip->l503[0] = i & 3;
     }
-    else
+    if (clk2)
     {
         chip->l503[1] = chip->l503[0];
     }
@@ -5199,7 +5199,6 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w827 = !((chip->l472[1] & 4) == 0 || ((chip->l472[1] & 1) == 0 && (chip->l472[1] & 2) == 0)); // 5, 6, 7
     chip->w870 = (chip->l472[1] & 4) != 0 && (chip->l472[1] & 2) != 0; // 6, 7
     chip->w871 = (chip->l472[1] & 4) != 0 && (chip->l472[1] & 2) != 0 && (chip->l472[1] & 1) != 0; // 7
-
 
     chip->w877 = !((chip->reg_test0 & 8192) == 0 && chip->l563);
 
