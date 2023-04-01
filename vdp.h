@@ -1551,7 +1551,6 @@ typedef struct {
     int w844;
     int l502;
     int w845;
-    int vram_serial_swap1;
     int l503[2];
     int w846;
     int l504;
