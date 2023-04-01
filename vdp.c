@@ -1091,7 +1091,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->w223 = (chip->w208 && (chip->reg_data.l2 & 0x700) == 0x100) || chip->reset_comb; // 91
     chip->w224 = (chip->w208 && (chip->reg_data.l2 & 0x700) == 0x000) || chip->reset_comb; // 90
     chip->w225 = (chip->w206 && (chip->reg_data.l2 & 0x700) == 0x400) || chip->reset_comb; // 86
-    chip->w226 = (chip->w206 && (chip->reg_data.l2 & 0x700) == 0x300) || chip->reset_comb; // 85
+    chip->w226 = (chip->w206 && (chip->reg_data.l2 & 0x700) == 0x500) || chip->reset_comb; // 85
     chip->w227 = (chip->w208 && (chip->reg_data.l2 & 0x700) == 0x700) || chip->reset_comb; // 97
     chip->w228 = (chip->w208 && (chip->reg_data.l2 & 0x700) == 0x500) || chip->reset_comb; // 95
     chip->w229 = chip->w207 && (chip->reg_data.l2 & 0x700) == 0x400; // 8a
@@ -3765,6 +3765,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l376[1] = chip->l376[0];
         chip->l377[1] = chip->l377[0];
         chip->l378[1] = chip->l378[0];
+        chip->l381[1] = chip->l381[0];
         chip->l382[1] = chip->l382[0];
         chip->l383[1] = chip->l383[0];
         chip->l384[1] = chip->l384[0];
@@ -4350,7 +4351,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
             chip->io_data |= 2048;
     }
 
-    chip->w754 = !chip->reg_m5 && (chip->l411[1] && chip->l412[1]);
+    chip->w754 = !chip->reg_m5 && (chip->l411[1] || chip->l412[1]);
     chip->w755 = !chip->reg_m5 && chip->l412[1];
     chip->w756 = chip->reg_m5 && chip->l412[1];
 
