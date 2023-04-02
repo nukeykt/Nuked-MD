@@ -1794,7 +1794,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l170[0] = chip->w469;
         chip->l171[0] = chip->l114[1];
         chip->l172[0] = !chip->w468;
-        chip->l173[0] = chip->l121[1];
+        chip->l173[0] = chip->l122[1];
         chip->l174[0] = chip->w467;
         chip->l175[0] = chip->w464;
         chip->l176[0] = chip->l175[1];
@@ -2218,7 +2218,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w462 = !(chip->l167[1] || chip->reset_comb);
 
-    chip->w463 = chip->l120[1] && (chip->l121[1] || chip->l114[1]);
+    chip->w463 = chip->l120[1] && (chip->l122[1] || chip->l114[1]);
 
     chip->w464 = chip->w462 && (chip->l175[1] || chip->w463);
 
@@ -2339,7 +2339,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->pla_hcnt1[61] = chip->w466 && chip->reg_m5 && chip->reg_rs1 && chip->l106[1] == 306;
     chip->pla_hcnt1[62] = chip->w466 && chip->reg_m5 && (chip->l106[1] & 319) == 50;
 
-    chip->pla_hcnt2[0] = (chip->l106[1] & 239) == 227;
+    chip->pla_hcnt2[0] = (chip->l106[1] & 15) == 3;
     chip->pla_hcnt2[1] = chip->l106[1] == 507;
     chip->pla_hcnt2[2] = chip->reg_m5 && chip->reg_rs1 && (chip->l106[1] & 463) == 269;
     chip->pla_hcnt2[3] = chip->reg_m5 && (chip->l106[1] & 271) == 13;
@@ -2642,7 +2642,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     if (!chip->l186[1])
         chip->w518 &= ~255;
 
-    chip->w520 = chip->reg_m5 && (chip->l178 || chip->reg_vscr);
+    chip->w520 = chip->reg_m5 && (chip->l178[1] || chip->reg_vscr);
 
     chip->w521 = chip->w520 ? chip->l185 : chip->w518;
 
