@@ -2269,7 +2269,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->pla_vcnt[40] = chip->l105[1] == 0;
     chip->pla_vcnt[41] = chip->reg_lsm0 && chip->cpu_pal && chip->w108 && chip->l105[1] == 265;
     chip->pla_vcnt[42] = chip->reg_lsm0 && chip->cpu_pal && chip->w107 && chip->l105[1] == 257;
-    chip->pla_vcnt[43] = !chip->reg_lsm0 && chip->cpu_pal && chip->w108 && chip->l105[1] == 257;
+    chip->pla_vcnt[43] = !chip->reg_lsm0 && chip->cpu_pal && chip->w108 && chip->l105[1] == 266;
     chip->pla_vcnt[44] = !chip->reg_lsm0 && chip->cpu_pal && chip->w107 && chip->l105[1] == 258;
     chip->pla_vcnt[45] = !chip->reg_lsm0 && chip->cpu_pal && !chip->reg_m5 && chip->l105[1] == 242;
     chip->pla_vcnt[46] = !chip->cpu_pal && chip->w107 && chip->l105[1] == 234;
@@ -3705,7 +3705,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l438[0] = chip->w773;
         chip->l455[0] = chip->l438[1];
         chip->l456[0] = chip->l455[1];
-        chip->l464[0] = !chip->w820;
+        chip->l464[0] = chip->w951;
         chip->l467[0] = (chip->w809 & 4) != 0;
         chip->l468[0] = (chip->w809 & 2) != 0;
         chip->l469[0] = (chip->w809 & 1) != 0;
@@ -4872,6 +4872,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l466 = !chip->w820;
 
     chip->w820 = chip->w821 || chip->l467[1] || chip->l468[1] || chip->l469[1];
+    chip->w951 = !chip->w820;
 
     chip->w821 = !(chip->reg_m5 ? chip->l470[1] : chip->w388);
 
@@ -5183,22 +5184,22 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w858 = !(chip->w854 && chip->w818);
     chip->w859 = !(chip->w855 && chip->w818);
 
-    chip->w860 = (chip->l504 & 4) == 0 && (chip->l504 & 2) == 0 && (chip->l504 & 1) == 0;
-    chip->w861 = (chip->l504 & 4) == 0 && (chip->l504 & 2) == 0 && (chip->l504 & 1) != 0;
-    chip->w862 = (chip->l504 & 4) == 0 && (chip->l504 & 2) != 0 && (chip->l504 & 1) == 0;
-    chip->w863 = (chip->l504 & 4) == 0 && (chip->l504 & 2) != 0 && (chip->l504 & 1) != 0;
-    chip->w828 = (chip->l504 & 4) != 0 && (chip->l504 & 2) == 0 && (chip->l504 & 1) == 0;
-    chip->w864 = (chip->l504 & 4) != 0 && (chip->l504 & 2) == 0 && (chip->l504 & 1) != 0;
-    chip->w865 = (chip->l504 & 4) != 0 && (chip->l504 & 2) != 0 && (chip->l504 & 1) == 0;
-    chip->w866 = (chip->l504 & 4) != 0 && (chip->l504 & 2) != 0 && (chip->l504 & 1) != 0;
+    chip->w860 = chip->l504 == 0;
+    chip->w861 = chip->l504 == 1;
+    chip->w862 = chip->l504 == 2;
+    chip->w863 = chip->l504 == 3;
+    chip->w828 = chip->l504 == 4;
+    chip->w864 = chip->l504 == 5;
+    chip->w865 = chip->l504 == 6;
+    chip->w866 = chip->l504 == 7;
 
-    chip->w851 = !((chip->l472[1] & 1) == 0 && (chip->l472[1] & 4) == 0 && (chip->l472[1] & 2) == 0); // 1, 2, 3, 4, 5, 6, 7
-    chip->w867 = !((chip->l472[1] & 2) == 0 && (chip->l472[1] & 4) == 0); // 2, 3, 4, 5, 6, 7
-    chip->w868 = !((chip->l472[1] & 4) == 0 && !((chip->l472[1] & 1) != 0 && (chip->l472[1] & 4) != 0)); // 3, 4, 5, 6, 7
-    chip->w869 = (chip->l472[1] & 4) != 0; // 4, 5, 6, 7
-    chip->w827 = !((chip->l472[1] & 4) == 0 || ((chip->l472[1] & 1) == 0 && (chip->l472[1] & 2) == 0)); // 5, 6, 7
-    chip->w870 = (chip->l472[1] & 4) != 0 && (chip->l472[1] & 2) != 0; // 6, 7
-    chip->w871 = (chip->l472[1] & 4) != 0 && (chip->l472[1] & 2) != 0 && (chip->l472[1] & 1) != 0; // 7
+    chip->w851 = chip->l472[1] >= 1;
+    chip->w867 = chip->l472[1] >= 2;
+    chip->w868 = chip->l472[1] >= 3;
+    chip->w869 = chip->l472[1] >= 4;
+    chip->w827 = chip->l472[1] >= 5;
+    chip->w870 = chip->l472[1] >= 6;
+    chip->w871 = chip->l472[1] >= 7;
 
     chip->w877 = !((chip->reg_test0 & 8192) == 0 && chip->l563);
 
@@ -5472,8 +5473,6 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w947 = chip->w950 ? chip->w939 : !chip->w923;
     chip->w948 = chip->w950 ? chip->w940 : !chip->w924;
     chip->w949 = chip->w950 ? chip->w941 : !chip->w925;
-
-    chip->w951 = !chip->w820;
 
     if (chip->hclk1)
     {
@@ -6774,7 +6773,7 @@ void VDP_ClockPSG(vdp_t *chip)
     }
     if (chip->w1142)
     {
-        chip->l659 |= chip->w1134 & 7;
+        chip->l662 |= chip->w1134 & 7;
     }
 
     chip->w1145 = (chip->reg_test0 & 512) == 0 && !chip->l645[1];
