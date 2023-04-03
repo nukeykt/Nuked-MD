@@ -1,8 +1,8 @@
 # Main chips
 
 * FM (CMOS/YM3438) - Done
-* VDP (YM7101) - In progress
-* Arbiter (Integrated YM6045C) - Not started
+* VDP (YM7101) - C conversion is done, needs bugfixing
+* Arbiter (Integrated YM6045C) - In progress
 * IO Chip (Integrated YM6046) - Not started
 * TMSS - Not started
 * 68000 (NMOS) - Mostly functional, needs more testing, bugfixing and optimizations
