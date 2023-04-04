@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 enum {
     state_0 = 0,
     state_1,
@@ -98,7 +100,6 @@ typedef struct {
 
 static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
 {
-    int bit;
     if (!clk)
     {
         dff->l1 = val;
@@ -115,4 +116,40 @@ static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
     {
         dff->l2 = 1;
     }
+}
+
+
+typedef struct {
+    int lastcycle;
+    int items;
+    int pos;
+    int *fifo;
+} delaychain_t;
+
+static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
+{
+    delay->fifo = malloc(delaycycles * sizeof(int));
+    if (!delay->fifo)
+        return;
+    delay->lastcycle = 0;
+    delay->items = delaycycles + 1;
+    delay->pos = 0;
+}
+
+static inline void DELAY_Free(delaychain_t *delay)
+{
+    free(delay->fifo);
+}
+
+static inline int DELAY_Update(delaychain_t *delay, int cycles, int pushval)
+{
+    if (!delay->fifo || delay->items < 1)
+        return 0;
+    if (delay->lastcycle != cycles)
+    {
+        delay->lastcycle = cycles;
+        delay->pos = (delay->pos + 1) % delay->items;
+    }
+    delay->fifo[(delay->pos + delay->items - 1) % delay->items] = pushval;
+    return delay->fifo[delay->pos];
 }
