@@ -106,7 +106,7 @@ static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
     }
     else if (!reset)
     {
-        dff->l1 = 1;
+        dff->l1 = 0;
     }
     if (clk)
     {
@@ -114,7 +114,7 @@ static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
     }
     else if (!reset)
     {
-        dff->l2 = 1;
+        dff->l2 = 0;
     }
 }
 
