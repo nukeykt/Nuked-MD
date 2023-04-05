@@ -123,6 +123,7 @@ typedef struct {
     int lastcycle;
     int items;
     int pos;
+    int lastval;
     int *fifo;
 } delaychain_t;
 
@@ -145,11 +146,13 @@ static inline int DELAY_Update(delaychain_t *delay, int cycles, int pushval)
 {
     if (!delay->fifo || delay->items < 1)
         return 0;
-    if (delay->lastcycle != cycles)
+    while (delay->lastcycle < cycles)
     {
-        delay->lastcycle = cycles;
+        delay->lastcycle++;
         delay->pos = (delay->pos + 1) % delay->items;
+        delay->fifo[delay->pos] = delay->lastval;
     }
-    delay->fifo[(delay->pos + delay->items - 1) % delay->items] = pushval;
-    return delay->fifo[delay->pos];
+    delay->fifo[delay->pos] = pushval;
+    delay->lastval = pushval;
+    return delay->fifo[(delay->pos + 1) % delay->items];
 }
