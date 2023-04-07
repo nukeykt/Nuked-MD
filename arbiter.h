@@ -269,6 +269,24 @@ typedef struct {
     sdffr_t dff41;
     sdffr_t dff42;
     sdffr_t dff43;
+    int w225;
+    int w226;
+    int w227;
+    int w228;
+    int w229;
+    int w230;
+    sdff_t dff44;
+    int w231;
+    int w232;
+    int w233;
+    int w234;
+    int w235;
+    int w236;
+    int w237;
+    int w238;
+    int w239;
+    int w240;
+    int w241;
 
     int ext_w1;
     int ext_w2;
