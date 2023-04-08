@@ -366,12 +366,44 @@ typedef struct {
     staticcnt_t dff54;
     staticcnt_t dff55;
     int w309;
+    int w310;
+    int w311;
+    int w312;
+    int w313;
+    int w314;
+    int w315;
+    int w316;
+    int w317;
+    int w318;
+    int w319;
+    int w320;
+    int w321;
+    int w322;
+    int w323;
+    int w324;
+    int w325;
+    int w326;
+    int w327;
+    sdffr2_t dff56;
+    sdffr_t dff57;
+    sdffr_t dff58;
+    sdff_t dff59;
+    int w328;
+    int w329;
+    int w330;
+    int w331;
+    int w332;
+    int w333;
+    sdffr_t dff60;
+    int w334;
 
     int ext_w1;
     int ext_w2;
     int ext_w3;
     int ext_w4;
     int ext_w5;
+
+    int ext_w6; // m3 ???
 
     int tm_w1;
     int tm_w2;
