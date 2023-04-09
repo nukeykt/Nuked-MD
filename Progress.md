@@ -4,7 +4,7 @@
 * VDP (YM7101) - C conversion is done, needs bugfixing
 * Arbiter (Integrated YM6045C) - In progress
 * IO Chip (Integrated YM6046) - Not started
-* TMSS - Not started
+* TMSS - In progress
 * 68000 (NMOS) - Mostly functional, needs more testing, bugfixing and optimizations
 * Z80 (NMOS) - Done, needs more testing and optimizations
 
