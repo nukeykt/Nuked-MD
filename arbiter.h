@@ -464,6 +464,8 @@ typedef struct {
     int ext_w5;
 
     int ext_w6; // m3 ???
+    int ext_w7;
+    int ext_w8;
 
     int tm_w1;
     int tm_w2;
