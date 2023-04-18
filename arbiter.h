@@ -226,7 +226,7 @@ typedef struct {
     int w189;
     int w190;
     int w191;
-    int w192;
+    //int w192;
     int w193;
     int w194;
     int w195;
@@ -269,7 +269,7 @@ typedef struct {
     sdffr_t dff41;
     sdffr_t dff42;
     sdffr_t dff43;
-    int w225;
+    //int w225;
     int w226;
     int w227;
     int w228;
@@ -292,7 +292,7 @@ typedef struct {
     int w244;
     int w245;
     int w246;
-    int w247;
+    //int w247;
     int w248;
     int w249;
     int w250;
@@ -457,15 +457,15 @@ typedef struct {
     staticcnt_t dff79;
     staticcnt_t dff80;
 
-    int ext_w1;
-    int ext_w2;
-    int ext_w3;
-    int ext_w4;
-    int ext_w5;
-
-    int ext_w6; // m3 ???
-    int ext_w7;
-    int ext_w8;
+    int ext_mclk;
+    int ext_vclk;
+    int ext_zclk;
+    int ext_data_out;
+    int ext_data_in;
+    int ext_zaddress_in;
+    int ext_zaddress_out;
+    int ext_vaddress_in;
+    int ext_vaddress_out;
 
     int tm_w1;
     int tm_w2;
