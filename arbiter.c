@@ -68,14 +68,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w26 = !(chip->dff15.o1 && chip->dff12.l2);
     chip->w27 = chip->dff11.l2 || chip->w44;
 
-    chip->w28 = (chip->ext_zaddress_in & 1024) != 0;
-    chip->w29 = (chip->ext_zaddress_in & 512) != 0;
-    chip->w30 = (chip->ext_zaddress_in & 256) != 0;
-
     chip->w31 = !chip->w65;
-    chip->ext_zaddress_out &= ~128;
-    if (chip->w31)
-        chip->ext_zaddress_out |= 128;
     chip->w32 = !chip->w68;
 
     chip->w33 = chip->tm_w1;
@@ -88,9 +81,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFFR_Update(&chip->dff14, chip->w36, chip->w56, chip->dff32.l2);
 
-    chip->w37 = (chip->ext_zaddress_in & 4096) != 0;
     chip->w38 = chip->tm_w1;
-    chip->w39 = (chip->ext_zaddress_in & 2048) != 0;
 
     SDFFR2_Update(&chip->dff15, chip->ext_vclk, chip->w40, chip->w73);
 
@@ -140,20 +131,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w60 = chip->w119 || chip->w152 || chip->w33;
 
-    // ts2
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~1024;
-        if (chip->w345)
-            chip->ext_zaddress_out |= 1024;
-    }
-    // ts3
-    if (!chip->w60)
-        chip->ext_zaddress_out &= ~32768;
-
-    chip->w61 = (chip->ext_zaddress_in & 16384) != 0;
-    chip->w62 = (chip->ext_zaddress_in & 32768) != 0;
-
     chip->w63 = !(chip->w99 && chip->w117 && !chip->w186);
 
     chip->w64 = !(chip->w43 && chip->tm_w2);
@@ -161,8 +138,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w65 = !(chip->dff13.l2 && chip->w186);
 
     chip->w66 = chip->w119 || chip->w267;
-
-    chip->w67 = (chip->ext_zaddress_in & 8192) != 0;
 
     chip->w68 = !(chip->w56 || chip->w163);
 
@@ -213,34 +188,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.o1, chip->dff33.o1);
 
-    // ts4
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~4096;
-        if (chip->w265)
-            chip->ext_zaddress_out |= 4096;
-    }
-    // ts5
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~512;
-        if (chip->w278)
-            chip->ext_zaddress_out |= 512;
-    }
-    // ts6
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~8192;
-        if (chip->w276)
-            chip->ext_zaddress_out |= 8192;
-    }
-    // ts7
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~256;
-        if (chip->w284)
-            chip->ext_zaddress_out |= 256;
-    }
     chip->w88 = chip->w278;
     chip->w89 = chip->w284;
     chip->w93 = !chip->w284;
@@ -299,14 +246,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w114 = chip->tm_w1;
 
     chip->w115 = !chip->w64;
-
-    // ts9
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~2048;
-        if (chip->w281)
-            chip->ext_zaddress_out |= 2048;
-    }
 
     chip->w116 = chip->w126;
 
@@ -370,8 +309,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w144 = !chip->w367;
 
-    chip->w145 = (chip->ext_vaddress_in & 0x8000) != 0;
-
     SDFF_Update(&chip->dff29, chip->ext_zclk, chip->tm_w1);
 
     chip->w146 = chip->w76;
@@ -383,14 +320,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w149 = !(chip->w152 || chip->w323 || chip->w146);
 
     chip->w150 = chip->w18 || chip->w109 || chip->w114 || chip->w220;
-
-    // ts10
-    if (!chip->w60)
-    {
-        chip->ext_zaddress_out &= ~16384;
-        if (chip->w280)
-            chip->ext_zaddress_out |= 16384;
-    }
 
     chip->w151 = chip->w130;
     chip->w152 = chip->tm_w2;
@@ -563,24 +492,9 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w229 = !chip->w306;
 
-    // ts11
-    if (!chip->w142)
-    {
-        chip->ext_vaddress_out &= ~0x100000;
-        if (chip->w236)
-            chip->ext_vaddress_out |= 0x100000;
-    }
-
     chip->w230 = !chip->w235;
 
     SDFF_Update(&chip->dff44, !chip->ext_zclk, chip->w207);
-
-    // ts12
-    {
-        chip->ext_vaddress_out &= ~0x200000;
-        if (chip->w233)
-            chip->ext_vaddress_out |= 0x200000;
-    }
 
     chip->w231 = !chip->w367;
 
@@ -642,15 +556,11 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w260 = chip->dff42.l2 && chip->w86;
 
-    chip->w261 = (chip->ext_vaddress_in & 0x20000) != 0;
-
     chip->w262 = chip->w219 && chip->w139;
 
     chip->w263 = !chip->w86;
 
     chip->w264 = chip->w263 || chip->w256;
-
-    chip->w265 = (chip->ext_vaddress_in & 0x800) != 0;
 
     chip->w266 = chip->w289 && chip->w356 && chip->w356;
 
@@ -672,53 +582,15 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w272 = !(chip->dff47.o2 || chip->w267);
 
-    // ts13
-    if (!chip->w142)
-    {
-        chip->ext_vaddress_out &= ~0x400000;
-        if (chip->w253)
-            chip->ext_vaddress_out |= 0x400000;
-    }
-
     chip->w273 = !(chip->w272 || chip->w307);
 
     chip->w274 = !chip->w352;
 
-    chip->w275 = (chip->ext_vaddress_in & 0x10000) != 0;
-
-    chip->w276 = (chip->ext_vaddress_in & 0x1000) != 0;
-
-    chip->w277 = (chip->ext_vaddress_in & 0x4000) != 0;
-
-    chip->w278 = (chip->ext_vaddress_in & 0x100) != 0;
-
     chip->w279 = !chip->w190;
-
-    // ts14
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x400;
-        if (chip->w212)
-            chip->ext_vaddress_out |= 0x400;
-    }
-
-    // ts15
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x800;
-        if (chip->w218)
-            chip->ext_vaddress_out |= 0x800;
-    }
-
-    chip->w280 = (chip->ext_vaddress_in & 0x8000) != 0;
-
-    chip->w281 = (chip->ext_vaddress_in & 0x400) != 0;
 
     chip->w282 = chip->tm_w1;
 
     chip->w283 = (chip->w183 || chip->w287 || chip->w343);
-
-    chip->w284 = (chip->ext_vaddress_in & 0x80) != 0;
 
     chip->w285 = !chip->w222;
 
@@ -755,21 +627,11 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w299 = !chip->w302;
 
-    // ts16
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x8000;
-        if (chip->w241)
-            chip->ext_vaddress_out |= 0x8000;
-    }
-
     chip->w300 = !(chip->w326 && (!chip->dff49.l2 || chip->dff50.l2));
 
     chip->w301 = !(chip->w223 && chip->tm_w2);
 
     chip->w302 = !(chip->w9 && (!chip->dff50.l2 || chip->dff62.l2));
-
-    chip->w303 = (chip->ext_vaddress_in & 0x40000) != 0;
     
     chip->w304 = !chip->dff63.l2;
 
@@ -777,34 +639,8 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w305 = !!chip->dff32.l2;
 
-    chip->w306 = (chip->ext_vaddress_in & 0x100000) != 0;
-
-    // ts17
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x1000;
-        if (chip->w177)
-            chip->ext_vaddress_out |= 0x1000;
-    }
-
     chip->w307 = !(chip->w308 || !chip->dff32.l2);
     chip->w308 = !(chip->w287 || chip->w343);
-
-    // ts18
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x100;
-        if (chip->w179)
-            chip->ext_vaddress_out |= 0x100;
-    }
-
-    // ts19
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x80;
-        if (chip->w181)
-            chip->ext_vaddress_out |= 0x80;
-    }
 
     SCNT_Update(&chip->dff53, chip->ext_vclk, chip->w289, 0, chip->dff54.cout, 1); // FIXME: check reset
     SCNT_Update(&chip->dff54, chip->ext_vclk, chip->w289, 0, chip->dff48.cout, 1); // FIXME: check reset
@@ -835,25 +671,13 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w321 = !chip->dff61.l2 && chip->tm_w2;
 
-    // ts20
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x10000;
-        if (chip->w239)
-            chip->ext_vaddress_out |= 0x10000;
-    }
-
     chip->w322 = !!!!chip->dff62.l2; // FIXME
 
     chip->w323 = !1;
 
-    chip->w324 = (chip->ext_vaddress_in & 0x200000) != 0;
-
     chip->w325 = chip->w352 && chip->dff62.l2;
 
     chip->w326 = chip->w321 || chip->w325;
-
-    chip->w327 = (chip->ext_vaddress_in & 0x80000) != 0;
 
     SDFFR2_Update(&chip->dff56, chip->dff74.l2, chip->w373, chip->w332);
 
@@ -900,14 +724,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w343 = !(chip->w368 || chip->tm_w2);
 
-    // ts21
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x20000;
-        if (chip->w177)
-            chip->ext_vaddress_out |= 0x20000;
-    }
-
     SDFFR_Update(&chip->dff63, chip->w371, !chip->dff63.l2, chip->w305);
 
     SDFF_Update(&chip->dff64, chip->ext_vclk, chip->w344);
@@ -924,8 +740,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFFR_Update(&chip->dff69, chip->dff74.l2, chip->w337, chip->w288);
 
-    chip->w345 = (chip->ext_vaddress_in & 0x200) != 0;
-
     chip->w346 = !(chip->w355 || chip->tm_w2);
 
     chip->w347 = !chip->dff68.l2;
@@ -939,46 +753,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w349 = !chip->dff71.l2;
 
     SDFFR_Update(&chip->dff72, chip->w349, !chip->dff72.l2, chip->w350);
-
-    // ts22
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x80000;
-        if (chip->w252)
-            chip->ext_vaddress_out |= 0x80000;
-    }
-
-    // ts23
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x40000;
-        if (chip->w243)
-            chip->ext_vaddress_out |= 0x40000;
-    }
-
-    // ts24
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x4000;
-        if (chip->w262)
-            chip->ext_vaddress_out |= 0x4000;
-    }
-
-    // ts25
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x2000;
-        if (chip->w214)
-            chip->ext_vaddress_out |= 0x2000;
-    }
-
-    // ts26
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x200;
-        if (chip->w180)
-            chip->ext_vaddress_out |= 0x200;
-    }
 
     SDFF_Update(&chip->dff73, chip->ext_vclk, chip->w267);
 
@@ -1043,13 +817,243 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SCNT_Update(&chip->dff78, chip->ext_vclk, chip->w289, 0, chip->w372, 1);
 
-    chip->w373 = (chip->ext_vaddress_in & 0x400000) != 0;
-
     chip->w374 = !(!chip->dff77.l2 || !chip->dff78.l2 || !chip->dff79.l2 || !chip->dff80.l2);
 
     SCNT_Update(&chip->dff79, chip->ext_vclk, chip->w289, 0, chip->dff80.cout, 1);
 
     SCNT_Update(&chip->dff80, chip->ext_vclk, chip->w289, 0, chip->dff78.cout, 1);
+
+    // ts19
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x80;
+        if (chip->w181)
+            chip->ext_vaddress_out |= 0x80;
+    }
+
+    // ts18
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x100;
+        if (chip->w179)
+            chip->ext_vaddress_out |= 0x100;
+    }
+
+    // ts26
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x200;
+        if (chip->w180)
+            chip->ext_vaddress_out |= 0x200;
+    }
+
+    // ts14
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x400;
+        if (chip->w212)
+            chip->ext_vaddress_out |= 0x400;
+    }
+
+    // ts15
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x800;
+        if (chip->w218)
+            chip->ext_vaddress_out |= 0x800;
+    }
+
+    // ts17
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x1000;
+        if (chip->w177)
+            chip->ext_vaddress_out |= 0x1000;
+    }
+
+    // ts25
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x2000;
+        if (chip->w214)
+            chip->ext_vaddress_out |= 0x2000;
+    }
+
+    // ts24
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x4000;
+        if (chip->w262)
+            chip->ext_vaddress_out |= 0x4000;
+    }
+
+    // ts16
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x8000;
+        if (chip->w241)
+            chip->ext_vaddress_out |= 0x8000;
+    }
+
+    // ts20
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x10000;
+        if (chip->w239)
+            chip->ext_vaddress_out |= 0x10000;
+    }
+
+    // ts21
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x20000;
+        if (chip->w177)
+            chip->ext_vaddress_out |= 0x20000;
+    }
+
+    // ts23
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x40000;
+        if (chip->w243)
+            chip->ext_vaddress_out |= 0x40000;
+    }
+
+    // ts22
+    if (!chip->w131)
+    {
+        chip->ext_vaddress_out &= ~0x80000;
+        if (chip->w252)
+            chip->ext_vaddress_out |= 0x80000;
+    }
+
+    // ts11
+    if (!chip->w142)
+    {
+        chip->ext_vaddress_out &= ~0x100000;
+        if (chip->w236)
+            chip->ext_vaddress_out |= 0x100000;
+    }
+
+    // ts12
+    if (!chip->w142)
+    {
+        chip->ext_vaddress_out &= ~0x200000;
+        if (chip->w233)
+            chip->ext_vaddress_out |= 0x200000;
+    }
+
+    // ts13
+    if (!chip->w142)
+    {
+        chip->ext_vaddress_out &= ~0x400000;
+        if (chip->w253)
+            chip->ext_vaddress_out |= 0x400000;
+    }
+
+    chip->w284 = (chip->ext_vaddress_in & 0x80) != 0;
+
+    chip->w278 = (chip->ext_vaddress_in & 0x100) != 0;
+
+    chip->w345 = (chip->ext_vaddress_in & 0x200) != 0;
+
+    chip->w281 = (chip->ext_vaddress_in & 0x400) != 0;
+
+    chip->w265 = (chip->ext_vaddress_in & 0x800) != 0;
+
+    chip->w276 = (chip->ext_vaddress_in & 0x1000) != 0;
+
+    chip->w280 = (chip->ext_vaddress_in & 0x2000) != 0;
+
+    chip->w277 = (chip->ext_vaddress_in & 0x4000) != 0;
+
+    chip->w145 = (chip->ext_vaddress_in & 0x8000) != 0;
+
+    chip->w275 = (chip->ext_vaddress_in & 0x10000) != 0;
+
+    chip->w261 = (chip->ext_vaddress_in & 0x20000) != 0;
+
+    chip->w303 = (chip->ext_vaddress_in & 0x40000) != 0;
+
+    chip->w327 = (chip->ext_vaddress_in & 0x80000) != 0;
+
+    chip->w306 = (chip->ext_vaddress_in & 0x100000) != 0;
+
+    chip->w324 = (chip->ext_vaddress_in & 0x200000) != 0;
+
+    chip->w373 = (chip->ext_vaddress_in & 0x400000) != 0;
+
+    chip->ext_zaddress_out &= ~128;
+    if (chip->w31)
+        chip->ext_zaddress_out |= 128;
+
+    // ts7
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~256;
+        if (chip->w284)
+            chip->ext_zaddress_out |= 256;
+    }
+
+    // ts5
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~512;
+        if (chip->w278)
+            chip->ext_zaddress_out |= 512;
+    }
+
+    // ts2
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~1024;
+        if (chip->w345)
+            chip->ext_zaddress_out |= 1024;
+    }
+
+    // ts9
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~2048;
+        if (chip->w281)
+            chip->ext_zaddress_out |= 2048;
+    }
+
+    // ts4
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~4096;
+        if (chip->w265)
+            chip->ext_zaddress_out |= 4096;
+    }
+    // ts6
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~8192;
+        if (chip->w276)
+            chip->ext_zaddress_out |= 8192;
+    }
+
+    // ts10
+    if (!chip->w60)
+    {
+        chip->ext_zaddress_out &= ~16384;
+        if (chip->w280)
+            chip->ext_zaddress_out |= 16384;
+    }
+
+    // ts3
+    if (!chip->w60)
+        chip->ext_zaddress_out &= ~32768;
+
+    chip->w30 = (chip->ext_zaddress_in & 256) != 0;
+    chip->w29 = (chip->ext_zaddress_in & 512) != 0;
+    chip->w28 = (chip->ext_zaddress_in & 1024) != 0;
+    chip->w39 = (chip->ext_zaddress_in & 2048) != 0;
+    chip->w37 = (chip->ext_zaddress_in & 4096) != 0;
+    chip->w67 = (chip->ext_zaddress_in & 8192) != 0;
+    chip->w61 = (chip->ext_zaddress_in & 16384) != 0;
+    chip->w62 = (chip->ext_zaddress_in & 32768) != 0;
 }
 
 int main()
