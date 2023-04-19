@@ -279,7 +279,6 @@ typedef struct {
     int w292;
     int w293;
     int w294;
-    int w295;
     int w296;
     int w297;
     int w298;
@@ -375,7 +374,7 @@ typedef struct {
     int w364;
     int w365;
     int w366;
-    int w367;
+    int w367; // !M3
     int w368;
     int w369;
     int w370;
