@@ -48,17 +48,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w16 = !(chip->dff33.o1 || chip->w346);
     chip->w17 = chip->dff10.l2;
 
-    chip->w18 = !(1 && !chip->w30 && !chip->w28
-        && !chip->w29 && !chip->w37 && !chip->w39);
-
-    chip->w19 = !(1 && chip->w30 && chip->w28
-        && chip->w29 && chip->w37 && chip->w39);
-
-    chip->w20 = chip->w367 ? chip->w39 : chip->w28;
-    chip->w21 = chip->w367 ? chip->w30 : (chip->ext_zaddress_in & 128) != 0;
-    chip->w22 = chip->w367 ? chip->w29 : chip->w30;
-    chip->w23 = chip->w367 ? chip->w29 : chip->w28;
-
     chip->w24 = chip->w105;
     chip->w25 = chip->w38;
 
@@ -93,7 +82,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFF_Update(&chip->dff16, chip->ext_vclk, chip->w44);
 
-    chip->w44 = chip->w42 || chip->w373 || chip->w59;
+    chip->w44 = chip->w42 || chip->va23_in || chip->w59;
 
     // ???
     chip->w45 = chip->w46 && chip->w105;
@@ -117,7 +106,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w53 = chip->w50 && chip->w51;
 
-    chip->w54 = !(chip->dff23.l2 && chip->w373);
+    chip->w54 = !(chip->dff23.l2 && chip->va23_in);
 
     chip->w55 = chip->w87 || chip->w267;
 
@@ -170,31 +159,19 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFF_Update(&chip->dff22, chip->ext_vclk, chip->w111);
 
-    chip->w80 = chip->w367 ? chip->w37 : chip->w39;
-
     chip->w81 = chip->w77;
 
-    chip->w82 = chip->tm_w1;
+    chip->w82 = chip->tm_w1; // z80 ioreq
 
-    chip->w83 = !chip->dff23.l2 || chip->w373;
+    chip->w83 = !chip->dff23.l2 || chip->va23_in;
 
     chip->w84 = !(!chip->dff23.l2 && chip->dff33.o1 && chip->w356);
 
     chip->w85 = chip->tm_w1;
 
-    chip->w86 = chip->w19 || chip->w109;
-
     chip->w87 = chip->tm_w1;
 
     SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.o1, chip->dff33.o1);
-
-    chip->w88 = chip->w278;
-    chip->w89 = chip->w284;
-    chip->w93 = !chip->w284;
-
-    chip->w90 = chip->w93 && chip->w88;
-    chip->w91 = chip->w89 && chip->w93;
-    chip->w92 = chip->w89 && chip->w88;
 
     chip->w94 = chip->w128 || chip->w267;
     chip->w95 = !(chip->w186 || chip->w87);
@@ -202,10 +179,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w96 = !(chip->w95 && chip->w90 && chip->w117);
 
     chip->w97 = !(chip->w95 && chip->w91 && chip->w117);
-
-    chip->w98 = !chip->w278;
-
-    chip->w99 = chip->w98 && chip->w89;
 
     chip->w100 = !chip->w367;
 
@@ -217,19 +190,12 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFFR_Update(&chip->dff25, !chip->ext_vclk, chip->dff12.l1, chip->w73); // FIXME: check reset wire
 
-    chip->w104 = !chip->w61;
-
     chip->w105 = chip->w76 && chip->w367;
 
     chip->w106 = chip->w76;
 
-    chip->w107 = chip->w61 || chip->w220 || chip->w367 || chip->w135;
+    chip->w107 = !((chip->ext_zaddress_in & 0xc000) == 0x8000 && !chip->w220 && !chip->w367);
 
-    chip->w108 = chip->w367 ? chip->w61 : chip->w67;
-
-    chip->w109 = !(chip->w61 && chip->w67 && chip->w367 && chip->w135);
-
-    chip->w110 = chip->w367 ? chip->w67 : chip->w37;
 
     chip->w111 = chip->dff28.l2 || chip->w182;
 
@@ -253,25 +219,11 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w118 = chip->w122 || chip->w267;
 
-    chip->w119 = chip->w121 || chip->w145 || chip->w250;
-
     chip->w120 = !chip->dff24.l2;
-
-    chip->w121 = !(chip->w127 && chip->w367 && chip->w306 && chip->w373);
-    chip->w122 = !(chip->w125 && chip->w145 && chip->w157);
 
     chip->w123 = chip->w140;
 
-    chip->w124 = !(chip->w125 && chip->w91 && chip->w145 && chip->w156);
-    chip->w125 = !(chip->w121 || chip->w210 || chip->w250);
-
     chip->w126 = chip->w124 || chip->w267;
-
-    chip->w127 = !chip->w324;
-
-    chip->w128 = !(chip->w91 && chip->w125 && chip->w145 && chip->w154);
-
-    chip->w129 = !(chip->w91 && chip->w125 && chip->w145 && chip->w153);
 
     chip->w130 = chip->w267 || chip->w129;
 
@@ -287,25 +239,13 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w134 = chip->w66 || chip->w341;
 
-    chip->w135 = !chip->w62;
-
     SDFF_Update(&chip->dff28, chip->ext_vclk, chip->w79);
-
-    chip->w136 = !(chip->w104 && chip->w135 && chip->w141 && chip->w367);
 
     chip->w137 = !(chip->w106 || chip->w152 || chip->w323);
 
-    chip->w138 = !chip->w67;
-
-    chip->w139 = chip->w367 ? chip->w148 : chip->w61;
-
-    chip->w140 = !(chip->w61 && 1 && chip->w135 && chip->w138 && chip->w141 && chip->w367);
-
-    chip->w141 = !chip->w220;
-
     chip->w142 = !chip->w137;
 
-    chip->w143 = chip->w144 || chip->w220 || chip->w135;
+    chip->w143 = chip->w144 || chip->w220 || !chip->za15_in;
 
     chip->w144 = !chip->w367;
 
@@ -315,39 +255,18 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w147 = !chip->w149;
 
-    chip->w148 = chip->w86 && chip->dff38.l2;
-
     chip->w149 = !(chip->w152 || chip->w323 || chip->w146);
-
-    chip->w150 = chip->w18 || chip->w109 || chip->w114 || chip->w220;
 
     chip->w151 = chip->w130;
     chip->w152 = chip->tm_w2;
 
-    chip->w153 = chip->w155 && chip->w161;
-    chip->w154 = chip->w165 && chip->w161;
-
-    chip->w155 = chip->w276;
-
-    chip->w156 = chip->w158 && chip->w155;
-
-    chip->w157 = chip->w158 && chip->w165;
-
-    chip->w158 = chip->w265;
-
-    chip->w159 = 1 && chip->w145 && chip->w195 && chip->w280 && chip->w306 && chip->w373;
-
     chip->w160 = !chip->w102;
-
-    chip->w161 = !chip->w265;
 
     chip->w162 = !chip->w172;
 
-    chip->w163 = chip->w56 || chip->w82 || chip->w324 || chip->w367; // FIXME
+    chip->w163 = chip->w56 || chip->w82 || chip->va22_in || chip->w367; // FIXME
 
     chip->w164 = !(chip->w34 && chip->w166);
-
-    chip->w165 = !chip->w276;
 
     chip->w166 = chip->w367 ? chip->dff31.l2 : chip->w328;
 
@@ -363,7 +282,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFFR_Update(&chip->dff31, chip->w96, chip->w56, chip->w328);
 
-    chip->w171 = chip->w62 || chip->w220 || chip->w367;
+    chip->w171 = chip->za15_in || chip->w220 || chip->w367;
 
     chip->w172 = !(chip->w169 && chip->w167 && chip->w171 && chip->w173);
 
@@ -375,15 +294,8 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w176 = !chip->w190;
 
-    chip->w177 = chip->w110 && chip->w219;
-
     chip->w178 = chip->w174 && chip->w79;
 
-    chip->w179 = chip->w22 && chip->w219;
-
-    chip->w180 = chip->w23 && chip->w219;
-
-    chip->w181 = chip->w21 && chip->w219;
 
     chip->w182 = chip->w188 && chip->dff34.l2;
 
@@ -408,12 +320,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w190 = chip->tm_w1;
     chip->w191 = chip->tm_w1;
 
-    chip->w193 = !(chip->w159 && chip->w251);
-
-    chip->w194 = 0 || chip->w193 || chip->w278 || chip->w281 || chip->w282 || chip->w284 || chip->w345 || chip->w186;
-
-    chip->w195 = !chip->w267;
-
     chip->w196 = !chip->w198;
 
     chip->w197 = chip->w206 && chip->tm_w2;
@@ -424,17 +330,15 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w200 = !(chip->w133 && chip->w249);
 
-    chip->w201 = !chip->w306;
-
     chip->w202 = chip->w208 || chip->w209;
 
     chip->w203 = !chip->w211;
 
-    chip->w204 = !(chip->w203 && chip->w69 && chip->w205 && chip->w306);
+    chip->w204 = !(chip->w203 && chip->w69 && chip->w205 && chip->va21_in);
 
     chip->w205 = !chip->w228;
 
-    chip->w206 = chip->w201 || chip->w228 || chip->w254;
+    chip->w206 = !chip->va21_in || chip->w228 || chip->w254;
 
     chip->w207 = chip->w199; // FIXME: delay?
 
@@ -442,25 +346,11 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w209 = !chip->w228;
 
-    chip->w210 = chip->w277 || chip->w280 || chip->w281 || chip->w345;
+    chip->w211 = chip->w221 || chip->w267 || chip->va23_in;
 
-    chip->w211 = chip->w221 || chip->w267 || chip->w373;
-
-    chip->w212 = chip->w20 && chip->w219;
-
-    chip->w213 = chip->dff35.l2 && chip->w86;
-
-    chip->w214 = chip->w108 && chip->w219;
-
-    chip->w215 = chip->w306 || chip->w82;
+    chip->w215 = chip->va21_in || chip->w82;
 
     chip->w216 = !chip->w367;
-
-    chip->w217 = chip->dff36.l2 && chip->w86;
-
-    chip->w218 = chip->w80 && chip->w219;
-
-    chip->w219 = !chip->w263;
 
     chip->w220 = chip->w82 || !chip->dff44.l2;
 
@@ -472,25 +362,9 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w223 = chip->w48 || chip->w259 || chip->w216;
 
-    chip->w224 = chip->dff37.l2 && chip->w86;
-
-    SDFFR_Update(&chip->dff43, chip->w150, chip->tm_w1, chip->w189);
-    SDFFR_Update(&chip->dff40, chip->w150, chip->dff43.l2, chip->w189);
-    SDFFR_Update(&chip->dff39, chip->w150, chip->dff40.l2, chip->w189);
-    SDFFR_Update(&chip->dff42, chip->w150, chip->dff39.l2, chip->w189);
-    SDFFR_Update(&chip->dff41, chip->w150, chip->dff42.l2, chip->w189);
-    SDFFR_Update(&chip->dff36, chip->w150, chip->dff41.l2, chip->w189);
-    SDFFR_Update(&chip->dff35, chip->w150, chip->dff36.l2, chip->w189);
-    SDFFR_Update(&chip->dff37, chip->w150, chip->dff35.l2, chip->w189);
-    SDFFR_Update(&chip->dff38, chip->w150, chip->dff37.l2, chip->w189);
-
     chip->w226 = chip->w166;
 
-    chip->w227 = !(chip->w324 && chip->w373 && chip->w229 && chip->w195);
-
-    chip->w228 = chip->w324 ^ chip->tm_w2;
-
-    chip->w229 = !chip->w306;
+    chip->w228 = chip->va22_in ^ chip->tm_w2;
 
     chip->w230 = !chip->w235;
 
@@ -498,35 +372,13 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w231 = !chip->w367;
 
-    chip->w232 = chip->w228 || chip->w248 || chip->w306;
+    chip->w232 = chip->w228 || chip->w248 || chip->va21_in;
 
-    chip->w233 = chip->w237 ? chip->w242 : 0;
-
-    chip->w234 = chip->w228 || chip->w306 || chip->w211;
+    chip->w234 = chip->w228 || chip->va21_in || chip->w211;
 
     chip->w235 = !(chip->w234 && chip->w232);
 
-    chip->w236 = chip->w237 ? chip->w240 : 0;
-
-    chip->w237 = chip->w367;
-
     chip->w238 = chip->w352 || chip->w223;
-
-    chip->w239 = chip->w367 ? chip->w213 : chip->w215;
-
-    chip->w240 = chip->dff39.l2 && chip->w86;
-
-    chip->w241 = chip->w367 ? chip->w213 : chip->w215;
-
-    chip->w242 = chip->w246 || chip->w263;
-
-    chip->w243 = chip->w367 ? chip->w245 : chip->w191;
-
-    chip->w244 = chip->w367 ? chip->w217 : chip->w82;
-
-    chip->w245 = chip->dff41.l2 && chip->w86;
-
-    chip->w246 = chip->dff40.l2 && chip->w86;
 
     //chip->w247 = chip->tm_w1;
 
@@ -534,19 +386,9 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w249 = !(chip->w105 && chip->w369);
 
-    chip->w250 = chip->w261 || chip->w275 || chip->w303 || chip->w327;
-
-    chip->w251 = !(chip->w261 || chip->w265 || chip->w275 || chip->w276 || chip->w277 || chip->w303 || chip->w324 || chip->w327);
-
-    chip->w252 = chip->w237 ? chip->w260 : chip->w166;
-
-    chip->w253 = chip->w237 ? chip->w264 : 0;
-
-    chip->w254 = chip->w223 || chip->w373;
+    chip->w254 = chip->w223 || chip->va23_in;
 
     chip->w255 = !(chip->tm_w1 || chip->w79);
-
-    chip->w256 = chip->dff43.l2 && chip->w86;
 
     chip->w257 = !(chip->w282 && chip->w186);
 
@@ -554,25 +396,17 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w259 = !chip->w223;
 
-    chip->w260 = chip->dff42.l2 && chip->w86;
-
-    chip->w262 = chip->w219 && chip->w139;
-
-    chip->w263 = !chip->w86;
-
-    chip->w264 = chip->w263 || chip->w256;
-
     chip->w266 = chip->w289 && chip->w356 && chip->w356;
 
     chip->w267 = chip->tm_w1;
 
     chip->w268 = !(chip->w152 || chip->w323 || chip->w146);
 
-    chip->w269 = chip->dff45.o2 && chip->w373 && chip->w274;
+    chip->w269 = chip->dff45.o2 && chip->va23_in && chip->w274;
 
-    SDFFR2_Update(&chip->dff45, chip->w274, chip->w373, !chip->w223);
+    SDFFR2_Update(&chip->dff45, chip->w274, chip->va23_in, !chip->w223);
 
-    chip->w270 = !(chip->w367 && chip->w280);
+    chip->w270 = !(chip->w367 && chip->va14_in);
 
     SDFFR2_Update(&chip->dff46, chip->w274, chip->dff46.o1, chip->w298);
 
@@ -619,7 +453,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w296 = chip->w270;
     chip->w297 = chip->w249;
 
-    chip->w298 = chip->w301 && chip->w373;
+    chip->w298 = chip->w301 && chip->va23_in;
 
     SDFFR_Update(&chip->dff49, chip->ext_vclk, chip->w279, chip->dff51.l2);
     SDFFR_Update(&chip->dff50, chip->w340, chip->w322, chip->w9);
@@ -648,7 +482,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w309 = !(!chip->dff48.l2 || !chip->dff53.l2 || !chip->dff54.l2 || !chip->dff55.l2);
 
-    chip->w310 = chip->w227;
     chip->w311 = !(chip->w367 && chip->w328);
 
     chip->w312 = !chip->w314;
@@ -679,7 +512,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w326 = chip->w321 || chip->w325;
 
-    SDFFR2_Update(&chip->dff56, chip->dff74.l2, chip->w373, chip->w332);
+    SDFFR2_Update(&chip->dff56, chip->dff74.l2, chip->va23_in, chip->w332);
 
     SDFFR_Update(&chip->dff57, chip->dff74.l2, chip->w288, chip->w288);
 
@@ -823,165 +656,49 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SCNT_Update(&chip->dff80, chip->ext_vclk, chip->w289, 0, chip->dff78.cout, 1);
 
-    // ts19
     if (!chip->w131)
     {
-        chip->ext_vaddress_out &= ~0x80;
-        if (chip->w181)
-            chip->ext_vaddress_out |= 0x80;
+        chip->ext_vaddress_out &= ~0xfff80;
+        chip->ext_vaddress_out |= (chip->va_out << 7) & 0xfff80;
     }
 
-    // ts18
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x100;
-        if (chip->w179)
-            chip->ext_vaddress_out |= 0x100;
-    }
-
-    // ts26
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x200;
-        if (chip->w180)
-            chip->ext_vaddress_out |= 0x200;
-    }
-
-    // ts14
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x400;
-        if (chip->w212)
-            chip->ext_vaddress_out |= 0x400;
-    }
-
-    // ts15
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x800;
-        if (chip->w218)
-            chip->ext_vaddress_out |= 0x800;
-    }
-
-    // ts17
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x1000;
-        if (chip->w177)
-            chip->ext_vaddress_out |= 0x1000;
-    }
-
-    // ts25
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x2000;
-        if (chip->w214)
-            chip->ext_vaddress_out |= 0x2000;
-    }
-
-    // ts24
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x4000;
-        if (chip->w262)
-            chip->ext_vaddress_out |= 0x4000;
-    }
-
-    // ts16
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x8000;
-        if (chip->w241)
-            chip->ext_vaddress_out |= 0x8000;
-    }
-
-    // ts20
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x10000;
-        if (chip->w239)
-            chip->ext_vaddress_out |= 0x10000;
-    }
-
-    // ts21
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x20000;
-        if (chip->w177)
-            chip->ext_vaddress_out |= 0x20000;
-    }
-
-    // ts23
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x40000;
-        if (chip->w243)
-            chip->ext_vaddress_out |= 0x40000;
-    }
-
-    // ts22
-    if (!chip->w131)
-    {
-        chip->ext_vaddress_out &= ~0x80000;
-        if (chip->w252)
-            chip->ext_vaddress_out |= 0x80000;
-    }
-
-    // ts11
     if (!chip->w142)
     {
-        chip->ext_vaddress_out &= ~0x100000;
-        if (chip->w236)
-            chip->ext_vaddress_out |= 0x100000;
+        chip->ext_vaddress_out &= ~0x700000;
+        chip->ext_vaddress_out |= (chip->va_out << 7) & 0x700000;
     }
 
-    // ts12
-    if (!chip->w142)
-    {
-        chip->ext_vaddress_out &= ~0x200000;
-        if (chip->w233)
-            chip->ext_vaddress_out |= 0x200000;
-    }
+    chip->va8_in = (chip->ext_vaddress_in & 0x80) != 0;
 
-    // ts13
-    if (!chip->w142)
-    {
-        chip->ext_vaddress_out &= ~0x400000;
-        if (chip->w253)
-            chip->ext_vaddress_out |= 0x400000;
-    }
+    chip->va9_in = (chip->ext_vaddress_in & 0x100) != 0;
 
-    chip->w284 = (chip->ext_vaddress_in & 0x80) != 0;
+    chip->va10_in = (chip->ext_vaddress_in & 0x200) != 0;
 
-    chip->w278 = (chip->ext_vaddress_in & 0x100) != 0;
+    chip->va11_in = (chip->ext_vaddress_in & 0x400) != 0;
 
-    chip->w345 = (chip->ext_vaddress_in & 0x200) != 0;
+    chip->va12_in = (chip->ext_vaddress_in & 0x800) != 0;
 
-    chip->w281 = (chip->ext_vaddress_in & 0x400) != 0;
+    chip->va13_in = (chip->ext_vaddress_in & 0x1000) != 0;
 
-    chip->w265 = (chip->ext_vaddress_in & 0x800) != 0;
+    chip->va14_in = (chip->ext_vaddress_in & 0x2000) != 0;
 
-    chip->w276 = (chip->ext_vaddress_in & 0x1000) != 0;
+    chip->va15_in = (chip->ext_vaddress_in & 0x4000) != 0;
 
-    chip->w280 = (chip->ext_vaddress_in & 0x2000) != 0;
+    chip->va16_in = (chip->ext_vaddress_in & 0x8000) != 0;
 
-    chip->w277 = (chip->ext_vaddress_in & 0x4000) != 0;
+    chip->va17_in = (chip->ext_vaddress_in & 0x10000) != 0;
 
-    chip->w145 = (chip->ext_vaddress_in & 0x8000) != 0;
+    chip->va18_in = (chip->ext_vaddress_in & 0x20000) != 0;
 
-    chip->w275 = (chip->ext_vaddress_in & 0x10000) != 0;
+    chip->va19_in = (chip->ext_vaddress_in & 0x40000) != 0;
 
-    chip->w261 = (chip->ext_vaddress_in & 0x20000) != 0;
+    chip->va20_in = (chip->ext_vaddress_in & 0x80000) != 0;
 
-    chip->w303 = (chip->ext_vaddress_in & 0x40000) != 0;
+    chip->va21_in = (chip->ext_vaddress_in & 0x100000) != 0;
 
-    chip->w327 = (chip->ext_vaddress_in & 0x80000) != 0;
+    chip->va22_in = (chip->ext_vaddress_in & 0x200000) != 0;
 
-    chip->w306 = (chip->ext_vaddress_in & 0x100000) != 0;
-
-    chip->w324 = (chip->ext_vaddress_in & 0x200000) != 0;
-
-    chip->w373 = (chip->ext_vaddress_in & 0x400000) != 0;
+    chip->va23_in = (chip->ext_vaddress_in & 0x400000) != 0;
 
     chip->ext_zaddress_out &= ~128;
     if (chip->w31)
@@ -991,7 +708,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~256;
-        if (chip->w284)
+        if (chip->va8_in)
             chip->ext_zaddress_out |= 256;
     }
 
@@ -999,7 +716,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~512;
-        if (chip->w278)
+        if (chip->va9_in)
             chip->ext_zaddress_out |= 512;
     }
 
@@ -1007,7 +724,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~1024;
-        if (chip->w345)
+        if (chip->va10_in)
             chip->ext_zaddress_out |= 1024;
     }
 
@@ -1015,7 +732,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~2048;
-        if (chip->w281)
+        if (chip->va11_in)
             chip->ext_zaddress_out |= 2048;
     }
 
@@ -1023,14 +740,14 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~4096;
-        if (chip->w265)
+        if (chip->va12_in)
             chip->ext_zaddress_out |= 4096;
     }
     // ts6
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~8192;
-        if (chip->w276)
+        if (chip->va13_in)
             chip->ext_zaddress_out |= 8192;
     }
 
@@ -1038,7 +755,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
     {
         chip->ext_zaddress_out &= ~16384;
-        if (chip->w280)
+        if (chip->va14_in)
             chip->ext_zaddress_out |= 16384;
     }
 
@@ -1046,14 +763,66 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     if (!chip->w60)
         chip->ext_zaddress_out &= ~32768;
 
-    chip->w30 = (chip->ext_zaddress_in & 256) != 0;
-    chip->w29 = (chip->ext_zaddress_in & 512) != 0;
-    chip->w28 = (chip->ext_zaddress_in & 1024) != 0;
-    chip->w39 = (chip->ext_zaddress_in & 2048) != 0;
-    chip->w37 = (chip->ext_zaddress_in & 4096) != 0;
-    chip->w67 = (chip->ext_zaddress_in & 8192) != 0;
-    chip->w61 = (chip->ext_zaddress_in & 16384) != 0;
-    chip->w62 = (chip->ext_zaddress_in & 32768) != 0;
+    chip->za7_in = (chip->ext_zaddress_in & 128) != 0;
+    chip->za8_in = (chip->ext_zaddress_in & 256) != 0;
+    chip->za9_in = (chip->ext_zaddress_in & 512) != 0;
+    chip->za10_in = (chip->ext_zaddress_in & 1024) != 0;
+    chip->za11_in = (chip->ext_zaddress_in & 2048) != 0;
+    chip->za12_in = (chip->ext_zaddress_in & 4096) != 0;
+    chip->za13_in = (chip->ext_zaddress_in & 8192) != 0;
+    chip->za14_in = (chip->ext_zaddress_in & 16384) != 0;
+    chip->za15_in = (chip->ext_zaddress_in & 32768) != 0;
+
+
+    SDFFR_Update(&chip->z80bank, chip->w150, ((chip->z80bank.l2 & 0x1ff) >> 1) | ((chip->tm_w1 & 1) << 8), chip->w189);
+    if (chip->w367) // MD
+    {
+        chip->va_out = (chip->ext_zaddress_in & 0x7f00) >> 8;
+        if (chip->w86)
+            chip->va_out |= (chip->z80bank.l2 & 0x1ff) << 7;
+        else
+            chip->va_out |= 0xc000;
+    }
+    else // M3
+    {
+        chip->va_out = (chip->ext_zaddress_in & 0xff80) >> 7;
+        if (chip->w215)
+            chip->va_out |= 0x200;
+        if (chip->w82)
+            chip->va_out |= 0x400;
+        if (chip->w191)
+            chip->va_out |= 0x800;
+        if (chip->w166)
+            chip->va_out |= 0x1000;
+    }
+    if (!chip->w86)
+        chip->va_out &= ~0xff;
+
+    chip->w91 = (chip->ext_vaddress_in & 0x180) == 0;
+    chip->w99 = (chip->ext_vaddress_in & 0x180) == 0x80;
+    chip->w90 = (chip->ext_vaddress_in & 0x180) == 0x100;
+    chip->w92 = (chip->ext_vaddress_in & 0x180) == 0x180;
+
+    chip->w194 = chip->w267 || chip->w282 || chip->w186 || (chip->ext_vaddress_in & 0x7fff80) != 0x50a000; // TMSS
+    chip->w310 = !((chip->ext_vaddress_in & 0x7fff80) == 0x600000 && !chip->w267); // VDP range
+
+    chip->w119 = !(chip->w367 && (chip->ext_vaddress_in & 0x7f8000) == 0x500000); // z80 ram
+
+    chip->w128 = !(chip->w367 && (chip->ext_vaddress_in & 0x7fff80) == 0x508000); // IO chip
+
+    chip->w122 = !(chip->w367 && (chip->ext_vaddress_in & 0x7ffe00) == 0x508800); // Z80 ctrl
+
+    chip->w129 = !(chip->w367 && (chip->ext_vaddress_in & 0x7fff80) == 0x509000); // FDC
+
+    chip->w124 = !(chip->w367 && (chip->ext_vaddress_in & 0x7fff80) == 0x509800); // TIME
+
+    chip->w136 = !((chip->ext_zaddress_in & 0xc000) == 0 && !chip->w220 && chip->w367); // Z80 RAM
+
+    chip->w140 = !((chip->ext_zaddress_in & 0xe000) == 0x4000 && !chip->w220 && chip->w367); // YM3438
+
+    chip->w150 = !(chip->w367 && (chip->ext_zaddress_in & 0xff00) == 0x6000 && !chip->w114 && !chip->w220); // z80 bank
+
+    chip->w86 = !((chip->ext_zaddress_in & 0xff00) == 0x7f00 && chip->w367); // VDP
 }
 
 int main()
