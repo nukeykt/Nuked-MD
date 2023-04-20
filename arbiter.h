@@ -18,7 +18,7 @@ typedef struct {
     int w7;
     int w8;
     int w9;
-    sdffr2_t dff8;
+    sdffs_t dff8;
     int w10;
     int w11;
     sdffr_t dff9;
@@ -44,7 +44,7 @@ typedef struct {
     int w36;
     sdffr_t dff14;
     int w38;
-    sdffr2_t dff15;
+    sdffs_t dff15;
     int w40;
     int w41;
     int w42;
@@ -56,7 +56,7 @@ typedef struct {
     int w47;
     int w48;
     int w49;
-    sdffr2_t dff17;
+    sdffs_t dff17;
     int w50;
     sdff_t dff18;
     int w51;
@@ -74,12 +74,12 @@ typedef struct {
     int w65;
     int w66;
     int w68;
-    sdffr2_t dff19;
+    sdffs_t dff19;
     int w69;
     int w70;
     int w71;
     int w72;
-    sdffr2_t dff20;
+    sdffs_t dff20;
     int w73;
     int w74;
     int w75;
@@ -109,7 +109,6 @@ typedef struct {
     int w97;
     int w98;
     int w99;
-    int w100;
     int w101;
     int w102;
     int w103;
@@ -186,7 +185,7 @@ typedef struct {
     int w178;
     int w182;
     sdff_t dff32;
-    sdffr2_t dff33;
+    sdffs_t dff33;
     int w183;
     int w184;
     int w185;
@@ -231,7 +230,6 @@ typedef struct {
     int w229;
     int w230;
     sdff_t dff44;
-    int w231;
     int w232;
     int w234;
     int w235;
@@ -257,11 +255,11 @@ typedef struct {
     int w267;
     int w268;
     int w269;
-    sdffr2_t dff45;
+    sdffs_t dff45;
     int w270;
-    sdffr2_t dff46;
+    sdffs_t dff46;
     int w271;
-    sdffr2_t dff47;
+    sdffs_t dff47;
     int w272;
     int w273;
     int w274;
@@ -314,7 +312,7 @@ typedef struct {
     int w323;
     int w325;
     int w326;
-    sdffr2_t dff56;
+    sdffs_t dff56;
     sdffr_t dff57;
     sdffr_t dff58;
     sdff_t dff59;

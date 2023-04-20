@@ -22,7 +22,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w8 = chip->w38;
     chip->w9 = chip->w25; // FIXME: delay?
 
-    SDFFR2_Update(&chip->dff8, chip->w2, chip->w5, chip->w8);
+    SDFFS_Update(&chip->dff8, chip->w2, chip->w5, chip->w8);
 
     chip->w10 = !(chip->w11 || (0 && chip->dff9.l2));
     chip->w11 = !(!chip->w27 || chip->dff9.l2);
@@ -72,7 +72,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w38 = chip->tm_w1;
 
-    SDFFR2_Update(&chip->dff15, chip->ext_vclk, chip->w40, chip->w73);
+    SDFFS_Update(&chip->dff15, chip->ext_vclk, chip->w40, chip->w73);
 
     chip->w40 = chip->w26 && chip->w83;
 
@@ -94,7 +94,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w49 = chip->dff17.o2;
 
-    SDFFR2_Update(&chip->dff17, chip->ext_vclk, chip->w58, chip->w73);
+    SDFFS_Update(&chip->dff17, chip->ext_vclk, chip->w58, chip->w73);
 
     chip->w50 = chip->w77 || chip->tm_w2;
 
@@ -130,7 +130,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w68 = !(chip->w56 || chip->w163);
 
-    SDFFR2_Update(&chip->dff19, !chip->ext_vclk, chip->w71, chip->w73);
+    SDFFS_Update(&chip->dff19, !chip->ext_vclk, chip->w71, chip->w73);
 
     chip->w69 = !(chip->w44 || chip->dff12.l1);
 
@@ -140,7 +140,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w72 = chip->dff15.o1 || chip->w43;
 
-    SDFFR2_Update(&chip->dff20, !chip->ext_vclk, chip->w74, chip->w73);
+    SDFFS_Update(&chip->dff20, !chip->ext_vclk, chip->w74, chip->w73);
 
     chip->w73 = chip->dff32.l2 && chip->w367;
 
@@ -262,7 +262,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w164 = !(chip->w34 && chip->w166);
 
-    chip->w166 = chip->w367 ? chip->dff31.l2 : chip->w328;
+    chip->w166 = chip->w367 ? chip->dff31.l2 : chip->w328; // Z80 reset
 
     chip->w167 = chip->w170 && chip->w202;
 
@@ -295,7 +295,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     SDFF_Update(&chip->dff32, chip->ext_vclk, chip->w38);
 
-    SDFFR2_Update(&chip->dff33, chip->ext_vclk, chip->w283, chip->dff32.l2);
+    SDFFS_Update(&chip->dff33, chip->ext_vclk, chip->w283, chip->dff32.l2);
 
     chip->w183 = !(chip->dff33.o2 || chip->dff23.l2 || chip->w356 || chip->w259);
 
@@ -352,7 +352,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w223 = chip->w48 || chip->w259 || !chip->w367;
 
-    chip->w226 = chip->w166;
+    chip->w226 = chip->w166; // Z80 reset
 
     chip->w228 = chip->va22_in ^ chip->tm_w2;
 
@@ -392,13 +392,13 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w269 = chip->dff45.o2 && chip->va23_in && chip->w274;
 
-    SDFFR2_Update(&chip->dff45, chip->w274, chip->va23_in, !chip->w223);
+    SDFFS_Update(&chip->dff45, chip->w274, chip->va23_in, !chip->w223);
 
-    SDFFR2_Update(&chip->dff46, chip->w274, chip->dff46.o1, chip->w298);
+    SDFFS_Update(&chip->dff46, chip->w274, chip->dff46.o1, chip->w298);
 
     chip->w271 = chip->dff46.o2 || chip->tm_w1;
 
-    SDFFR2_Update(&chip->dff47, !chip->ext_vclk, chip->w273, chip->w164);
+    SDFFS_Update(&chip->dff47, !chip->ext_vclk, chip->w273, chip->w164);
 
     chip->w272 = !(chip->dff47.o2 || chip->w267);
 
@@ -493,7 +493,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     chip->w326 = chip->w321 || chip->w325;
 
-    SDFFR2_Update(&chip->dff56, chip->dff74.l2, chip->va23_in, chip->w332);
+    SDFFS_Update(&chip->dff56, chip->dff74.l2, chip->va23_in, chip->w332);
 
     SDFFR_Update(&chip->dff57, chip->dff74.l2, chip->w288, chip->w288);
 
@@ -668,14 +668,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
         chip->ext_zaddress_out = (chip->ext_vaddress_in << 1) & 0x7f00;
     }
 
-    chip->za7_in = (chip->ext_zaddress_in & 128) != 0;
-    chip->za8_in = (chip->ext_zaddress_in & 256) != 0;
-    chip->za9_in = (chip->ext_zaddress_in & 512) != 0;
-    chip->za10_in = (chip->ext_zaddress_in & 1024) != 0;
-    chip->za11_in = (chip->ext_zaddress_in & 2048) != 0;
-    chip->za12_in = (chip->ext_zaddress_in & 4096) != 0;
-    chip->za13_in = (chip->ext_zaddress_in & 8192) != 0;
-    chip->za14_in = (chip->ext_zaddress_in & 16384) != 0;
     chip->za15_in = (chip->ext_zaddress_in & 32768) != 0;
 
 

@@ -59,62 +59,108 @@ static inline void SDFF_Update(sdff_t *dff, int clk, int val)
 typedef struct {
     int l1;
     int l2;
-    int o1;
-    int o2;
-} sdffr2_t;
+    int nq;
+    int q;
+} sdffs_t;
 
 
-static inline void SDFFR2_Update(sdffr2_t *dff, int clk, int val, int reset)
+static inline void SDFFS_Update(sdffs_t *dff, int clk, int val, int set)
 {
-    int bit;
     if (!clk)
     {
         dff->l1 = val;
     }
-    else if (!reset)
+    else if (!set)
     {
         dff->l1 = 1;
     }
-    if (clk)
+    if (!set)
     {
-        dff->l2 = !dff->l1;
-        bit = dff->l2;
-        if (!reset)
-            bit = 0;
+        dff->l2 = 1;
     }
-    else
+    else if (clk)
     {
-        if (!reset)
-            dff->l2 = 0;
-        bit = dff->l2;
+        dff->l2 = dff->l1;
     }
-    dff->o1 = bit;
-    dff->o2 = !dff->l2;
+    dff->nq = !dff->l2;
+    dff->q = dff->l2;
 }
 
 typedef struct {
     int l1;
     int l2;
+    int nq;
+    int q;
 } sdffr_t;
 
 
 static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
 {
-    if (!clk)
-    {
-        dff->l1 = val;
-    }
-    else if (!reset)
+    if (!reset)
     {
         dff->l1 = 0;
     }
-    if (clk)
+    else if (!clk)
+    {
+        dff->l1 = val;
+    }
+    if (!reset)
+    {
+        dff->l2 = 0;
+    }
+    else if (clk)
     {
         dff->l2 = dff->l1;
+    }
+    dff->nq = !dff->l2;
+    dff->q = dff->l2;
+}
+
+typedef struct {
+    int l1;
+    int l2;
+    int nq;
+    int q;
+} sdffsr_t;
+
+
+static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int reset)
+{
+    if (!reset)
+    {
+        dff->l1 = 0;
+    }
+    else if (!set)
+    {
+        dff->l1 = 1;
+    }
+    else if (!clk)
+    {
+        dff->l1 = val;
+    }
+
+    if (!set)
+    {
+        dff->l2 = 1;
     }
     else if (!reset)
     {
         dff->l2 = 0;
+    }
+    else if (clk)
+    {
+        dff->l2 = dff->l1;
+    }
+
+    if (!set && !reset)
+    {
+        dff->q = 0;
+        dff->nq = 0;
+    }
+    else
+    {
+        dff->q = dff->l2;
+        dff->nq = !dff->l2;
     }
 }
 
