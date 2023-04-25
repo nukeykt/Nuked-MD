@@ -4,7 +4,7 @@
 
 typedef struct {
     sdffr_t dff1;
-    sdffr2_t dff2;
+    sdffs_t dff2;
     int w1;
     int w2;
     int w3;

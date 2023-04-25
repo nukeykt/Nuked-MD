@@ -38,6 +38,31 @@ static inline void SCNT_Update(staticcnt_t* scnt, int clk, int load, int val, in
     }
 }
 
+static inline void SCNT_UpdateWide(staticcnt_t* scnt, int clk, int load, int val, int cin, int reset, int mask, int bits)
+{
+    int sum = scnt->l2 + cin;
+    scnt->cout = (sum >> bits) & 1;
+    if (!reset)
+    {
+        scnt->l1 = 0;
+        scnt->l2 = 0;
+        return;
+    }
+    if (!clk)
+    {
+        int bit;
+        if (!load)
+            bit = val;
+        else
+            bit = sum & mask;
+        scnt->l1 = bit;
+    }
+    else
+    {
+        scnt->l2 = scnt->l1;
+    }
+}
+
 typedef struct {
     int l1;
     int l2;
@@ -86,6 +111,28 @@ static inline void SDFFS_Update(sdffs_t *dff, int clk, int val, int set)
     dff->q = dff->l2;
 }
 
+static inline void SDFFS_UpdateWide(sdffs_t* dff, int clk, int val, int set, int mask)
+{
+    if (!clk)
+    {
+        dff->l1 = val;
+    }
+    else if (!set)
+    {
+        dff->l1 = mask;
+    }
+    if (!set)
+    {
+        dff->l2 = mask;
+    }
+    else if (clk)
+    {
+        dff->l2 = dff->l1;
+    }
+    dff->nq = dff->l2 ^ mask;
+    dff->q = dff->l2;
+}
+
 typedef struct {
     int l1;
     int l2;
@@ -113,6 +160,29 @@ static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
         dff->l2 = dff->l1;
     }
     dff->nq = !dff->l2;
+    dff->q = dff->l2;
+}
+
+
+static inline void SDFFR_UpdateWide(sdffr_t* dff, int clk, int val, int reset, int mask)
+{
+    if (!reset)
+    {
+        dff->l1 = 0;
+    }
+    else if (!clk)
+    {
+        dff->l1 = val;
+    }
+    if (!reset)
+    {
+        dff->l2 = 0;
+    }
+    else if (clk)
+    {
+        dff->l2 = dff->l1;
+    }
+    dff->nq = dff->l2 ^ mask;
     dff->q = dff->l2;
 }
 

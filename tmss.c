@@ -3,7 +3,7 @@
 void TMSS_Clock(tmss_t *chip)
 {
     SDFFR_Update(&chip->dff1, chip->w40, chip->w3, chip->w27);
-    SDFFR2_Update(&chip->dff2, chip->w10, chip->dff1.l2, chip->w27);
+    SDFFS_Update(&chip->dff2, chip->w10, chip->dff1.l2, chip->w27);
 
     chip->w1 = !(chip->tm_w1 && chip->tm_w2);
     chip->w2 = !(chip->w1 || chip->w67);
