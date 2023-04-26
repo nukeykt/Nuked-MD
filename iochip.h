@@ -38,6 +38,9 @@ typedef struct {
     sdffr_t rx_shifter;
     sdffr_t rx_data;
 
+    int irq_b6;
+    int irq_uart;
+
     int uart_clk1;
     int uart_clk2;
 
@@ -83,6 +86,34 @@ typedef struct {
     int ext_fres;
     int ext_vclk;
     int ext_ntsc;
+    int ext_disk;
+    int ext_jap;
+    int ext_zaddress_in;
+    int ext_zdata_in;
+    int ext_vaddress_in;
+    int ext_vdata_in;
+    int ext_lwr;
+    int address;
+    int ztov_address;
+    int read_address;
+    int read_data;
+    int port_a_d;
+    int port_b_d;
+    int port_a_o;
+    int port_b_o;
+    int vsel;
+    int vread;
+    int vread_high;
+    int vwrite;
+    int vwrite_low;
+    int vwrite_high;
+    int zwrite_sel;
+    int zread_sel;
+    int zaccess;
+    int zwrite0;
+    int zwrite1;
+    sdffr_t reg_3e;
+    sdffs_t reg_3f;
 
     int tm_w1;
     int tm_w2;

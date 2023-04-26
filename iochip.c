@@ -6,15 +6,13 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 {
     int i1, i2, i3, i4, i5;
     int j;
-    if (chip->tm_w1)
-        port->tx_data = chip->data_bus;
 
-    SDFFR_UpdateWide(&port->p_control, port->write_p_control, chip->data_bus, chip->tm_w2, 255);
+    SDFFR_UpdateWide(&port->p_control, port->write_p_control, chip->data_bus, chip->reset && chip->ext_m3, 255);
 
     port->port_d = (port->p_control.q & 127) ^ 127;
-    if (!chip->tm_w1)
+    if (port->s_control.q & 2)
         port->port_d &= ~16;
-    if (chip->tm_w1)
+    if (port->s_control.q & 4)
         port->port_d |= 32;
 
     SDFFR_UpdateWide(&port->p_data, port->write_p_data, chip->data_bus, 1, 255);
@@ -25,7 +23,7 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
     else
         port->port_o |= port->tx_bit.l2 << 4;
 
-    SDFFR_UpdateWide(&port->s_control, port->write_s_control, chip->data_bus >> 3, chip->tm_w1, 31);
+    SDFFR_UpdateWide(&port->s_control, port->write_s_control, chip->data_bus >> 3, chip->reset && chip->ext_m3, 31);
 
     if (!port->write_tx_data)
         port->tx_data = chip->data_bus;
@@ -88,10 +86,7 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 
     SDFFS_Update(&port->rx_input_bit, port->uart_clk1, (port->port_i & 32) != 0, (port->s_control.q & 4) != 0);
 
-    SDFFR_Update(&port->rx_ready, chip->tm_w1, 1, chip->reset && port->read_rx_data);
-    SDFFR_Update(&port->rx_error, chip->tm_w1, port->rx_input_bit.nq, chip->reset && port->read_rx_data);
-
-    j = !(port->rx_fsm1_1.nq || !chip->tm_w1 || port->rx_input_bit.q);
+    j = !(port->rx_fsm1_1.nq || !(port->rx_fsm2_1.nq && port->rx_fsm2_4.nq) || port->rx_input_bit.q);
     i1 = !((port->rx_fsm1_2.q || j) && (port->rx_fsm1_1.nq || j));
     i2 = (port->rx_fsm1_4.nq && port->rx_fsm1_5.q && port->rx_fsm1_3.nq && !port->rx_fsm1_2.q)
         || (port->rx_fsm1_2.q && port->rx_fsm1_3.q)
@@ -140,7 +135,13 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 
     SDFFR_UpdateWide(&port->rx_shifter, port->rx_clk, ((port->rx_shifter.q << 1) | port->rx_input_bit.q) & 255,
         (port->s_control.q & 4) != 0, 255);
-    SDFFR_UpdateWide(&port->rx_data, chip->tm_w1, port->rx_shifter.q, 1, 255); // FIXME: delay chain?
+
+    SDFFR_Update(&port->rx_ready, port->rx_clk2, 1, chip->reset && port->read_rx_data);
+    SDFFR_Update(&port->rx_error, port->rx_clk2, port->rx_input_bit.nq, chip->reset && port->read_rx_data);
+    SDFFR_UpdateWide(&port->rx_data, port->rx_clk2, port->rx_shifter.q, 1, 255); // FIXME: delay chain?
+
+    port->irq_b6 = (port->port_i & 64) == 0 && (port->p_control.q & 128) != 0;
+    port->irq_uart = port->rx_ready.q && (port->s_control.q & 1) != 0;
 }
 
 void IOC_Clock(iochip_t *chip)
@@ -169,9 +170,219 @@ void IOC_Clock(iochip_t *chip)
     SDFFR_Update(&chip->uart_clk_div[6], !chip->uart_clk_div[5].q, chip->uart_clk_div[6].nq, chip->reset);
     SDFFR_Update(&chip->uart_clk_div[7], !chip->uart_clk_div[6].q, chip->uart_clk_div[7].nq, chip->reset);
 
+    chip->address = chip->ext_m3 ? (chip->ext_vaddress_in & 127) : (chip->ext_zaddress_in & 255);
+    chip->ztov_address = chip->ext_m3 ? ((chip->ext_zaddress_in >> 1) & 127) : (chip->ext_zaddress_in & 127);
+
+    if (chip->ext_m3)
+        chip->read_address = chip->address & 15;
+    else
+        chip->read_address = (chip->address & 1) ? 2 : 1;
+
+    chip->data_bus = chip->ext_m3 ? (chip->ext_vdata_in & 255) : (chip->ext_zdata_in & 255);
+
+    switch (chip->read_address)
+    {
+        case 0:
+            if (chip->ext_test)
+            {
+                chip->read_data = 0;
+                if (chip->port_a.uart_clk1)
+                    chip->read_data |= 1;
+                if (chip->port_a.uart_clk2)
+                    chip->read_data |= 2;
+                if (chip->port_b.uart_clk1)
+                    chip->read_data |= 4;
+                if (chip->port_b.uart_clk2)
+                    chip->read_data |= 8;
+                if (chip->port_c.uart_clk1)
+                    chip->read_data |= 16;
+                if (chip->port_c.uart_clk2)
+                    chip->read_data |= 32;
+                if (chip->uart_clk)
+                    chip->read_data |= 64;
+            }
+            else
+            {
+                chip->read_data = 1;
+                if (chip->ext_disk)
+                    chip->read_data |= 32;
+                if (chip->pal)
+                    chip->read_data |= 64;
+            }
+            if (chip->ext_jap)
+                chip->read_data |= 128;
+            break;
+        case 1:
+            chip->read_data = chip->port_a.port_i & 15;
+            if (chip->ext_m3)
+            {
+                chip->read_data |= chip->port_a.port_i & 112;
+                if (chip->port_a.p_data.q & 128)
+                    chip->read_data |= 128;
+            }
+            else
+            {
+                chip->read_data |= chip->port_a.port_i & 16;
+                int dir_a = (chip->port_a_d >> 5) & 3;
+                if (chip->ext_jap)
+                    dir_a = 3;
+                if ((dir_a & 1) != 0 && (chip->port_a.port_i & 32) != 0)
+                    chip->read_data |= 32;
+                chip->read_data |= (chip->port_b.port_i << 6) & 192;
+            }
+            break;
+        case 2:
+            if (chip->ext_m3)
+            {
+                chip->read_data = chip->port_b.port_i & 127;
+                if (chip->port_b.p_data.q & 128)
+                    chip->read_data |= 128;
+            }
+            else
+            {
+                chip->read_data = 16;
+                chip->read_data |= (chip->port_b.port_i & 28) >> 2;
+                int dir_a = (chip->port_a_d >> 5) & 3;
+                int dir_b = (chip->port_b_d >> 5) & 3;
+                if (chip->ext_jap)
+                    dir_a = dir_b = 3;
+                if ((dir_b & 1) != 0 && (chip->port_b.port_i & 32) != 0)
+                    chip->read_data |= 8;
+                if ((dir_a & 2) != 0 && (chip->port_a.port_i & 64) != 0)
+                    chip->read_data |= 64;
+                if ((dir_b & 2) != 0 && (chip->port_b.port_i & 64) != 0)
+                    chip->read_data |= 128;
+            }
+            break;
+        case 3:
+            chip->read_data = chip->port_c.port_i & 127;
+            if (chip->port_c.p_data.q & 128)
+                chip->read_data |= 128;
+            break;
+        case 4:
+            chip->read_data = chip->port_a.p_control.q & 255;
+            break;
+        case 5:
+            chip->read_data = chip->port_b.p_control.q & 255;
+            break;
+        case 6:
+            chip->read_data = chip->port_c.p_control.q & 255;
+            break;
+        case 7:
+            chip->read_data = chip->port_a.tx_data;
+            break;
+        case 8:
+            chip->read_data = chip->port_a.rx_data.q;
+            break;
+        case 9:
+            chip->read_data = (chip->port_a.s_control.q << 3) & 248;
+            if (chip->port_a.tx_state1.q)
+                chip->read_data |= 1;
+            if (chip->port_a.rx_ready.q)
+                chip->read_data |= 2;
+            if (chip->port_a.rx_error.q)
+                chip->read_data |= 4;
+            break;
+        case 10:
+            chip->read_data = chip->port_b.tx_data;
+            break;
+        case 11:
+            chip->read_data = chip->port_b.rx_data.q;
+            break;
+        case 12:
+            chip->read_data = (chip->port_b.s_control.q << 3) & 248;
+            if (chip->port_b.tx_state1.q)
+                chip->read_data |= 1;
+            if (chip->port_b.rx_ready.q)
+                chip->read_data |= 2;
+            if (chip->port_b.rx_error.q)
+                chip->read_data |= 4;
+            break;
+        case 13:
+            chip->read_data = chip->port_c.tx_data;
+            break;
+        case 14:
+            chip->read_data = chip->port_c.rx_data.q;
+            break;
+        case 15:
+            chip->read_data = (chip->port_c.s_control.q << 3) & 248;
+            if (chip->port_c.tx_state1.q)
+                chip->read_data |= 1;
+            if (chip->port_c.rx_ready.q)
+                chip->read_data |= 2;
+            if (chip->port_c.rx_error.q)
+                chip->read_data |= 4;
+            break;
+    }
+
+    chip->vread = chip->ext_cas0 && chip->ext_io;
+    chip->vwrite = chip->ext_lwr || chip->ext_io;
+    chip->vsel = !(chip->ext_m3 && (chip->address & 0xf0) == 0);
+    chip->vread_high = !chip->vsel && (chip->address & 16) != 0 && !chip->vread;
+    chip->vwrite_low = !chip->vsel && (chip->address & 16) == 0 && !chip->vwrite;
+    chip->vwrite_high = !chip->vsel && (chip->address & 16) != 0 && !chip->vwrite;
+
+    chip->zwrite_sel = !((chip->address & 0xfe) == 0x3e && !chip->ext_m3 && !chip->vwrite);
+    chip->zread_sel = !((chip->address & 0xe2) == 0xc0
+        && ((chip->address & 0x1c) == 0 || (chip->address & 0x1c) == 0x1c) && !chip->ext_m3);
+    chip->zaccess = chip->zwrite_sel && chip->zread_sel;
+
+    chip->zwrite0 = chip->zread_sel || (chip->address & 1) != 0;
+    chip->zwrite1 = chip->zread_sel || (chip->address & 1) == 0;
+
+    chip->port_a.read_rx_data = !(chip->vread_high && (chip->address & 7) == 0);
+    chip->port_b.read_rx_data = !(chip->vread_high && (chip->address & 7) == 3);
+    chip->port_c.read_rx_data = !(chip->vread_high && (chip->address & 7) == 6);
+    chip->port_a.write_p_data = !(chip->vwrite_low && (chip->address & 7) == 1);
+    chip->port_b.write_p_data = !(chip->vwrite_low && (chip->address & 7) == 2);
+    chip->port_c.write_p_data = !(chip->vwrite_low && (chip->address & 7) == 3);
+    chip->port_a.write_p_control = !(chip->vwrite_low && (chip->address & 7) == 4);
+    chip->port_b.write_p_control = !(chip->vwrite_low && (chip->address & 7) == 5);
+    chip->port_c.write_p_control = !(chip->vwrite_low && (chip->address & 7) == 6);
+    chip->port_a.write_tx_data = !(chip->vwrite_low && (chip->address & 7) == 7);
+    chip->port_a.write_s_control = !(chip->vwrite_high && (chip->address & 7) == 1);
+    chip->port_b.write_tx_data = !(chip->vwrite_high && (chip->address & 7) == 2);
+    chip->port_b.write_s_control = !(chip->vwrite_high && (chip->address & 7) == 4);
+    chip->port_c.write_tx_data = !(chip->vwrite_high && (chip->address & 7) == 5);
+    chip->port_c.write_s_control = !(chip->vwrite_high && (chip->address & 7) == 7);
+
+    SDFFR_Update(&chip->reg_3e, chip->zwrite0, (chip->data_bus & 16) != 0, chip->reset);
+    SDFFS_UpdateWide(&chip->reg_3f, chip->zwrite1, chip->data_bus, chip->reset, 255);
+
     IOC_Clock_Port(chip, &chip->port_a, 0);
     IOC_Clock_Port(chip, &chip->port_b, 1);
     IOC_Clock_Port(chip, &chip->port_c, 2);
+
+    if (chip->ext_m3)
+    {
+        chip->port_a_d = chip->port_a.port_d;
+        chip->port_a_o = chip->port_a.port_o;
+        chip->port_b_d = chip->port_b.port_d;
+        chip->port_b_o = chip->port_b.port_o;
+    }
+    else
+    {
+        chip->port_a_d = chip->port_a.port_d & 31;
+        chip->port_a_o = chip->port_a.port_o & 31;
+        chip->port_b_d = chip->port_b.port_d & 31;
+        chip->port_b_o = chip->port_b.port_o & 31;
+        if (chip->reg_3f.q & 1)
+            chip->port_a_d |= 32;
+        if (chip->reg_3f.q & 2)
+            chip->port_a_d |= 64;
+        if (chip->reg_3f.q & 4)
+            chip->port_b_d |= 32;
+        if (chip->reg_3f.q & 8)
+            chip->port_b_d |= 64;
+        if (chip->reg_3f.q & 16)
+            chip->port_a_o |= 32;
+        if (chip->reg_3f.q & 32)
+            chip->port_a_o |= 64;
+        if (chip->reg_3f.q & 64)
+            chip->port_b_o |= 32;
+        if (chip->reg_3f.q & 128)
+            chip->port_b_o |= 64;
+    }
 }
 
 iochip_t io;
