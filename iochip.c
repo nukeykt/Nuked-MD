@@ -5,6 +5,7 @@
 void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 {
     int i1, i2, i3, i4, i5;
+    int j;
     if (chip->tm_w1)
         port->tx_data = chip->data_bus;
 
@@ -49,11 +50,11 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
             break;
     }
 
-    SDFFR_UpdateWide(&port->tx_shifter, chip->uart_clk2,
+    SDFFR_UpdateWide(&port->tx_shifter, port->uart_clk2,
         port->tx_step ? (port->tx_shifter.q >> 1) & 63 : (port->tx_data ^ 255),
         (port->s_control.q & 2) != 0, 255);
 
-    SDFFS_Update(&port->tx_bit, chip->uart_clk2, !(port->tx_shifter.q & 1) && port->tx_step,
+    SDFFS_Update(&port->tx_bit, port->uart_clk2, !(port->tx_shifter.q & 1) && port->tx_step,
         (port->s_control.q & 2) != 0);
 
     i1 = (port->tx_fsm4.q && port->tx_fsm1.nq)
@@ -71,11 +72,11 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
         || (port->tx_fsm4.q && port->tx_fsm2.q);
     i5 = !(port->tx_fsm1.nq && port->tx_fsm2.nq && port->tx_fsm3.nq && port->tx_fsm3.q);
 
-    SDFFR_Update(&port->tx_fsm1, chip->uart_clk2, i1, chip->reset);
-    SDFFR_Update(&port->tx_fsm2, chip->uart_clk2, i2, chip->reset);
-    SDFFR_Update(&port->tx_fsm3, chip->uart_clk2, i3, chip->reset);
-    SDFFR_Update(&port->tx_fsm4, chip->uart_clk2, i4, chip->reset);
-    SDFFS_Update(&port->tx_fsm5, chip->uart_clk2, i5, chip->reset);
+    SDFFR_Update(&port->tx_fsm1, port->uart_clk2, i1, chip->reset);
+    SDFFR_Update(&port->tx_fsm2, port->uart_clk2, i2, chip->reset);
+    SDFFR_Update(&port->tx_fsm3, port->uart_clk2, i3, chip->reset);
+    SDFFR_Update(&port->tx_fsm4, port->uart_clk2, i4, chip->reset);
+    SDFFS_Update(&port->tx_fsm5, port->uart_clk2, i5, chip->reset);
 
     port->tx_step = !(port->tx_state2_l.l2 && port->tx_fsm1.nq && port->tx_fsm2.nq && port->tx_fsm3.nq && port->tx_fsm4.nq);
 
@@ -83,6 +84,63 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
     SDFFSR_Update(&port->tx_state2, port->tx_fsm5.q, 0, port->tx_state1.nq, chip->reset);
 
     SDFF_Update(&port->tx_state2_l, port->uart_clk1, port->tx_state2.q);
+
+
+    SDFFS_Update(&port->rx_input_bit, port->uart_clk1, (port->port_i & 32) != 0, (port->s_control.q & 4) != 0);
+
+    SDFFR_Update(&port->rx_ready, chip->tm_w1, 1, chip->reset && port->read_rx_data);
+    SDFFR_Update(&port->rx_error, chip->tm_w1, port->rx_input_bit.nq, chip->reset && port->read_rx_data);
+
+    j = !(port->rx_fsm1_1.nq || !chip->tm_w1 || port->rx_input_bit.q);
+    i1 = !((port->rx_fsm1_2.q || j) && (port->rx_fsm1_1.nq || j));
+    i2 = (port->rx_fsm1_4.nq && port->rx_fsm1_5.q && port->rx_fsm1_3.nq && !port->rx_fsm1_2.q)
+        || (port->rx_fsm1_2.q && port->rx_fsm1_3.q)
+        || (port->rx_fsm1_2.q && port->rx_fsm1_5.nq)
+        || (port->rx_fsm1_2.q && port->rx_fsm1_4.q)
+        || j;
+    i3 = j
+        || (port->rx_fsm1_3.q && port->rx_fsm1_4.q)
+        || (port->rx_fsm1_4.nq && port->rx_fsm1_5.q && port->rx_fsm1_3.nq)
+        || (port->rx_fsm1_3.q && port->rx_fsm1_5.nq);
+    i4 = j
+        || (port->rx_fsm1_5.nq && port->rx_fsm1_4.q)
+        || (port->rx_fsm1_5.q && port->rx_fsm1_4.nq);
+    i5 = !(j || port->rx_fsm1_5.q);
+    SDFFR_Update(&port->rx_fsm1_1, port->uart_clk1, i1, chip->reset);
+    SDFFS_Update(&port->rx_fsm1_2, port->uart_clk1, i2, chip->reset);
+    SDFFS_Update(&port->rx_fsm1_3, port->uart_clk1, i3, chip->reset);
+    SDFFS_Update(&port->rx_fsm1_4, port->uart_clk1, i4, chip->reset);
+    SDFFR_Update(&port->rx_fsm1_5, port->uart_clk1, i5, chip->reset);
+    port->rx_clk = port->rx_fsm1_2.nq;
+
+    j = (port->rx_fsm2_1.nq && port->rx_fsm2_4.nq && !port->rx_input_bit.q && port->rx_fsm1_1.nq);
+    i1 = j
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.q && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_3.q && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_4.q);
+    i2 = j
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.nq && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_3.q && port->rx_fsm2_4.q)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.q && port->rx_fsm2_4.q);
+    i3 = j
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.nq && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.q && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.q && port->rx_fsm2_3.q);
+    i4 = j
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.nq && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_2.q && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq)
+        || (port->rx_fsm2_1.q && port->rx_fsm2_3.q && port->rx_fsm2_4.nq);
+    i5 = !(port->rx_fsm2_1.q && port->rx_fsm2_2.nq && port->rx_fsm2_3.nq && port->rx_fsm2_4.nq);
+    SDFFR_Update(&port->rx_fsm2_1, port->uart_clk1, i1, chip->reset);
+    SDFFR_Update(&port->rx_fsm2_2, port->uart_clk1, i2, chip->reset);
+    SDFFR_Update(&port->rx_fsm2_3, port->uart_clk1, i3, chip->reset);
+    SDFFR_Update(&port->rx_fsm2_4, port->uart_clk1, i4, chip->reset);
+    SDFFS_Update(&port->rx_fsm2_5, port->uart_clk1, i5, chip->reset);
+    port->rx_clk2 = port->rx_clk || port->rx_fsm2_5.q;
+
+    SDFFR_UpdateWide(&port->rx_shifter, port->rx_clk, ((port->rx_shifter.q << 1) | port->rx_input_bit.q) & 255,
+        (port->s_control.q & 4) != 0, 255);
+    SDFFR_UpdateWide(&port->rx_data, chip->tm_w1, port->rx_shifter.q, 1, 255); // FIXME: delay chain?
 }
 
 void IOC_Clock(iochip_t *chip)

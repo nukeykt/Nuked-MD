@@ -20,6 +20,24 @@ typedef struct {
     sdffs_t tx_fsm5;
     int tx_step;
 
+    sdffs_t rx_input_bit;
+    sdffr_t rx_ready;
+    sdffr_t rx_error;
+    sdffr_t rx_fsm1_1;
+    sdffs_t rx_fsm1_2;
+    sdffs_t rx_fsm1_3;
+    sdffs_t rx_fsm1_4;
+    sdffr_t rx_fsm1_5;
+    sdffr_t rx_fsm2_1;
+    sdffr_t rx_fsm2_2;
+    sdffr_t rx_fsm2_3;
+    sdffr_t rx_fsm2_4;
+    sdffs_t rx_fsm2_5;
+    int rx_clk;
+    int rx_clk2;
+    sdffr_t rx_shifter;
+    sdffr_t rx_data;
+
     int uart_clk1;
     int uart_clk2;
 
@@ -31,6 +49,7 @@ typedef struct {
     int write_p_data;
     int write_s_control;
     int write_tx_data;
+    int read_rx_data;
 
     int ext_port_o;
     int ext_port_i;
