@@ -25,9 +25,8 @@ typedef struct {
     int w12;
     delaychain_t d1; // 6 xor
     int w14;
-    sdff_t dff10;
+    sdff_t dff10; // bus request
     int w16;
-    int w17;
     int w24;
     int w25;
     sdff_t dff11;
@@ -431,6 +430,22 @@ typedef struct {
     int ext_strobe_dir;
     int ext_dtack_out;
     int ext_cas0;
+    int ext_m3;
+    int ext_br;
+    delaychain_t d2; // 6 xor
+    int d2_out;
+    delaychain_t d3; // 40 xor
+    int d3_out;
+    delaychain_t d4; // 6 xor
+    int d4_out;
+    delaychain_t d5; // 48 xor
+    int d5_out;
+    delaychain_t d6; // 48 xor
+    int d6_out;
+    delaychain_t d7; // 37 xor
+    int d7_out;
+    delaychain_t d8; // 6 xor
+    int d8_out;
 
     int va_out;
     sdffr_t z80bank;
