@@ -298,7 +298,7 @@ typedef struct {
     int w320;
     int w321;
     int w322;
-    int w323;
+    int pal_trap;
     int w325;
     int w326;
     sdffs_t dff56;
@@ -432,6 +432,8 @@ typedef struct {
     int ext_cas0;
     int ext_m3;
     int ext_br;
+    int ext_za0; // guess
+
     delaychain_t d2; // 6 xor
     int d2_out;
     delaychain_t d3; // 40 xor
