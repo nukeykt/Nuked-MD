@@ -25,7 +25,6 @@ typedef struct {
     int w12;
     delaychain_t d1; // 6 xor
     int w14;
-    int w15;
     sdff_t dff10;
     int w16;
     int w17;
@@ -63,9 +62,7 @@ typedef struct {
     int w52;
     int w53;
     int w54;
-    int w55;
     int w56;
-    int w57;
     int w58;
     int w59;
     int w60;
@@ -89,7 +86,6 @@ typedef struct {
     int w79;
     sdff_t dff21;
     sdff_t dff22;
-    int w81;
     int w82;
     int w83;
     int w84;
@@ -155,7 +151,6 @@ typedef struct {
     int w144;
     sdff_t dff29;
     int w146;
-    int w147;
     int w149;
     int w150;
     int w151;
@@ -187,10 +182,8 @@ typedef struct {
     sdff_t dff32;
     sdffs_t dff33;
     int w183;
-    int w184;
     int w185;
     int w186;
-    int w187;
     int w188;
     int w189;
     int w190;
@@ -266,14 +259,11 @@ typedef struct {
     int w279;
     int w282;
     int w283;
-    int w285;
     int w286;
     int w287;
     int w288;
     int w289;
     staticcnt_t dff48;
-    int w290;
-    int w291;
     int w292;
     int w293;
     int w294;
@@ -419,6 +409,28 @@ typedef struct {
     int ext_zaddress_out;
     int ext_vaddress_in;
     int ext_vaddress_out;
+    int ext_zrd_out;
+    int ext_zrd_in;
+    int ext_uds_out;
+    int ext_zwr_out;
+    int ext_m1;
+    int ext_zwr_in;
+    int ext_bgack_out;
+    int ext_as_out;
+    int ext_bgack_in;
+    int ext_rw_dir;
+    int ext_bg;
+    int ext_iorq;
+    int ext_rw_in;
+    int ext_uds_in;
+    int ext_rw_out;
+    int ext_as_in;
+    int ext_dtack_in;
+    int ext_lds_in;
+    int ext_lds_out;
+    int ext_strobe_dir;
+    int ext_dtack_out;
+    int ext_cas0;
 
     int va_out;
     sdffr_t z80bank;
