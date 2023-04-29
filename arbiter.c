@@ -12,13 +12,6 @@
 
 void ARB_ClockZToV(arbiter_t *chip, int cycles)
 {
-    // ts1
-    if (!chip->w12)
-    {
-        chip->ext_data_out &= ~256;
-        if (chip->w33)
-            chip->ext_data_out |= 256;
-    }
     chip->w143 = !chip->ext_m3 || chip->w220 || !chip->za15_in; // 68k bank access
     chip->w185 = chip->w86 || chip->w220; // z80 VDP access
     chip->w188 = chip->w185 && chip->w143; // 68k access
@@ -53,6 +46,9 @@ void ARB_ClockZToV(arbiter_t *chip, int cycles)
     chip->w178 = chip->w174 && chip->w79;
     SDFF_Update(&chip->dff21, !chip->ext_vclk, chip->w178);
     chip->w146 = chip->w76;
+    chip->w268 = !(chip->test || chip->pal_trap || chip->w146);
+    chip->ext_rw_dir = chip->w146 || chip->test;
+    chip->ext_strobe_dir = !chip->w268;
     chip->ext_bgack_out = !chip->w149;
 
     // ???
@@ -63,6 +59,7 @@ void ARB_ClockZToV(arbiter_t *chip, int cycles)
 
 void ARB_ClockEDCLK(arbiter_t *chip)
 {
+    chip->w25 = chip->sres;
     SCNT_Update(&chip->dff1, chip->ext_mclk, chip->w1, 1, chip->w3, chip->w25);
     SCNT_Update(&chip->dff2, chip->ext_mclk, chip->w1, !chip->dff9.l2, 1, chip->w25);
     SCNT_Update(&chip->dff3, chip->ext_mclk, chip->w1, 0, chip->dff2.l2, chip->w25);
@@ -148,6 +145,16 @@ void ARB_ClockZ80(arbiter_t *chip, int cycles)
 
 void ARB_ClockVToZ(arbiter_t *chip)
 {
+    // ts1
+
+    chip->w63 = !(chip->w99 && !chip->w122 && !chip->ext_uds_in);
+    chip->w12 = chip->test || !chip->ext_rw_in || chip->w63;
+    if (!chip->w12)
+    {
+        chip->ext_data_out &= ~256;
+        if (chip->w33)
+            chip->ext_data_out |= 256;
+    }
     chip->w36 = chip->w63 || chip->ext_rw_in;
     SDFFR_Update(&chip->zbr, chip->w36, chip->vd8, chip->sres_syncv.l2); // Z80 bus req
     chip->w33 = chip->ext_zbak; // Z80 BUSACK
@@ -173,6 +180,15 @@ void ARB_ClockVToZ(arbiter_t *chip)
     chip->w134 = chip->w66 || chip->w341; // z80 ram dtack
 
     chip->vtoz = chip->w119 || chip->test || chip->w33;
+
+    chip->w308 = !(chip->w287 || chip->w343);
+    chip->w307 = !(chip->w308 || !chip->sres_syncv.l2);
+    chip->w272 = !(chip->dff47.q || chip->ext_as_in);
+    chip->w273 = !(chip->w272 || chip->w307);
+    chip->w164 = !(chip->w34 && chip->w166);
+    SDFFS_Update(&chip->dff47, !chip->ext_vclk, chip->w273, chip->w164);
+    chip->w339 = !(chip->ext_as_in && !chip->dff47.l2);
+    SDFF_Update(&chip->dff70, !chip->ext_vclk, chip->w339);
 }
 
 void ARB_ClockInterrupt(arbiter_t *chip)
@@ -188,6 +204,8 @@ void ARB_ClockInterrupt(arbiter_t *chip)
 
 void ARB_ClockCart(arbiter_t *chip, int cycles)
 {
+
+    chip->w73 = chip->sres_syncv.l2 && chip->ext_m3;
 
     SDFFR_Update(&chip->dff26, chip->w97, chip->vd8, chip->sres_syncv.l2); // memory mode register
     chip->w274 = !chip->ext_cas0;
@@ -208,6 +226,7 @@ void ARB_ClockCart(arbiter_t *chip, int cycles)
     SDFFR_Update(&chip->dff25, !chip->ext_vclk, !chip->dff12.l2, chip->w73); // FIXME: check reset wire
     chip->w101 = !(chip->dff20.nq || chip->dff25.l2);
     chip->w173 = chip->w101 || !chip->dff26.l2;
+    chip->w171 = chip->za15_in || chip->w220 || chip->ext_m3;
     chip->w172 = !(chip->w169 && chip->w167 && chip->w171 && chip->w173);
     chip->ext_ce0 = !chip->w172;
 
@@ -242,6 +261,34 @@ void ARB_ClockCart(arbiter_t *chip, int cycles)
 
     chip->w64 = !(chip->w43 && chip->d3_out);
     chip->ext_asel = !chip->w64;
+
+    chip->w59 = !chip->ext_m3 || chip->ext_as_in;
+    chip->w54 = !(chip->dff23.l2 && chip->va23_in);
+    chip->w84 = !(!chip->dff23.l2 && chip->dff33.nq && chip->w356);
+    chip->w58 = chip->w54 && chip->w84;
+    SDFFS_Update(&chip->dff17, chip->ext_vclk, chip->w58, chip->w73);
+    chip->w49 = chip->dff17.q;
+    chip->w74 = chip->w49; // FIXME: delay??
+    SDFFS_Update(&chip->dff20, !chip->ext_vclk, chip->w74, chip->w73);
+    chip->w71 = chip->dff20.q && chip->w74;
+
+    SDFFS_Update(&chip->dff19, !chip->ext_vclk, chip->w71, chip->w73);
+    chip->w42 = !(chip->dff19.q && chip->w71);
+    chip->w44 = chip->w42 || chip->va23_in || chip->w59;
+    SDFF_Update(&chip->dff16, chip->ext_vclk, chip->w44);
+    chip->w43 = chip->w44 || chip->dff16.l2;
+    SDFF_Update(&chip->dff11, !chip->ext_vclk, chip->w43);
+    chip->w27 = chip->dff11.l2 || chip->w44;
+
+    chip->w41 = chip->w27 || chip->dff15.q;
+    SDFF_Update(&chip->dff12, !chip->ext_vclk, chip->w41);
+    chip->w26 = !(chip->dff15.nq && chip->dff12.l2);
+    chip->w83 = !chip->dff23.l2 || chip->va23_in;
+    chip->w40 = chip->w26 && chip->w83;
+    SDFFS_Update(&chip->dff15, chip->ext_vclk, chip->w40, chip->w73);
+
+
+    chip->w70 = chip->w27 && chip->w71; // refresh???
 }
 
 void ARB_ClockVCLKDivider(arbiter_t *chip)
@@ -265,13 +312,45 @@ void ARB_ClockVCLKDivider(arbiter_t *chip)
     chip->w287 = chip->w309 && chip->w356;
 
     // outputs: w287, w356
+
+    chip->w183 = !(chip->dff33.q || chip->dff23.l2 || chip->w356 || !chip->w223);
+    chip->w283 = (chip->w183 || chip->w287 || chip->w343);
+    SDFFS_Update(&chip->dff33, chip->ext_vclk, chip->w283, chip->sres_syncv.l2);
+    SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.nq, chip->dff33.nq);
+}
+
+void ARB_ClockRAMOE(arbiter_t *chip)
+{
+    chip->w279 = !chip->ext_bgack_in;
+    chip->w302 = !(chip->w9 && (!chip->dff50.l2 || chip->dff62.l2));
+    chip->w299 = !chip->w302;
+
+    SDFFR_Update(&chip->dff49, chip->ext_vclk, chip->w279, chip->dff51.l2);
+    SDFFR_Update(&chip->dff50, !chip->ext_vclk, chip->w322, chip->w9);
+    SDFFR_Update(&chip->dff51, chip->w279, chip->w336, chip->w299);
+
+    chip->w325 = chip->ext_cas0 && chip->dff62.l2;
+    chip->w321 = !chip->dff61.l2 && chip->ext_oe0;
+    chip->w326 = chip->w321 || chip->w325;
+    chip->w300 = !(chip->w326 && (!chip->dff49.l2 || chip->dff50.l2));
+    chip->w314 = !chip->w300;
+    chip->ext_noe = chip->w314;
+    chip->ext_eoe = !(!chip->w314 && chip->ext_m3);
+
+    chip->w322 = !!!!chip->dff62.l2; // FIXME
+
+
+    chip->w342 = !!!!chip->dff49.l2; // FIXME
+    SDFFR_Update(&chip->dff61, !chip->ext_vclk, chip->w342, chip->dff51.l2);
+
+
+    SDFFR_Update(&chip->dff62, chip->ext_vclk, chip->dff61.l2, chip->dff51.l2);
 }
 
 void ARB_Clock(arbiter_t *chip, int cycles)
 {
 
 
-    chip->w12 = chip->test || !chip->ext_rw_in || chip->w63;
 
 
 
@@ -283,40 +362,27 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->ext_zrd_out = chip->ext_as_in || !chip->ext_rw_in;
 
     chip->ext_zv = chip->ztov;
-    chip->w25 = chip->sres;
-
-    SDFF_Update(&chip->dff11, !chip->ext_vclk, chip->w43);
-    SDFF_Update(&chip->dff12, !chip->ext_vclk, chip->w41);
-
-    chip->w27 = chip->dff11.l2 || chip->w44;
-
-    chip->w31 = !chip->w65;
 
 
     SDFF_Update(&chip->dff13, !chip->ext_vclk, chip->ext_uds_in);
+    chip->w65 = !(chip->dff13.l2 && chip->ext_uds_in);
+    chip->w31 = !chip->w65;
+
+
 
     chip->sres = chip->ext_sres;
 
-    SDFFS_Update(&chip->dff15, chip->ext_vclk, chip->w40, chip->w73);
-
-    chip->w83 = !chip->dff23.l2 || chip->va23_in;
-    chip->w26 = !(chip->dff15.nq && chip->dff12.l2);
-    chip->w40 = chip->w26 && chip->w83;
-
-    chip->w41 = chip->w27 || chip->dff15.q;
-    chip->w42 = !(chip->dff19.q && chip->w71);
-    chip->w43 = chip->w44 || chip->dff16.l2;
-
-    SDFF_Update(&chip->dff16, chip->ext_vclk, chip->w44);
-
-    chip->w44 = chip->w42 || chip->va23_in || chip->w59;
 
 
 
 
-    chip->w49 = chip->dff17.q;
 
-    SDFFS_Update(&chip->dff17, chip->ext_vclk, chip->w58, chip->w73);
+
+
+
+
+
+
 
 
     chip->ext_zwr_out = chip->ext_rw_in || chip->ext_as_in;
@@ -324,37 +390,22 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->vd8 = (chip->ext_data_in & 256) != 0;
 
 
-    chip->w59 = !chip->ext_m3 || chip->ext_as_in;
-
-    chip->w63 = !(chip->w99 && !chip->w122 && !chip->ext_uds_in);
 
 
-    chip->w65 = !(chip->dff13.l2 && chip->ext_uds_in);
 
 
-    SDFFS_Update(&chip->dff19, !chip->ext_vclk, chip->w71, chip->w73);
 
 
-    chip->w70 = chip->w27 && chip->w71;
-
-    chip->w71 = chip->dff20.q && chip->w74;
 
 
-    SDFFS_Update(&chip->dff20, !chip->ext_vclk, chip->w74, chip->w73);
 
-    chip->w73 = chip->sres_syncv.l2 && chip->ext_m3;
 
-    chip->w74 = chip->w49; // FIXME: delay??
 
 
     chip->mreq_in = chip->ext_mreq_in; // z80 mreq?
 
 
-    chip->w54 = !(chip->dff23.l2 && chip->va23_in);
-    chip->w84 = !(!chip->dff23.l2 && chip->dff33.nq && chip->w356);
-    chip->w58 = chip->w54 && chip->w84;
 
-    SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.nq, chip->dff33.nq);
 
     chip->w95 = !(chip->ext_uds_in || chip->ext_rw_in);
 
@@ -363,8 +414,13 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w97 = !(chip->w95 && chip->w91 && !chip->w122);
 
 
+
+    // FDC
+    chip->w130 = chip->ext_as_in || chip->w129;
     chip->w103 = !(chip->dff24.l2 || chip->ext_rw_in || chip->w130);
     SDFF_Update(&chip->dff24, chip->ext_vclk, chip->w103);
+    chip->ext_fdc = chip->w130; // FDC
+    chip->ext_fdwr = !chip->dff24.l2;
 
 
 
@@ -382,20 +438,15 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 #endif
 
 
-    chip->ext_time = chip->w126; // TIME
 
-    chip->w118 = chip->w122 || chip->ext_as_in;
 
-    chip->ext_fdwr = !chip->dff24.l2;
 
     chip->ext_sound = chip->w140;
 
     chip->w126 = chip->w124 || chip->ext_as_in;
-
-    chip->w130 = chip->ext_as_in || chip->w129;
+    chip->ext_time = chip->w126; // TIME
 
     chip->w131 = chip->ztov || chip->test || chip->pal_trap;
-
 
 
 
@@ -406,13 +457,12 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
 
 
-    chip->ext_fdc = chip->w130; // FDC
     chip->test = chip->ext_test_mode_0;
 
 
 
-    chip->w164 = !(chip->w34 && chip->w166);
 
+    SDFFR_Update(&chip->dff31, chip->w96, chip->vd8, chip->w328); // Z80 reset
     chip->w166 = chip->ext_m3 ? chip->dff31.l2 : chip->w328; // Z80 reset
 
 
@@ -421,21 +471,20 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
 
 
-    SDFFR_Update(&chip->dff31, chip->w96, chip->vd8, chip->w328); // Z80 reset
 
-    chip->w171 = chip->za15_in || chip->w220 || chip->ext_m3;
 
 
     SDFF_Update(&chip->sres_syncv, chip->ext_vclk, chip->sres);
 
 
 
-    chip->ext_rw_dir = chip->w146 || chip->test;
 
     chip->ext_rw_out = chip->ext_zwr_in;
 
 
 
+    // DTACK
+    chip->w118 = chip->w122 || chip->ext_as_in;
     chip->w133 = !(chip->w132 && chip->w118 && chip->w130 && chip->w126 && chip->w94 && chip->w134);
     chip->w200 = !(chip->w133 && chip->w249);
     chip->w222 = !(chip->w200 || chip->test);
@@ -458,20 +507,13 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
 
 
-    chip->w268 = !(chip->test || chip->pal_trap || chip->w146);
 
 
 
 
-    SDFFS_Update(&chip->dff47, !chip->ext_vclk, chip->w273, chip->w164);
 
 
 
-    chip->w279 = !chip->ext_bgack_in;
-
-    chip->w183 = !(chip->dff33.q || chip->dff23.l2 || chip->w356 || !chip->w223);
-    chip->w283 = (chip->w183 || chip->w287 || chip->w343);
-    SDFFS_Update(&chip->dff33, chip->ext_vclk, chip->w283, chip->sres_syncv.l2);
 
 
 
@@ -480,64 +522,20 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
 
 
-    chip->ext_strobe_dir = !chip->w268;
 
-
-    chip->ext_eoe = !(chip->w312 && chip->ext_m3);
-
-
-
-    SDFFR_Update(&chip->dff49, chip->ext_vclk, chip->w279, chip->dff51.l2);
-    SDFFR_Update(&chip->dff50, chip->w340, chip->w322, chip->w9);
-    SDFFR_Update(&chip->dff51, chip->w279, chip->w336, chip->w299);
-
-    chip->w299 = !chip->w302;
-
-    chip->w300 = !(chip->w326 && (!chip->dff49.l2 || chip->dff50.l2));
-
-    chip->w302 = !(chip->w9 && (!chip->dff50.l2 || chip->dff62.l2));
-
-    chip->w308 = !(chip->w287 || chip->w343);
-    chip->w307 = !(chip->w308 || !chip->sres_syncv.l2);
-    chip->w272 = !(chip->dff47.q || chip->ext_as_in);
-    chip->w273 = !(chip->w272 || chip->w307);
-
-    chip->w311 = !(chip->ext_m3 && chip->w328);
-
-    chip->w312 = !chip->w314;
-
-    chip->ext_noe = chip->w314;
-
-    chip->w314 = !chip->w300;
-
-    chip->w321 = !chip->dff61.l2 && chip->ext_oe0;
-
-    chip->w322 = !!!!chip->dff62.l2; // FIXME
-
-    chip->pal_trap = !1; // used to be pal/ntsc
-
-    chip->w325 = chip->ext_cas0 && chip->dff62.l2;
-
-    chip->w326 = chip->w321 || chip->w325;
-
-
-    chip->ext_vres = !chip->w311;
 
     chip->w336 = chip->ext_wait_in;
 
-    chip->w339 = !(chip->ext_as_in && !chip->dff47.l2);
 
-    chip->w340 = !chip->ext_vclk;
 
-    SDFFR_Update(&chip->dff61, chip->w340, chip->w342, chip->dff51.l2);
-
-    chip->w342 = !!!!chip->dff49.l2; // FIXME
-
-    SDFFR_Update(&chip->dff62, chip->ext_vclk, chip->dff61.l2, chip->dff51.l2);
+    chip->w311 = !(chip->ext_m3 && chip->w328);
+    chip->ext_vres = !chip->w311;
 
 
 
 
+
+    chip->pal_trap = !1; // used to be pal/ntsc
 
 
 
@@ -551,7 +549,6 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w333 = !(chip->d8_out || chip->sres_syncv_2);
 
 
-    SDFF_Update(&chip->dff70, !chip->ext_vclk, chip->w339);
 
 
 
