@@ -220,7 +220,6 @@ typedef struct {
     int w227;
     int w228;
     int w229;
-    int w230;
     sdff_t dff44;
     int w232;
     int w234;
@@ -266,7 +265,6 @@ typedef struct {
     int w292;
     int w293;
     int w294;
-    int w296;
     int w297;
     int w298;
     sdffr_t dff49;
@@ -371,6 +369,7 @@ typedef struct {
     int w374;
     staticcnt_t dff79;
     staticcnt_t dff80;
+    int w375;
 
     int va8_in;
     int va9_in;
@@ -432,7 +431,45 @@ typedef struct {
     int ext_cas0;
     int ext_m3;
     int ext_br;
-    int ext_za0; // guess
+    int ext_za0;
+    int ext_wres;
+    int ext_ia14;
+    int ext_cart;
+    int ext_time;
+    int ext_ce0;
+    int ext_fdwr;
+    int ext_fdc;
+    int ext_rom;
+    int ext_asel;
+    int ext_eoe;
+    int ext_noe;
+    int ext_oe0;
+    int ext_ras2;
+    int ext_cas2;
+    int ext_ref;
+    int ext_zram;
+    int ext_wait_out;
+    int ext_wait_in;
+    int ext_zbr;
+    int ext_nmi;
+    int ext_zbak;
+    int ext_zres;
+    int ext_sound;
+    int ext_vz; // vz pin, za, mreq, rd, wr pad dir
+    int ext_mreq_out;
+    int ext_mreq_in;
+    int ext_fc0;
+    int ext_fc1;
+    int ext_vres;
+    int ext_vpa;
+    int ext_hsync_in;
+    int ext_sres;
+    int ext_vdpm;
+    int ext_test_mode_0; // 0 - default
+    int ext_zdata_in;
+    int ext_io;
+    int ext_zv;
+    int ext_intak;
 
     delaychain_t d2; // 6 xor
     int d2_out;
@@ -440,9 +477,9 @@ typedef struct {
     int d3_out;
     delaychain_t d4; // 6 xor
     int d4_out;
-    delaychain_t d5; // 48 xor
+    delaychain_t d5; // 12 xor
     int d5_out;
-    delaychain_t d6; // 48 xor
+    delaychain_t d6; // 36 xor
     int d6_out;
     delaychain_t d7; // 37 xor
     int d7_out;
