@@ -40,8 +40,8 @@ typedef struct {
     int w35;
     sdff_t dff13;
     int w36;
-    sdffr_t dff14;
-    int w38;
+    sdffr_t zbr;
+    int sres;
     sdffs_t dff15;
     int w40;
     int w41;
@@ -61,10 +61,10 @@ typedef struct {
     int w52;
     int w53;
     int w54;
-    int w56;
+    int vd8;
     int w58;
     int w59;
-    int w60;
+    int vtoz;
     int w63;
     int w64;
     int w65;
@@ -85,7 +85,7 @@ typedef struct {
     int w79;
     sdff_t dff21;
     sdff_t dff22;
-    int w82;
+    int mreq_in;
     int w83;
     int w84;
     int w85;
@@ -110,7 +110,7 @@ typedef struct {
     sdff_t dff24;
     sdffr_t dff25;
     int w104;
-    int w105;
+    int ztov;
     int w106;
     int w107;
     int w111;
@@ -153,7 +153,7 @@ typedef struct {
     int w149;
     int w150;
     int w151;
-    int w152;
+    int test;
     int w155;
     int w158;
     int w159;
@@ -178,7 +178,7 @@ typedef struct {
     int w176;
     int w178;
     int w182;
-    sdff_t dff32;
+    sdff_t sres_syncv;
     sdffs_t dff33;
     int w183;
     int w185;
@@ -218,7 +218,7 @@ typedef struct {
     //int w225;
     int w226;
     int w227;
-    int w228;
+    int va23_cart;
     int w229;
     sdff_t dff44;
     int w232;
@@ -259,7 +259,7 @@ typedef struct {
     int w283;
     int w286;
     int w287;
-    int w288;
+    int sres_syncv_2;
     int w289;
     staticcnt_t dff48;
     int w292;
@@ -299,7 +299,7 @@ typedef struct {
     int pal_trap;
     int w325;
     int w326;
-    sdffs_t dff56;
+    sdffs_t nmi;
     sdffr_t dff57;
     sdffr_t dff58;
     sdff_t dff59;
@@ -350,7 +350,6 @@ typedef struct {
     staticcnt_t dff77;
     int w356;
     int w357;
-    int w358;
     int w359;
     int w360;
     int w361;
@@ -370,6 +369,11 @@ typedef struct {
     staticcnt_t dff79;
     staticcnt_t dff80;
     int w375;
+
+    int fc00;
+    int fc01;
+    int fc10;
+    int fc11;
 
     int va8_in;
     int va9_in;
@@ -470,6 +474,7 @@ typedef struct {
     int ext_io;
     int ext_zv;
     int ext_intak;
+    int ext_edclk;
 
     delaychain_t d2; // 6 xor
     int d2_out;
