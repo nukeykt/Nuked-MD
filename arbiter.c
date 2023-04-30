@@ -640,7 +640,7 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->w92 = (chip->ext_vaddress_in & 0x180) == 0x180;
 
     chip->w194 = chip->ext_as_in || chip->ext_lds_in || chip->ext_uds_in || (chip->ext_vaddress_in & 0x7fff80) != 0x50a000; // TMSS
-    chip->w310 = !((chip->ext_vaddress_in & 0x7fff80) == 0x600000 && !chip->ext_as_in); // VDP range
+    chip->w310 = !((chip->ext_vaddress_in & 0x7fff80) == 0x600000 && !chip->ext_as_in); // VDP range (goes to VSYNC pin)
 
     chip->w119 = !(chip->ext_m3 && (chip->ext_vaddress_in & 0x7f8000) == 0x500000); // z80 ram
 
