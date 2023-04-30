@@ -296,6 +296,9 @@ typedef struct {
     int prescaler_latch[2]; // 6
     int phi1_latch[2];
     int phi2_latch[2];
+
+    int status_time;
+    int last_status;
 } fm_t;
 
 

@@ -82,7 +82,11 @@ void FM_HandleIO(fm_t *chip)
 {
     int write_data = chip->cs && chip->wr && (chip->address & 1) == 1 && !chip->ic;
     int write_addr = (chip->cs && chip->wr && (chip->address & 1) == 0) || chip->ic;
-    int read_enable = chip->cs && chip->rd && chip->address == 0 && !chip->ic;
+    int read_enable = chip->cs && chip->rd && !chip->ic;
+    if (chip->flags & fm_flags_ym2612)
+    {
+        read_enable = read_enable && chip->address == 0;
+    }
     int io_dir = chip->cs && chip->rd && !chip->ic;
     int data_enable = !io_dir && !chip->ic;
 
@@ -147,7 +151,9 @@ int FM_ReadStatus(fm_t *chip)
    
     if (!read_enable)
     {
-        return 0; // FIXME: bus noise (EWJ music stutter)
+        if (chip->status_time)
+            return chip->last_status;
+        return 0;
     }
     if (chip->mode_test_21[1] & 64)
     {
@@ -169,6 +175,8 @@ int FM_ReadStatus(fm_t *chip)
     {
         status = (chip->busy_latch[1] << 7) | (chip->status_timer_b_dlatch << 1) | chip->status_timer_a_dlatch;
     }
+    chip->status_time = 4000000;
+    chip->last_status = status;
     return status;
 }
 
@@ -2226,6 +2234,11 @@ void FM_Clock2(fm_t *chip)
 
 void FM_Clock(fm_t *chip, int phi)
 {
+    if (chip->phi != phi)
+    {
+        if (chip->status_time)
+            chip->status_time--;
+    }
     chip->phi = phi;
     FM_Prescaler(chip);
     if (chip->phi1_latch[1])
