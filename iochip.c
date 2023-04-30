@@ -383,4 +383,16 @@ void IOC_Clock(iochip_t *chip)
         if (chip->reg_3f.q & 128)
             chip->port_b_o |= 64;
     }
+
+
+    chip->byte_sel = chip->ext_cas0 && (chip->ext_zaddress_in & 1) == 0;
+
+    chip->arb_w1 = !(chip->byte_sel && chip->ext_m3) && (chip->ext_zv || chip->ext_cas0) && (chip->ext_vz || !chip->ext_cas0);
+    chip->arb_w2 = (chip->ext_zv || !chip->ext_cas0) && (chip->ext_vz || chip->ext_cas0);
+
+    chip->ext_bc1 = chip->ext_zv || chip->ext_t1;
+    chip->ext_bc2 = chip->arb_w1 || chip->ext_t1;
+    chip->ext_bc3 = (chip->arb_w1 && chip->ext_m3) || chip->ext_t1;
+    chip->ext_bc4 = chip->arb_w2 || chip->ext_t1;
+    chip->ext_bc5 = chip->ext_vz || chip->ext_t1;
 }

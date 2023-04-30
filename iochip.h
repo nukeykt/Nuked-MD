@@ -93,6 +93,15 @@ typedef struct {
     int ext_vaddress_in;
     int ext_vdata_in;
     int ext_lwr;
+    int ext_t1;
+    int ext_zv;
+    int ext_vz;
+    int ext_bc1; // bus control
+    int ext_bc2;
+    int ext_bc3;
+    int ext_bc4;
+    int ext_bc5;
+
     int address;
     int ztov_address;
     int read_address;
@@ -112,6 +121,9 @@ typedef struct {
     int zaccess;
     int zwrite0;
     int zwrite1;
+    int byte_sel;
+    int arb_w1;
+    int arb_w2;
     sdffr_t reg_3e;
     sdffs_t reg_3f;
 } iochip_t;
