@@ -8,7 +8,6 @@ typedef struct {
     int w1;
     int w2;
     int w3;
-    int w8;
     int w9;
     int w10;
     int w11;
@@ -31,7 +30,6 @@ typedef struct {
     int w26;
     int w27;
     int w28;
-    int w29;
     int w30;
     int w31;
     int w32;
@@ -47,7 +45,6 @@ typedef struct {
     int w42;
     int w43;
     int w44;
-    int w45;
     int w46;
     int w47;
     int w48;
@@ -71,13 +68,21 @@ typedef struct {
     int w66;
     int w67;
 
-    int ext_w1;
-    int ext_w2;
-
-    int t;
-    int tm_w1;
-    int tm_w2;
-    int tm_w3;
-    int tm_w4;
-    int tm_w5;
+    int ext_data_out;
+    int ext_data_in;
+    int ext_test;
+    int ext_jap;
+    int ext_as_in;
+    int ext_lds_in;
+    int ext_uds_in;
+    int ext_rw_in;
+    int ext_dtack_out;
+    int ext_address_in;
+    int ext_cpu_reset;
+    int ext_intak_vdp;
+    int ext_sres;
+    int ext_ce0_arb;
+    int ext_ce0_tmss;
+    int ext_m3;
+    int ext_cart;
 } tmss_t;
