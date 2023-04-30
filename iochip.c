@@ -384,19 +384,3 @@ void IOC_Clock(iochip_t *chip)
             chip->port_b_o |= 64;
     }
 }
-
-iochip_t io;
-
-int main()
-{
-    io.ext_sres = 1;
-    io.ext_ntsc = 1;
-    for (int i = 0; i < 1000; i++)
-    {
-        io.ext_vclk = i & 1;
-        IOC_Clock(&io);
-        IOC_Clock(&io);
-        IOC_Clock(&io);
-        printf("%i %i %i\n", i, io.uart_clk, io.uart_clk_div[0].l2);
-    }
-}

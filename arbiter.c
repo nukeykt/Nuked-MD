@@ -663,4 +663,12 @@ void ARB_Clock(arbiter_t *chip, int cycles)
     chip->ext_ia14 = !(chip->ext_m3 && chip->va14_in); // IA14
 
     ARB_ClockZToV(chip, cycles);
+    ARB_ClockEDCLK(chip);
+    ARB_ClockM3(chip);
+    ARB_ClockZ80(chip, cycles);
+    ARB_ClockVToZ(chip);
+    ARB_ClockInterrupt(chip);
+    ARB_ClockCart(chip, cycles);
+    ARB_ClockVCLKDivider(chip);
+    ARB_ClockRAMOE(chip);
 }
