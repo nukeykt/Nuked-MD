@@ -385,6 +385,8 @@ void IOC_Clock(iochip_t *chip)
     }
 
 
+    chip->io_access = !(chip->zaccess || chip->ext_io || chip->ext_cas0);
+
     chip->byte_sel = chip->ext_cas0 && (chip->ext_zaddress_in & 1) == 0;
 
     chip->arb_w1 = !(chip->byte_sel && chip->ext_m3) && (chip->ext_zv || chip->ext_cas0) && (chip->ext_vz || !chip->ext_cas0);
@@ -395,4 +397,36 @@ void IOC_Clock(iochip_t *chip)
     chip->ext_bc3 = (chip->arb_w1 && chip->ext_m3) || chip->ext_t1;
     chip->ext_bc4 = chip->arb_w2 || chip->ext_t1;
     chip->ext_bc5 = chip->ext_vz || chip->ext_t1;
+
+    chip->vdata = chip->io_access ? chip->read_data : chip->ext_zdata_in;
+    chip->zdata = chip->io_access ? chip->read_data :
+        (chip->byte_sel ? ((chip->ext_vdata_in >> 8) & 0xff) : (chip->ext_vdata_in & 0xff));
+
+    if (!chip->ext_bc2)
+    {
+        chip->ext_vdata_out &= ~0xff;
+        chip->ext_vdata_out |= chip->vdata;
+    }
+    if (!chip->ext_bc3)
+    {
+        chip->ext_vdata_out &= ~0xff00;
+        chip->ext_vdata_out |= (chip->vdata & 0xfe) << 8;
+        if (chip->io_access)
+        {
+            chip->ext_vdata_out |= (chip->vdata & 1) << 8;
+        }
+        else
+        {
+            chip->ext_vdata_out |= (chip->reg_3e.q & 1) << 8;
+        }
+    }
+    if (!chip->ext_bc4)
+    {
+        chip->ext_zdata_out = chip->zdata;
+    }
+    if (!chip->ext_bc5)
+    {
+        chip->ext_vaddress_out &= ~0x7f;
+        chip->ext_vaddress_out |= chip->ztov_address & 0x7f;
+    }
 }
