@@ -2,16 +2,32 @@
 #include "fc1004.h"
 
 
-void FC1004_Clock(fc1004_t *chip, int cycles)
+void FC1004_Init(fc1004_t *chip)
+{
+    chip->arb.ext_vaddress_out = &chip->o_vaddress;
+    chip->arb.ext_data_out = &chip->o_vdata;
+    chip->ioc.ext_vdata_out = &chip->o_vdata;
+    chip->ioc.ext_zdata_out = &chip->o_zdata;
+    chip->ioc.ext_vaddress_out = &chip->o_vaddress;
+    chip->tmss.ext_data_out = &chip->o_vdata;
+    ARB_Init(&chip->arb);
+}
+
+void FC1004_Destroy(fc1004_t *chip)
+{
+    ARB_Destroy(&chip->arb);
+}
+
+void FC1004_Clock(fc1004_t *chip)
 {
     chip->vdp.input.i_hsync = chip->i_hsync;
-    chip->arb.ext_hsync_in = chip->i_hsync;
+    chip->arb.edclk.input.hsync = chip->i_hsync;
     chip->vdp.input.i_sel0 = chip->i_m3;
-    chip->arb.ext_m3 = chip->i_m3;
-    chip->ioc.ext_m3 = chip->i_m3;
+    chip->arb.input.ext_m3 = chip->i_m3;
+    chip->ioc.input.ext_m3 = chip->i_m3;
     chip->tmss.ext_m3 = chip->i_m3;
     chip->vdp.input.i_pal = chip->i_ntsc;
-    chip->ioc.ext_ntsc = chip->i_ntsc;
+    chip->ioc.input.ext_ntsc = chip->i_ntsc;
     chip->fm.cs = !(chip->tmss.ext_test_0 ? chip->i_sound : chip->arb.ext_sound);
     chip->fm.ic = !chip->i_zres;
     chip->hl_vdp = chip->tmss.ext_test_1 ? chip->i_zbr : chip->ioc.ext_hl;
@@ -20,20 +36,20 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     chip->vdp.input.i_intak = chip->intak_vdp;
     chip->tmss.ext_intak_vdp = chip->intak_vdp;
     chip->fm.test = chip->i_test0;
-    chip->ioc.ext_test = chip->i_test0;
+    chip->ioc.input.ext_test = chip->i_test0;
     chip->oe0_arb = (!chip->tmss.ext_test_0 && chip->tmss.ext_test_2) ? chip->i_jap : chip->vdp.o_oe0;
-    chip->arb.ext_oe0 = chip->oe0_arb;
+    chip->arb.input.ext_oe0 = chip->oe0_arb;
     chip->mreq_vdp = chip->tmss.ext_test_0 ? chip->i_fres : chip->arb.ext_vdpm;
     chip->vdp.input.i_mreq = chip->mreq_vdp;
-    chip->ioc.ext_zv = chip->tmss.ext_test_0 ? chip->i_zv : chip->arb.ext_zv;
+    chip->ioc.input.ext_zv = chip->tmss.ext_test_0 ? chip->i_zv : chip->arb.ext_zv;
     chip->vz = chip->tmss.ext_test_0 ? chip->i_vz : chip->arb.ext_vz;
-    chip->ioc.ext_io = chip->tmss.ext_test_0 ? chip->i_io : chip->arb.ext_io;
+    chip->ioc.input.ext_io = chip->tmss.ext_test_0 ? chip->i_io : chip->arb.ext_io;
 
-    chip->arb.ext_zaddress_in = chip->i_zaddress;
-    chip->ioc.ext_zaddress_in = chip->i_zaddress;
+    chip->arb.input.ext_zaddress_in = chip->i_zaddress;
+    chip->ioc.input.ext_zaddress_in = chip->i_zaddress;
 
-    chip->arb.ext_sres = chip->i_sres;
-    chip->ioc.ext_sres = chip->i_sres;
+    chip->arb.input.ext_sres = chip->i_sres;
+    chip->ioc.input.ext_sres = chip->i_sres;
     chip->tmss.ext_sres = chip->i_sres;
     chip->vdp.input.i_reset = chip->i_sres;
     chip->vdp.prescaler.input.i_reset = chip->i_sres;
@@ -42,11 +58,11 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     chip->ce0_tmss = chip->tmss.ext_test_0 ? chip->i_sel1 : chip->arb.ext_ce0;
     chip->tmss.ext_ce0_arb = chip->ce0_tmss;
 
-    chip->arb.ext_vclk = chip->i_vclk;
-    chip->ioc.ext_vclk = chip->i_vclk;
-    chip->arb.ext_zclk = chip->i_zclk;
+    chip->arb.input.ext_vclk = chip->i_vclk;
+    chip->ioc.input.ext_vclk = chip->i_vclk;
+    chip->arb.input.ext_zclk = chip->i_zclk;
 
-    chip->arb.ext_mclk = chip->i_mclk;
+    chip->arb.edclk.input.mclk = chip->i_mclk;
 
     chip->vdp_data_dir = !chip->vdp.w155 || chip->tmss.ext_test_2;
     chip->vdp_address_dir = !chip->vdp.w267 || chip->tmss.ext_test_2;
@@ -69,38 +85,38 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
         chip->vdp.io_address = chip->i_vaddress & 0x73ffff;
     }
 
-    chip->arb.ext_bgack_in = chip->i_bgack;
+    chip->arb.input.ext_bgack_in = chip->i_bgack;
     chip->vdp.input.i_bgack = chip->i_bgack;
 
-    chip->arb.ext_bg = chip->i_bg;
+    chip->arb.input.ext_bg = chip->i_bg;
     chip->vdp.input.i_bg = chip->i_bg;
 
-    chip->arb.ext_iorq = chip->i_iorq;
+    chip->arb.input.ext_iorq = chip->i_iorq;
     chip->vdp.input.i_iorq = chip->i_iorq;
 
-    chip->arb.ext_zrd_in = chip->i_zrd;
-    chip->arb.ext_zwr_in = chip->i_zwr;
+    chip->arb.input.ext_zrd_in = chip->i_zrd;
+    chip->arb.input.ext_zwr_in = chip->i_zwr;
     chip->vdp.input.i_rd = chip->i_zrd;
     chip->vdp.input.i_wr = chip->i_zwr;
 
-    chip->arb.ext_m1 = chip->i_m1;
+    chip->arb.input.ext_m1 = chip->i_m1;
     chip->vdp.input.i_m1 = chip->i_m1;
 
     chip->vdp.input.i_as = chip->i_as;
-    chip->arb.ext_as_in = chip->i_as;
+    chip->arb.input.ext_as_in = chip->i_as;
     chip->tmss.ext_as_in = chip->i_as;
     chip->vdp.input.i_uds = chip->i_uds;
-    chip->arb.ext_uds_in = chip->i_uds;
+    chip->arb.input.ext_uds_in = chip->i_uds;
     chip->tmss.ext_uds_in = chip->i_uds;
     chip->vdp.input.i_lds = chip->i_uds;
-    chip->arb.ext_lds_in = chip->i_lds;
+    chip->arb.input.ext_lds_in = chip->i_lds;
     chip->tmss.ext_lds_in = chip->i_lds;
 
-    chip->arb.ext_dtack_in = chip->i_dtack;
+    chip->arb.input.ext_dtack_in = chip->i_dtack;
     chip->vdp.input.i_dtack = chip->i_dtack;
 
-    chip->ioc.ext_lwr = chip->i_lwr;
-    chip->ioc.ext_cas0 = chip->i_cas0;
+    chip->ioc.input.ext_lwr = chip->i_lwr;
+    chip->ioc.input.ext_cas0 = chip->i_cas0;
 
     chip->o_ys = chip->tmss.ext_test_2 ? chip->arb.w353 : chip->vdp.w1009;
     chip->o_vsync = chip->tmss.ext_test_2 ? chip->arb.w310 : chip->vdp.w374;
@@ -150,7 +166,7 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
 
     chip->o_edclk = (chip->tmss.ext_test_0 && (chip->tmss.ext_test_2 || (chip->vdp.reg_test1 & 2) == 0))
         ? state_z :
-        ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.prescaler.mclk_dclk : chip->arb.ext_edclk);
+        ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.prescaler.mclk_dclk : chip->arb.edclk.ext_edclk);
 
     chip->o_vdata_dir = 0;
     chip->o_vdata = 0;
@@ -212,18 +228,18 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
 
 
     chip->o_zdata_dir = 0;
-    chip->o_zdata_out = 0;
+    chip->o_zdata = 0;
     if (chip->colorbus && chip->ioc.ext_bc4 && chip->fm_read)
     {
-        chip->o_zdata_out = 0;
+        chip->o_zdata = 0;
         chip->o_zdata_dir = 0xff;
     }
     if (!chip->colorbus)
     {
-        chip->o_zdata_out = chip->vdp.o_ram_addr;
+        chip->o_zdata = chip->vdp.o_ram_addr;
     }
     if (!chip->fm_read)
     {
-        chip->o_zdata_out = FM_ReadStatus(&chip->fm);
+        chip->o_zdata = FM_ReadStatus(&chip->fm);
     }
 }

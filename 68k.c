@@ -1,4 +1,4 @@
-
+// 68k(NMOS)
 #include <stdio.h>
 #include <string.h>
 #include "68k.h"

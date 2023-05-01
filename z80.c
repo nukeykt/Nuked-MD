@@ -1,3 +1,4 @@
+// Z80(NMOS)
 #include <stdint.h>
 #include "z80.h"
 

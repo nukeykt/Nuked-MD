@@ -2,6 +2,29 @@
 #include "common.h"
 
 typedef struct {
+    int port_a;
+    int port_b;
+    int port_c;
+    int ext_test;
+    int ext_m3;
+    int ext_io;
+    int ext_cas0;
+    int ext_sres;
+    int ext_vclk;
+    int ext_ntsc;
+    int ext_disk;
+    int ext_jap;
+    int ext_zaddress_in;
+    int ext_zdata_in;
+    int ext_vaddress_in;
+    int ext_vdata_in;
+    int ext_lwr;
+    int ext_t1;
+    int ext_zv;
+    int ext_vz;
+} iochip_input_t;
+
+typedef struct {
 
     sdffr_t p_control;
     sdffr_t p_data;
@@ -78,24 +101,24 @@ typedef struct {
     sdffr_t uart_clk_div[8];
 
 
-    int ext_test;
-    int ext_m3;
-    int ext_io;
-    int ext_cas0;
-    int ext_sres;
+    //int ext_test;
+    //int ext_m3;
+    //int ext_io;
+    //int ext_cas0;
+    //int ext_sres;
     int ext_fres;
-    int ext_vclk;
-    int ext_ntsc;
-    int ext_disk;
-    int ext_jap;
-    int ext_zaddress_in;
-    int ext_zdata_in;
-    int ext_vaddress_in;
-    int ext_vdata_in;
-    int ext_lwr;
-    int ext_t1;
-    int ext_zv;
-    int ext_vz;
+    //int ext_vclk;
+    //int ext_ntsc;
+    //int ext_disk;
+    //int ext_jap;
+    //int ext_zaddress_in;
+    //int ext_zdata_in;
+    //int ext_vaddress_in;
+    //int ext_vdata_in;
+    //int ext_lwr;
+    //int ext_t1;
+    //int ext_zv;
+    //int ext_vz;
     int *ext_vdata_out;
     int *ext_zdata_out;
     int *ext_vaddress_out;
@@ -135,4 +158,6 @@ typedef struct {
     int io_access;
     sdffr_t reg_3e;
     sdffs_t reg_3f;
+
+    iochip_input_t input, input_old;
 } iochip_t;

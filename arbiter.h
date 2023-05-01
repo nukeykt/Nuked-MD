@@ -2,29 +2,81 @@
 #include "common.h"
 
 typedef struct {
+    int mclk;
+    int sres;
+    int hsync;
+} arbiter_edclk_input_t;
+
+typedef struct {
     staticcnt_t dff1;
     staticcnt_t dff2;
     staticcnt_t dff3;
-    int w1;
-    int w2;
-    int w3;
-    int w4;
-    int w5;
     staticcnt_t dff4;
     staticcnt_t dff5;
     staticcnt_t dff6;
     staticcnt_t dff7;
-    int w6;
-    int w7;
-    int w8;
-    int w9;
     sdffs_t dff8;
+    sdffr_t dff9;
+    int w1;
+    int w2;
+    int w3;
+    int w5;
+    int w4;
+    int w7;
     int w10;
     int w11;
-    sdffr_t dff9;
+    int ext_edclk;
+
+    arbiter_edclk_input_t input, input_old;
+} arbiter_edclk_t;
+
+typedef struct {
+    int d1_out;
+    int d2_out;
+    int d3_out;
+    int d4_out;
+    int d5_out;
+    int d6_out;
+    int d7_out;
+    int d8_out;
+    int ext_vclk;
+    int ext_zclk;
+    int ext_data_in;
+    int ext_zaddress_in;
+    int ext_vaddress_in;
+    int ext_zrd_in;
+    int ext_m1;
+    int ext_zwr_in;
+    int ext_bgack_in;
+    int ext_bg;
+    int ext_iorq;
+    int ext_rw_in;
+    int ext_uds_in;
+    int ext_as_in;
+    int ext_dtack_in;
+    int ext_lds_in;
+    int ext_cas0;
+    int ext_m3;
+    int ext_za0;
+    int ext_wres;
+    int ext_cart;
+    int ext_oe0;
+    int ext_wait_in;
+    int ext_zbak;
+    int ext_mreq_in;
+    int ext_fc0;
+    int ext_fc1;
+    int ext_sres;
+    int ext_test_mode_0; // 0 - default
+    int ext_zdata_in;
+} arb_input_t;
+
+typedef struct {
+    arbiter_edclk_t edclk;
+
+    int w9;
     int w12;
     delaychain_t d1; // 6 xor
-    int w14;
     sdff_t dff10; // bus request
     int w16;
     int w24;
@@ -368,7 +420,6 @@ typedef struct {
     int w374;
     staticcnt_t dff79;
     staticcnt_t dff80;
-    int w375;
 
     int fc00;
     int fc01;
@@ -402,43 +453,42 @@ typedef struct {
     int za14_in;
     int za15_in;
 
-    int ext_mclk;
-    int ext_vclk;
-    int ext_zclk;
+    //int ext_vclk;
+    //int ext_zclk;
     int *ext_data_out;
-    int ext_data_in;
-    int ext_zaddress_in;
+    //int ext_data_in;
+    //int ext_zaddress_in;
     int ext_zaddress_out;
-    int ext_vaddress_in;
+    //int ext_vaddress_in;
     int *ext_vaddress_out;
     int ext_zrd_out;
-    int ext_zrd_in;
+    //int ext_zrd_in;
     int ext_uds_out;
     int ext_zwr_out;
-    int ext_m1;
-    int ext_zwr_in;
+    //int ext_m1;
+    //int ext_zwr_in;
     int ext_bgack_out;
     int ext_as_out;
-    int ext_bgack_in;
+    //int ext_bgack_in;
     int ext_rw_dir;
-    int ext_bg;
-    int ext_iorq;
-    int ext_rw_in;
-    int ext_uds_in;
+    //int ext_bg;
+    //int ext_iorq;
+    //int ext_rw_in;
+    //int ext_uds_in;
     int ext_rw_out;
-    int ext_as_in;
-    int ext_dtack_in;
-    int ext_lds_in;
+    //int ext_as_in;
+    //int ext_dtack_in;
+    //int ext_lds_in;
     int ext_lds_out;
     int ext_strobe_dir;
     int ext_dtack_out;
-    int ext_cas0;
-    int ext_m3;
+    //int ext_cas0;
+    //int ext_m3;
     int ext_br;
-    int ext_za0;
-    int ext_wres;
+    //int ext_za0;
+    //int ext_wres;
     int ext_ia14;
-    int ext_cart;
+    //int ext_cart;
     int ext_time;
     int ext_ce0;
     int ext_fdwr;
@@ -447,50 +497,47 @@ typedef struct {
     int ext_asel;
     int ext_eoe;
     int ext_noe;
-    int ext_oe0;
+    //int ext_oe0;
     int ext_ras2;
     int ext_cas2;
     int ext_ref;
     int ext_zram;
     int ext_wait_out;
-    int ext_wait_in;
+    //int ext_wait_in;
     int ext_zbr;
     int ext_nmi;
-    int ext_zbak;
+    //int ext_zbak;
     int ext_zres;
     int ext_sound;
     int ext_vz; // vz pin, za, mreq, rd, wr pad dir
     int ext_mreq_out;
-    int ext_mreq_in;
-    int ext_fc0;
-    int ext_fc1;
+    //int ext_mreq_in;
+    //int ext_fc0;
+    //int ext_fc1;
     int ext_vres;
     int ext_vpa;
-    int ext_hsync_in;
-    int ext_sres;
+    //int ext_sres;
     int ext_vdpm;
-    int ext_test_mode_0; // 0 - default
-    int ext_zdata_in;
+    //int ext_test_mode_0; // 0 - default
+    //int ext_zdata_in;
     int ext_io;
     int ext_zv;
     int ext_intak;
-    int ext_edclk;
+
+    arb_input_t input, input_old;
 
     delaychain_t d2; // 6 xor
-    int d2_out;
     delaychain_t d3; // 40 xor
-    int d3_out;
     delaychain_t d4; // 6 xor
-    int d4_out;
     delaychain_t d5; // 12 xor
-    int d5_out;
     delaychain_t d6; // 36 xor
-    int d6_out;
     delaychain_t d7; // 37 xor
-    int d7_out;
     delaychain_t d8; // 6 xor
-    int d8_out;
 
     int va_out;
     sdffr_t z80bank;
 } arbiter_t;
+
+
+void ARB_Init(arbiter_t *chip);
+void ARB_Destroy(arbiter_t *chip);

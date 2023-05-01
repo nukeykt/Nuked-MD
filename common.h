@@ -246,7 +246,7 @@ typedef struct {
 
 static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 {
-    delay->fifo = malloc(delaycycles * sizeof(int));
+    delay->fifo = malloc((delaycycles + 1) * sizeof(int));
     if (!delay->fifo)
         return;
     delay->lastcycle = 0;
@@ -262,8 +262,8 @@ static inline void DELAY_Free(delaychain_t *delay)
 static inline int DELAY_Update(delaychain_t *delay, int cycles, int pushval)
 {
     if (!delay->fifo || delay->items < 1)
-        return 0;
-    while (delay->lastcycle < cycles)
+        return pushval;
+    while (delay->lastcycle != cycles)
     {
         delay->lastcycle++;
         delay->pos = (delay->pos + 1) % delay->items;

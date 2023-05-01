@@ -108,7 +108,11 @@ typedef struct
     int o_dtack;
     int o_lwr;
     int o_cas0;
-    int o_zdata_out;
+    int o_zdata;
     int o_zdata_dir;
 } fc1004_t;
 
+
+void FC1004_Init(fc1004_t *chip);
+void FC1004_Destroy(fc1004_t* chip);
+void FC1004_Clock(fc1004_t *chip);

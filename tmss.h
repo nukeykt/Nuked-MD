@@ -2,7 +2,9 @@
 
 #include "common.h"
 
-extern unsigned short tmss_rom[1024];;
+#define TMSS_SIZE 1024
+
+extern unsigned short tmss_rom[TMSS_SIZE];
 
 typedef struct {
     sdffr_t dff1;
