@@ -151,9 +151,9 @@ void ARB_ClockVToZ(arbiter_t *chip)
     chip->w12 = chip->test || !chip->ext_rw_in || chip->w63;
     if (!chip->w12)
     {
-        chip->ext_data_out &= ~256;
+        *chip->ext_data_out &= ~256;
         if (chip->w33)
-            chip->ext_data_out |= 256;
+            *chip->ext_data_out |= 256;
     }
     chip->w36 = chip->w63 || chip->ext_rw_in;
     SDFFR_Update(&chip->zbr, chip->w36, chip->vd8, chip->sres_syncv.l2); // Z80 bus req
@@ -575,14 +575,14 @@ void ARB_Clock(arbiter_t *chip, int cycles)
 
     if (!chip->w131)
     {
-        chip->ext_vaddress_out &= ~0xfff80;
-        chip->ext_vaddress_out |= (chip->va_out << 7) & 0xfff80;
+        *chip->ext_vaddress_out &= ~0xfff80;
+        *chip->ext_vaddress_out |= (chip->va_out << 7) & 0xfff80;
     }
 
     if (!chip->w142)
     {
-        chip->ext_vaddress_out &= ~0x700000;
-        chip->ext_vaddress_out |= (chip->va_out << 7) & 0x700000;
+        *chip->ext_vaddress_out &= ~0x700000;
+        *chip->ext_vaddress_out |= (chip->va_out << 7) & 0x700000;
     }
 
     chip->va14_in = (chip->ext_vaddress_in & 0x2000) != 0;

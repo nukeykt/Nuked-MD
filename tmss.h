@@ -31,7 +31,7 @@ typedef struct {
     int w59;
     int w62;
 
-    int ext_data_out;
+    int *ext_data_out;
     int ext_data_in;
     int ext_test;
     int ext_jap;

@@ -24,7 +24,7 @@ void TMSS_Clock(tmss_t *chip)
     if (!chip->ext_data_out_en)
     {
         chip->w20 = (chip->ext_address_in & 1) != 0 ? chip->l2 : chip->l1;
-        chip->ext_data_out = chip->w28 ? chip->w20 : tmss_rom[chip->ext_address_in & 1023];
+        *chip->ext_data_out = chip->w28 ? chip->w20 : tmss_rom[chip->ext_address_in & 1023];
     }
 
 

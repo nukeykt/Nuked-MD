@@ -1760,7 +1760,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l146[0] = chip->w509;
         chip->l147[0] = chip->w487;
         chip->l148[0] = chip->w488;
-        chip->l149[0] = chip->i_hsync;
+        chip->l149[0] = !chip->i_hsync;
         chip->l150[0] = chip->w412;
         chip->l151[0] = chip->w413;
         chip->l152[0] = chip->w496;

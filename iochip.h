@@ -96,9 +96,10 @@ typedef struct {
     int ext_t1;
     int ext_zv;
     int ext_vz;
-    int ext_vdata_out;
-    int ext_zdata_out;
-    int ext_vaddress_out;
+    int *ext_vdata_out;
+    int *ext_zdata_out;
+    int *ext_vaddress_out;
+    int ext_hl;
 
     // bus control
     int ext_bc1; // va1-7->za1-7

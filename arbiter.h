@@ -405,12 +405,12 @@ typedef struct {
     int ext_mclk;
     int ext_vclk;
     int ext_zclk;
-    int ext_data_out;
+    int *ext_data_out;
     int ext_data_in;
     int ext_zaddress_in;
     int ext_zaddress_out;
     int ext_vaddress_in;
-    int ext_vaddress_out;
+    int *ext_vaddress_out;
     int ext_zrd_out;
     int ext_zrd_in;
     int ext_uds_out;

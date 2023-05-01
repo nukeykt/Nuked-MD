@@ -402,31 +402,42 @@ void IOC_Clock(iochip_t *chip)
     chip->zdata = chip->io_access ? chip->read_data :
         (chip->byte_sel ? ((chip->ext_vdata_in >> 8) & 0xff) : (chip->ext_vdata_in & 0xff));
 
+    if (chip->ext_m3)
+    {
+        chip->ext_hl = !(chip->port_a.irq_b6 || chip->port_a.irq_uart || chip->port_b.irq_b6 || chip->port_b.irq_uart
+            || chip->port_c.irq_b6 || chip->port_c.irq_uart);
+    }
+    else
+    {
+        chip->ext_hl = !(((chip->port_a_d & 64) != 0 && (chip->port_a.ext_port_i & 64) == 0)
+            || ((chip->port_b_d & 64) != 0 && (chip->port_b.ext_port_i & 64) == 0));
+    }
+
     if (!chip->ext_bc2)
     {
-        chip->ext_vdata_out &= ~0xff;
-        chip->ext_vdata_out |= chip->vdata;
+        *chip->ext_vdata_out &= ~0xff;
+        *chip->ext_vdata_out |= chip->vdata;
     }
     if (!chip->ext_bc3)
     {
-        chip->ext_vdata_out &= ~0xff00;
-        chip->ext_vdata_out |= (chip->vdata & 0xfe) << 8;
+        *chip->ext_vdata_out &= ~0xff00;
+        *chip->ext_vdata_out |= (chip->vdata & 0xfe) << 8;
         if (chip->io_access)
         {
-            chip->ext_vdata_out |= (chip->vdata & 1) << 8;
+            *chip->ext_vdata_out |= (chip->vdata & 1) << 8;
         }
         else
         {
-            chip->ext_vdata_out |= (chip->reg_3e.q & 1) << 8;
+            *chip->ext_vdata_out |= (chip->reg_3e.q & 1) << 8;
         }
     }
     if (!chip->ext_bc4)
     {
-        chip->ext_zdata_out = chip->zdata;
+        *chip->ext_zdata_out = chip->zdata;
     }
     if (!chip->ext_bc5)
     {
-        chip->ext_vaddress_out &= ~0x7f;
-        chip->ext_vaddress_out |= chip->ztov_address & 0x7f;
+        *chip->ext_vaddress_out &= ~0x7f;
+        *chip->ext_vaddress_out |= chip->ztov_address & 0x7f;
     }
 }
