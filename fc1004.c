@@ -29,6 +29,76 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     chip->vz = chip->tmss.ext_test_0 ? chip->i_vz : chip->arb.ext_vz;
     chip->ioc.ext_io = chip->tmss.ext_test_0 ? chip->i_io : chip->arb.ext_io;
 
+    chip->arb.ext_zaddress_in = chip->i_zaddress;
+    chip->ioc.ext_zaddress_in = chip->i_zaddress;
+
+    chip->arb.ext_sres = chip->i_sres;
+    chip->ioc.ext_sres = chip->i_sres;
+    chip->tmss.ext_sres = chip->i_sres;
+    chip->vdp.i_reset = chip->i_sres;
+
+    chip->ce0_tmss = chip->tmss.ext_test_0 ? chip->i_sel1 : chip->arb.ext_ce0;
+    chip->tmss.ext_ce0_arb = chip->ce0_tmss;
+
+    chip->arb.ext_vclk = chip->i_vclk;
+    chip->ioc.ext_vclk = chip->i_vclk;
+    chip->arb.ext_zclk = chip->i_zclk;
+
+    chip->arb.ext_mclk = chip->i_mclk;
+
+    chip->vdp_data_dir = !chip->vdp.w155 || chip->tmss.ext_test_2;
+    chip->vdp_address_dir = !chip->vdp.w267 || chip->tmss.ext_test_2;
+
+    if (!chip->vdp_data_dir)
+    {
+        chip->o_vdata = chip->vdp.io_data;
+    }
+    else
+    {
+        chip->vdp.io_data = chip->i_vdata;
+    }
+    if (!chip->vdp_address_dir)
+    {
+        chip->o_vaddress = chip->vdp.io_address & 0x3fffff;
+        chip->o_vaddress |= (chip->vdp.io_address_22o << 22);
+    }
+    else
+    {
+        chip->vdp.io_address = chip->i_vaddress & 0x73ffff;
+    }
+
+    chip->arb.ext_bgack_in = chip->i_bgack;
+    chip->vdp.i_bgack = chip->i_bgack;
+
+    chip->arb.ext_bg = chip->i_bg;
+    chip->vdp.i_bg = chip->i_bg;
+
+    chip->arb.ext_iorq = chip->i_iorq;
+    chip->vdp.i_iorq = chip->i_iorq;
+
+    chip->arb.ext_zrd_in = chip->i_zrd;
+    chip->arb.ext_zwr_in = chip->i_zwr;
+    chip->vdp.i_rd = chip->i_zrd;
+    chip->vdp.i_wr = chip->i_zwr;
+
+    chip->arb.ext_m1 = chip->i_m1;
+    chip->vdp.i_m1 = chip->i_m1;
+
+    chip->vdp.i_as = chip->i_as;
+    chip->arb.ext_as_in = chip->i_as;
+    chip->tmss.ext_as_in = chip->i_as;
+    chip->vdp.i_uds = chip->i_uds;
+    chip->arb.ext_uds_in = chip->i_uds;
+    chip->tmss.ext_uds_in = chip->i_uds;
+    chip->vdp.i_lds = chip->i_uds;
+    chip->arb.ext_lds_in = chip->i_lds;
+    chip->tmss.ext_lds_in = chip->i_lds;
+
+    chip->arb.ext_dtack_in = chip->i_dtack;
+    chip->vdp.i_dtack = chip->i_dtack;
+
+    chip->ioc.ext_lwr = chip->i_lwr;
+    chip->ioc.ext_cas0 = chip->i_cas0;
 
     chip->o_ys = chip->tmss.ext_test_2 ? chip->arb.w353 : chip->vdp.w1009;
     chip->o_vsync = chip->tmss.ext_test_2 ? chip->arb.w310 : chip->vdp.w374;
@@ -43,7 +113,7 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
         (chip->tmss.ext_test_0 ? chip->hl_vdp : chip->arb.ext_zbr);
     chip->o_wait = chip->arb.ext_wait_out ? state_z : 0;
 
-    chip->o_ce0 = chip->tmss.ext_test_4 ? chip->arb.ext_ce0 : chip->tmss.ext_ce0_tmss;
+    chip->o_ce0 = chip->tmss.ext_test_4 ? chip->ce0_tmss : chip->tmss.ext_ce0_tmss;
     chip->o_disk = (!chip->tmss.ext_test_2 || chip->tmss.ext_test_0) ? state_z : chip->intak_vdp;
 
     chip->o_test0 = ((chip->fm.mode_test_2c[1] & 128) != 0 || chip->tmss.ext_test_3) ? state_z : chip->fm.fsm_sel23;
@@ -51,7 +121,107 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     chip->o_fres = (chip->tmss.ext_test_0 && !chip->tmss.ext_test_1) ? state_z :
         (chip->tmss.ext_test_1 ? chip->mreq_vdp : chip->ioc.ext_fres);
 
-    chip->o_zv = chip->tmss.ext_test_0 ? state_0 : chip->arb.ext_zv;
-    chip->o_vz = chip->tmss.ext_test_0 ? state_0 : chip->arb.ext_vz;
-    chip->o_io = chip->tmss.ext_test_0 ? state_0 : chip->arb.ext_io;
+    chip->o_zv = chip->tmss.ext_test_0 ? state_z : chip->arb.ext_zv;
+    chip->o_vz = chip->tmss.ext_test_0 ? state_z : chip->arb.ext_vz;
+    chip->o_io = chip->tmss.ext_test_0 ? state_z : chip->arb.ext_io;
+
+    chip->o_zaddress = 0;
+    chip->o_zaddress_dir = 0;
+
+    chip->za0_dir = (chip->tmss.ext_test_1 ^ chip->tmss.ext_test_3) || chip->arb.ext_vz;
+    chip->za1_dir = (chip->tmss.ext_test_1 && !chip->tmss.ext_test_3) || chip->ioc.ext_bc1;
+    chip->za7_dir = (chip->tmss.ext_test_1 && chip->tmss.ext_test_3) || chip->ioc.ext_bc1;
+    chip->o_zaddress_dir |= chip->za0_dir;
+    chip->o_zaddress_dir |= chip->za1_dir << 1;
+    chip->o_zaddress_dir |= chip->za7_dir << 7;
+    if (chip->ioc.ext_bc1)
+        chip->o_zaddress_dir |= 0x7c;
+    if (chip->arb.ext_vz)
+        chip->o_zaddress_dir |= 0xff00;
+    chip->o_zaddress |= chip->arb.ext_zaddress_out & 1;
+    chip->o_zaddress |= (chip->i_vaddress & 127) << 1;
+    chip->o_zaddress |= chip->arb.ext_zaddress_out & 0xff00;
+
+    chip->o_vclk = (chip->tmss.ext_test_2 || chip->i_sel1) ? state_z : chip->vdp.mclk_cpu_clk1;
+    chip->fm_clk = chip->tmss.ext_test_2 ? chip->i_vclk : chip->vdp.mclk_cpu_clk1;
+    chip->o_zclk = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_clk0;
+
+    chip->o_edclk = (chip->tmss.ext_test_0 && (chip->tmss.ext_test_2 || (chip->vdp.reg_test1 & 2) == 0))
+        ? state_z :
+        ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.mclk_dclk : chip->arb.ext_edclk);
+
+    chip->o_vdata_dir = 0;
+    chip->o_vdata = 0;
+    if (chip->ioc.ext_bc2 && chip->tmss.ext_data_out_en && chip->vdp_data_dir)
+    {
+        chip->o_vdata_dir |= 0xff;
+        chip->o_vdata &= ~0xff;
+    }
+    if (chip->ioc.ext_bc3 && chip->tmss.ext_data_out_en && chip->vdp_data_dir && chip->arb.w12)
+    {
+        chip->o_vdata_dir |= 0x100;
+        chip->o_vdata &= ~0x100;
+    }
+    if (chip->ioc.ext_bc3 && chip->tmss.ext_data_out_en && chip->vdp_data_dir)
+    {
+        chip->o_vdata_dir |= 0xfe00;
+        chip->o_vdata &= ~0xfe00;
+    }
+    if (chip->ioc.ext_bc5 && chip->vdp_address_dir)
+    {
+        chip->o_vaddress_dir |= 0x7f;
+        chip->o_vaddress |= ~0x7f;
+    }
+    if (chip->arb.w131 && chip->vdp_address_dir)
+    {
+        chip->o_vaddress_dir |= 0xfff80;
+        chip->o_vaddress |= ~0xfff80;
+    }
+    if (chip->arb.w142 && chip->vdp_address_dir)
+    {
+        chip->o_vaddress_dir |= 0x700000;
+        chip->o_vaddress |= ~0x700000;
+    }
+
+    chip->br = 1;
+    if (chip->tmss.ext_test_0 && chip->tmss.ext_test_2)
+        chip->br &= !(chip->fm.status_timer_a_dlatch || chip->fm.status_timer_b_dlatch) || chip->tmss.ext_test_3;
+    if (!chip->tmss.ext_test_0)
+        chip->br &= chip->arb.ext_br;
+    if (!chip->tmss.ext_test_2)
+        chip->br &= chip->vdp.w42;
+    chip->o_br = chip->br ? state_z : 0;
+
+    chip->bgack = chip->arb.ext_bgack_out && (chip->tmss.ext_test_2 || chip->vdp.w64);
+    chip->o_bgack = chip->bgack ? state_z : 0;
+
+    chip->o_zrd = chip->arb.ext_vz ? state_z : chip->arb.ext_zrd_out;
+    chip->o_zwr = chip->arb.ext_vz ? state_z : chip->arb.ext_zwr_out;
+    chip->o_as = chip->arb.ext_strobe_dir ? state_z : chip->arb.ext_as_out;
+    chip->o_uds = chip->arb.ext_strobe_dir ? state_z : chip->arb.ext_uds_out;
+    chip->o_lds = chip->arb.ext_strobe_dir ? state_z : chip->arb.ext_lds_out;
+    chip->dtack = chip->arb.ext_dtack_out && chip->tmss.ext_dtack_out && (chip->tmss.ext_test_2 || chip->vdp.w117);
+    chip->o_dtack = chip->dtack ? state_z : 0;
+    chip->o_lwr = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_lwr;
+    chip->o_cas0 = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_cas0;
+
+    chip->colorbus = !(chip->tmss.ext_test_1 && chip->tmss.ext_test_2 && chip->tmss.ext_test_3);
+    chip->fm_read = !(chip->fm.cs && chip->fm.rd && !chip->fm.ic);
+
+
+    chip->o_zdata_dir = 0;
+    chip->o_zdata_out = 0;
+    if (chip->colorbus && chip->ioc.ext_bc4 && chip->fm_read)
+    {
+        chip->o_zdata_out = 0;
+        chip->o_zdata_dir = 0xff;
+    }
+    if (!chip->colorbus)
+    {
+        chip->o_zdata_out = chip->vdp.o_ram_addr;
+    }
+    if (!chip->fm_read)
+    {
+        chip->o_zdata_out = FM_ReadStatus(&chip->fm);
+    }
 }

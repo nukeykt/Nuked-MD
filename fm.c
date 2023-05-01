@@ -143,7 +143,11 @@ int FM_ReadTest(fm_t *chip)
 int FM_ReadStatus(fm_t *chip)
 {
     int io_dir = chip->cs && chip->rd && !chip->ic;
-    int read_enable = chip->cs && chip->rd && chip->address == 0 && !chip->ic;
+    int read_enable = chip->cs && chip->rd && !chip->ic;
+    if (chip->flags & fm_flags_ym2612)
+    {
+        read_enable = read_enable && chip->address == 0;
+    }
     int status;
     int testdata = 0;
     if (!io_dir)

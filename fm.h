@@ -302,4 +302,4 @@ typedef struct {
 } fm_t;
 
 
-
+int FM_ReadStatus(fm_t *chip);

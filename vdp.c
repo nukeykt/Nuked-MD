@@ -2465,10 +2465,11 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->o_sbcr = chip->mclk_sbcr;
     chip->o_clk0 = chip->mclk_cpu_clk0;
     if (chip->reg_test1 & 2)
-        chip->o_edclk = chip->i_edclk;
+        chip->o_edclk = chip->mclk_dclk;
     else
         chip->o_edclk = state_z;
 
+#if 0
     if (chip->w151)
     {
         chip->o_data = chip->io_data;
@@ -2479,7 +2480,9 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->io_data = chip->i_data;
         chip->o_data_z = 1;
     }
+#endif
 
+#if 0
     if (chip->w267)
     {
         chip->o_address = chip->io_address & 0x3fffff;
@@ -2491,6 +2494,8 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->io_address = chip->i_address & 0x73ffff;
         chip->o_address_z = 1;
     }
+#endif
+
     chip->o_zint = chip->w122 ? state_z : 0;
     chip->o_br = chip->w42 ? state_z : 0;
     chip->o_bgack = chip->w64 ? state_z : 0;
