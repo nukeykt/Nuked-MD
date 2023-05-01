@@ -19,10 +19,10 @@ void DFF_Update(dff_t *dff, int clk, int input, int reset)
     }
 }
 
-void VDP_ClockMCLK(vdp_t *chip, int mclk)
+void VDP_ClockMCLK(vdp_prescaler_t *chip)
 {
-    chip->reset_comb = !(chip->i_reset && chip->w100);
-    DFF_Update(&chip->mclk_prescaler_dff1, mclk, chip->reset_comb, 0);
+    int mclk = chip->input.mclk;
+    DFF_Update(&chip->mclk_prescaler_dff1, mclk, !(chip->input.i_reset && chip->input.i_test_reset), 0);
     DFF_Update(&chip->mclk_prescaler_dff2, mclk, chip->mclk_prescaler_dff1.l2, 0);
     chip->mclk_and1 = chip->mclk_prescaler_dff2.l1 && !chip->mclk_prescaler_dff1.l2;
 
@@ -55,25 +55,36 @@ void VDP_ClockMCLK(vdp_t *chip, int mclk)
     DFF_Update(&chip->mclk_prescaler_dff17, !chip->mclk_clk2, chip->mclk_prescaler_dff16.l2, chip->mclk_and1);
     chip->mclk_clk5 = chip->mclk_prescaler_dff16.l2 || chip->mclk_prescaler_dff17.l2;
 
-    if (chip->cpu_pal)
+    if (chip->input.i_pal)
         chip->mclk_sbcr = chip->mclk_clk4;
     else
         chip->mclk_sbcr = chip->mclk_clk5;
 
-    if (chip->reg_test1 & 1)
-        chip->mclk_cpu_clk0 = chip->i_clk1; // ext
+    if (chip->input.i_test_psg)
+        chip->mclk_cpu_clk0 = chip->input.i_clk1; // ext
     else
         chip->mclk_cpu_clk0 = chip->mclk_clk5;
 
     chip->mclk_cpu_clk1 = !chip->mclk_clk3;
 
-    if (chip->reg_rs0 || (chip->reg_test1 & 1) != 0)
-        chip->mclk_dclk = chip->i_edclk; // ext
-    else if (chip->reg_rs1)
+    if (chip->input.i_rs0 || chip->input.i_test_psg)
+        chip->mclk_dclk = chip->input.i_edclk; // ext
+    else if (chip->input.i_rs1)
         chip->mclk_dclk = chip->mclk_clk1; // h40
     else
         chip->mclk_dclk = chip->mclk_clk2; // h32
 
+    if (chip->input.i_clk1)
+        chip->o_clk1 = state_z;
+    else
+        chip->o_clk1 = chip->mclk_cpu_clk1;
+
+    chip->o_sbcr = chip->mclk_sbcr;
+    chip->o_clk0 = chip->mclk_cpu_clk0;
+    if (chip->input.i_test_dclk)
+        chip->o_edclk = chip->mclk_dclk;
+    else
+        chip->o_edclk = state_z;
 }
 
 static void VDP_DCLKPrescale(vdp_t *chip, int clk1, int clk2)
@@ -97,7 +108,7 @@ static void VDP_DCLKPrescale(vdp_t *chip, int clk1, int clk2)
 
 static void VDP_ResetLogic(vdp_t *chip, int clk1, int clk2)
 {
-    chip->reset_comb = !(chip->i_reset && chip->w100);
+    chip->reset_comb = !(chip->input.i_reset && chip->w100);
     if (clk1)
     {
         chip->reset_l1[0] = !chip->reset_comb;
@@ -111,33 +122,35 @@ static void VDP_ResetLogic(vdp_t *chip, int clk1, int clk2)
 
     chip->reset_pulse = chip->reset_l1[1] && !chip->reset_l2[1];
 
-    chip->reset_ext = !chip->i_reset;
+    chip->reset_ext = !chip->input.i_reset;
 }
 
 void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 {
     int i, j;
-    chip->cpu_sel = chip->i_sel0;
-    chip->cpu_as = !chip->i_as && chip->cpu_sel;
-    chip->cpu_uds = !chip->i_uds && chip->cpu_sel;
-    chip->cpu_lds = !chip->i_lds && chip->cpu_sel;
-    chip->cpu_m1 = !chip->i_m1 && !chip->cpu_sel;
-    chip->cpu_rd = !chip->i_rd && !chip->cpu_sel;
-    chip->cpu_wr = !chip->i_wr && !chip->cpu_sel;
-    chip->cpu_mreq = !chip->i_mreq && !chip->cpu_sel;
-    chip->cpu_iorq = !chip->i_iorq && !chip->cpu_sel;
-    chip->cpu_rw = !chip->i_rw;
-    chip->cpu_bg = !chip->i_bg;
-    chip->cpu_intak = !chip->i_intak;
-    chip->cpu_bgack = chip->i_bgack;
+    chip->cpu_sel = chip->input.i_sel0;
+    chip->cpu_as = !chip->input.i_as && chip->cpu_sel;
+    chip->cpu_uds = !chip->input.i_uds && chip->cpu_sel;
+    chip->cpu_lds = !chip->input.i_lds && chip->cpu_sel;
+    chip->cpu_m1 = !chip->input.i_m1 && !chip->cpu_sel;
+    chip->cpu_rd = !chip->input.i_rd && !chip->cpu_sel;
+    chip->cpu_wr = !chip->input.i_wr && !chip->cpu_sel;
+    chip->cpu_mreq = !chip->input.i_mreq && !chip->cpu_sel;
+    chip->cpu_iorq = !chip->input.i_iorq && !chip->cpu_sel;
+    chip->cpu_rw = !chip->input.i_rw;
+    chip->cpu_bg = !chip->input.i_bg;
+    chip->cpu_intak = !chip->input.i_intak;
+    chip->cpu_bgack = chip->input.i_bgack;
+    chip->cpu_pal = chip->input.i_pal;
+    chip->cpu_pen = chip->input.i_pen;
 
-    DFF_Update(&chip->io_m1_dff1, chip->mclk_cpu_clk0, chip->cpu_m1, 0);
-    DFF_Update(&chip->io_m1_dff2, chip->mclk_cpu_clk0, chip->io_m1_dff1.l2, 0);
-    DFF_Update(&chip->io_m1_dff3, !chip->mclk_cpu_clk0, chip->io_m1_dff2.l2, 0);
+    DFF_Update(&chip->io_m1_dff1, chip->input.i_cpu_clk0, chip->cpu_m1, 0);
+    DFF_Update(&chip->io_m1_dff2, chip->input.i_cpu_clk0, chip->io_m1_dff1.l2, 0);
+    DFF_Update(&chip->io_m1_dff3, !chip->input.i_cpu_clk0, chip->io_m1_dff2.l2, 0);
 
     chip->io_m1_s1 = chip->io_m1_dff3.l2 && chip->io_m1_dff2.l2;
     chip->io_m1_s2 = !chip->io_m1_s1 && chip->io_m1_s4;
-    DFF_Update(&chip->io_m1_dff4, !chip->mclk_cpu_clk0, chip->io_m1_s2, 0);
+    DFF_Update(&chip->io_m1_dff4, !chip->input.i_cpu_clk0, chip->io_m1_s2, 0);
 
     chip->io_m1_s3 = chip->io_m1_dff4.l2 && chip->io_m1_s2;
 
@@ -165,10 +178,10 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->io_uwr = chip->cpu_uds && chip->io_wr;
 
     chip->w1 = !chip->cpu_rw && (chip->cpu_uds || chip->cpu_lds);
-    DFF_Update(&chip->dff1, !chip->i_cpu_clk1, chip->w23, 0);
+    DFF_Update(&chip->dff1, !chip->input.i_cpu_clk1, chip->w23, 0);
 
 
-    DFF_Update(&chip->dff2, chip->i_cpu_clk1, chip->cpu_bg, 0);
+    DFF_Update(&chip->dff2, chip->input.i_cpu_clk1, chip->cpu_bg, 0);
 
     if (chip->cpu_bg || chip->reset_comb)
         chip->t1 = 1;
@@ -200,7 +213,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     else if (chip->w4 || chip->w5)
         chip->t4 = 0;
 
-    chip->w5 = chip->dff22.l2 && chip->cpu_bgack && chip->i_dtack && chip->dff2.l2 && chip->cpu_sel && chip->w37;
+    chip->w5 = chip->dff22.l2 && chip->cpu_bgack && chip->input.i_dtack && chip->dff2.l2 && chip->cpu_sel && chip->w37;
 
     chip->io_ipl1 = !(chip->w11 && chip->cpu_sel);
     chip->io_ipl2 = !(chip->w12 && chip->cpu_sel);
@@ -269,21 +282,21 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     chip->w25 = chip->cpu_rd && chip->l17;
 
-    DFF_Update(&chip->dff5, !chip->i_cpu_clk1, chip->dff6.l2, chip->w10);
+    DFF_Update(&chip->dff5, !chip->input.i_cpu_clk1, chip->dff6.l2, chip->w10);
 
-    DFF_Update(&chip->dff6, chip->i_cpu_clk1, chip->dff7.l2, chip->w10);
+    DFF_Update(&chip->dff6, chip->input.i_cpu_clk1, chip->dff7.l2, chip->w10);
 
     chip->w26 = !(!chip->dff6.l2 && chip->dff8.l2);
 
-    DFF_Update(&chip->dff7, !chip->i_cpu_clk1, chip->dff8.l2, chip->w10);
+    DFF_Update(&chip->dff7, !chip->input.i_cpu_clk1, chip->dff8.l2, chip->w10);
 
     chip->w27 = chip->dff17.l2 && !chip->dff19.l2;
 
     chip->w28 = chip->dff16.l2 && !chip->dff19.l2;
 
-    DFF_Update(&chip->dff8, !chip->i_cpu_clk1, chip->dff9.l2, chip->w10);
+    DFF_Update(&chip->dff8, !chip->input.i_cpu_clk1, chip->dff9.l2, chip->w10);
 
-    DFF_Update(&chip->dff9, chip->i_cpu_clk1, chip->w30, chip->w10);
+    DFF_Update(&chip->dff9, chip->input.i_cpu_clk1, chip->w30, chip->w10);
 
     chip->w29 = !(chip->w10 || chip->dff9.l2);
 
@@ -291,9 +304,9 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     chip->w31 = chip->reset_comb || chip->dff21.l2 || chip->dff13.l2;
 
-    DFF_Update(&chip->dff10, !chip->i_cpu_clk1, chip->dff11.l2, chip->w33);
+    DFF_Update(&chip->dff10, !chip->input.i_cpu_clk1, chip->dff11.l2, chip->w33);
 
-    DFF_Update(&chip->dff11, chip->i_cpu_clk1, chip->w36, chip->w33);
+    DFF_Update(&chip->dff11, chip->input.i_cpu_clk1, chip->w36, chip->w33);
 
     chip->w32 = chip->dff11.l2 && chip->w1;
 
@@ -313,7 +326,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     DFF_Update(&chip->dff13, chip->w34, chip->w44, chip->w38);
 
-    DFF_Update(&chip->dff14, chip->i_cpu_clk1, chip->w43, 0);
+    DFF_Update(&chip->dff14, chip->input.i_cpu_clk1, chip->w43, 0);
 
     DFF_Update(&chip->dff15, chip->dff14.l2, chip->w44, chip->w31);
     
@@ -321,40 +334,40 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     chip->w40 = chip->w39 || chip->dff21.l2;
 
-    DFF_Update(&chip->dff16, chip->i_cpu_clk1, 1, chip->w39);
-    DFF_Update(&chip->dff17, chip->i_cpu_clk1, chip->dff16.l2, chip->w39);
-    DFF_Update(&chip->dff18, chip->i_cpu_clk1, chip->dff17.l2, chip->w39);
-    DFF_Update(&chip->dff19, chip->i_cpu_clk1, chip->dff18.l2, chip->w39);
-    DFF_Update(&chip->dff20, chip->i_cpu_clk1, chip->dff19.l2, chip->w39);
+    DFF_Update(&chip->dff16, chip->input.i_cpu_clk1, 1, chip->w39);
+    DFF_Update(&chip->dff17, chip->input.i_cpu_clk1, chip->dff16.l2, chip->w39);
+    DFF_Update(&chip->dff18, chip->input.i_cpu_clk1, chip->dff17.l2, chip->w39);
+    DFF_Update(&chip->dff19, chip->input.i_cpu_clk1, chip->dff18.l2, chip->w39);
+    DFF_Update(&chip->dff20, chip->input.i_cpu_clk1, chip->dff19.l2, chip->w39);
 
-    DFF_Update(&chip->dff21, chip->i_cpu_clk1, chip->dff20.l2, 0);
+    DFF_Update(&chip->dff21, chip->input.i_cpu_clk1, chip->dff20.l2, 0);
 
     chip->w41 = !(!chip->dff21.l2 && chip->cpu_sel && chip->w26);
 
-    DFF_Update(&chip->dff22, chip->i_cpu_clk1, chip->t4, 0);
+    DFF_Update(&chip->dff22, chip->input.i_cpu_clk1, chip->t4, 0);
 
     chip->w42 = !(chip->dff2.l2 && chip->cpu_sel);
 
     i = chip->w64 + chip->dff23.l2;
-    DFF_Update(&chip->dff23, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff23, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     i = (i >> 1) + chip->dff24.l2;
-    DFF_Update(&chip->dff24, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff24, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     i = (i >> 1) + chip->dff25.l2;
-    DFF_Update(&chip->dff25, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff25, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     i = (i >> 1) + chip->dff26.l2;
-    DFF_Update(&chip->dff26, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff26, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     i = (i >> 1) + chip->dff27.l2;
-    DFF_Update(&chip->dff27, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff27, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     i = (i >> 1) + chip->dff28.l2;
-    DFF_Update(&chip->dff28, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff28, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     i = (i >> 1) + chip->dff29.l2;
-    DFF_Update(&chip->dff29, chip->i_cpu_clk1, i & 1, chip->w41);
+    DFF_Update(&chip->dff29, chip->input.i_cpu_clk1, i & 1, chip->w41);
 
     chip->w44 = chip->dff28.l2 && chip->dff27.l2 && chip->dff29.l2;
     chip->w43 = chip->dff25.l2 && chip->dff24.l2 && chip->dff26.l2 && chip->w44;
@@ -680,7 +693,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     chip->w118 = (chip->w1 && 0) || (chip->w32 && chip->w116) || chip->w19;
 
-    if (chip->mclk_cpu_clk0)
+    if (chip->input.i_cpu_clk0)
         chip->l17 = chip->cpu_rd;
 
     chip->w119 = chip->cpu_sel ? chip->l110[1] : chip->l115[1];
@@ -1733,7 +1746,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l117[0] = chip->w505;
         chip->l118[0] = chip->w477;
         chip->l119[0] = chip->w478;
-        chip->l120[0] = !chip->i_csync;
+        chip->l120[0] = !chip->input.i_csync;
         chip->l121[0] = chip->w376;
         chip->l122[0] = chip->w492;
         chip->l123[0] = chip->w501;
@@ -1760,7 +1773,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->l146[0] = chip->w509;
         chip->l147[0] = chip->w487;
         chip->l148[0] = chip->w488;
-        chip->l149[0] = !chip->i_hsync;
+        chip->l149[0] = !chip->input.i_hsync;
         chip->l150[0] = chip->w412;
         chip->l151[0] = chip->w413;
         chip->l152[0] = chip->w496;
@@ -2457,17 +2470,6 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->o_vsync = chip->w374;
     chip->o_csync = chip->l128[1] ? state_z : 0;
     chip->o_hsync = chip->l136[1] ? state_z : 0;
-    if (chip->i_clk1)
-        chip->o_clk1 = state_z;
-    else
-        chip->o_clk1 = chip->mclk_cpu_clk1;
-
-    chip->o_sbcr = chip->mclk_sbcr;
-    chip->o_clk0 = chip->mclk_cpu_clk0;
-    if (chip->reg_test1 & 2)
-        chip->o_edclk = chip->mclk_dclk;
-    else
-        chip->o_edclk = state_z;
 
 #if 0
     if (chip->w151)
@@ -4242,7 +4244,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     }
 
     if (clk1)
-        chip->vram_serial = chip->i_vram_sd;
+        chip->vram_serial = chip->input.i_vram_sd;
 
     chip->w741 = chip->w740 && (chip->vram_address & 4) == 0 && chip->reg_m5;
 
@@ -5989,12 +5991,12 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
     }
     if (chip->w998)
     {
-        chip->l598 = chip->i_vram_rd;
+        chip->l598 = chip->input.i_vram_rd;
     }
 
     if (chip->w998)
     {
-        chip->l599 = chip->i_vram_ad;
+        chip->l599 = chip->input.i_vram_ad;
     }
 
     if (chip->l583[1])
@@ -6067,7 +6069,7 @@ void VDP_ClockVideoMux(vdp_t *chip)
         chip->l612[0] = chip->l611[1];
         chip->l613[0] = chip->w1071;
         chip->l614[0] = chip->w1074;
-        chip->l615[0] = !chip->i_spa;
+        chip->l615[0] = !chip->input.i_spa;
         chip->l616[0] = chip->l616[1] << 1;
         chip->l616[0] |= chip->w389;
         chip->l617[0] = chip->w1076;
@@ -6490,8 +6492,8 @@ const float ympsg_vol[17] = {
 void VDP_ClockPSG(vdp_t *chip)
 {
     int i;
-    chip->psg_clk1 = chip->mclk_cpu_clk0;
-    chip->psg_clk2 = !chip->mclk_cpu_clk0;
+    chip->psg_clk1 = chip->input.i_cpu_clk0;
+    chip->psg_clk2 = !chip->input.i_cpu_clk0;
 
     if (chip->psg_clk1)
     {
@@ -6823,6 +6825,10 @@ void VDP_ClockPSG(vdp_t *chip)
 
 void VDP_ClockDCLK(vdp_t* chip, int clk1, int clk2)
 {
+    if (clk1)
+        chip->input.i_clk_phase = 1;
+    if (clk2)
+        chip->input.i_clk_phase = 2;
     VDP_DCLKPrescale(chip, clk1, clk2);
     VDP_ResetLogic(chip, clk1, clk2);
     VDP_ClockAsync(chip, clk1, clk2);

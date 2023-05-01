@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+extern unsigned short tmss_rom[1024];;
+
 typedef struct {
     sdffr_t dff1;
     sdffs_t dff2;

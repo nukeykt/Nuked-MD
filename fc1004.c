@@ -4,27 +4,27 @@
 
 void FC1004_Clock(fc1004_t *chip, int cycles)
 {
-    chip->vdp.i_hsync = chip->i_hsync;
+    chip->vdp.input.i_hsync = chip->i_hsync;
     chip->arb.ext_hsync_in = chip->i_hsync;
-    chip->vdp.i_sel0 = chip->i_m3;
+    chip->vdp.input.i_sel0 = chip->i_m3;
     chip->arb.ext_m3 = chip->i_m3;
     chip->ioc.ext_m3 = chip->i_m3;
     chip->tmss.ext_m3 = chip->i_m3;
-    chip->vdp.cpu_pal = chip->i_ntsc;
+    chip->vdp.input.i_pal = chip->i_ntsc;
     chip->ioc.ext_ntsc = chip->i_ntsc;
     chip->fm.cs = !(chip->tmss.ext_test_0 ? chip->i_sound : chip->arb.ext_sound);
     chip->fm.ic = !chip->i_zres;
     chip->hl_vdp = chip->tmss.ext_test_1 ? chip->i_zbr : chip->ioc.ext_hl;
-    chip->vdp.cpu_pen = chip->hl_vdp;
+    chip->vdp.input.i_pen = chip->hl_vdp;
     chip->intak_vdp = chip->tmss.ext_test_0 ? chip->i_disk : chip->arb.ext_intak;
-    chip->vdp.cpu_intak = chip->intak_vdp;
+    chip->vdp.input.i_intak = chip->intak_vdp;
     chip->tmss.ext_intak_vdp = chip->intak_vdp;
     chip->fm.test = chip->i_test0;
     chip->ioc.ext_test = chip->i_test0;
     chip->oe0_arb = (!chip->tmss.ext_test_0 && chip->tmss.ext_test_2) ? chip->i_jap : chip->vdp.o_oe0;
     chip->arb.ext_oe0 = chip->oe0_arb;
     chip->mreq_vdp = chip->tmss.ext_test_0 ? chip->i_fres : chip->arb.ext_vdpm;
-    chip->vdp.i_mreq = chip->mreq_vdp;
+    chip->vdp.input.i_mreq = chip->mreq_vdp;
     chip->ioc.ext_zv = chip->tmss.ext_test_0 ? chip->i_zv : chip->arb.ext_zv;
     chip->vz = chip->tmss.ext_test_0 ? chip->i_vz : chip->arb.ext_vz;
     chip->ioc.ext_io = chip->tmss.ext_test_0 ? chip->i_io : chip->arb.ext_io;
@@ -35,7 +35,9 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     chip->arb.ext_sres = chip->i_sres;
     chip->ioc.ext_sres = chip->i_sres;
     chip->tmss.ext_sres = chip->i_sres;
-    chip->vdp.i_reset = chip->i_sres;
+    chip->vdp.input.i_reset = chip->i_sres;
+    chip->vdp.prescaler.input.i_reset = chip->i_sres;
+    chip->vdp.prescaler.input.i_test_reset = chip->vdp.w100;
 
     chip->ce0_tmss = chip->tmss.ext_test_0 ? chip->i_sel1 : chip->arb.ext_ce0;
     chip->tmss.ext_ce0_arb = chip->ce0_tmss;
@@ -68,34 +70,34 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     }
 
     chip->arb.ext_bgack_in = chip->i_bgack;
-    chip->vdp.i_bgack = chip->i_bgack;
+    chip->vdp.input.i_bgack = chip->i_bgack;
 
     chip->arb.ext_bg = chip->i_bg;
-    chip->vdp.i_bg = chip->i_bg;
+    chip->vdp.input.i_bg = chip->i_bg;
 
     chip->arb.ext_iorq = chip->i_iorq;
-    chip->vdp.i_iorq = chip->i_iorq;
+    chip->vdp.input.i_iorq = chip->i_iorq;
 
     chip->arb.ext_zrd_in = chip->i_zrd;
     chip->arb.ext_zwr_in = chip->i_zwr;
-    chip->vdp.i_rd = chip->i_zrd;
-    chip->vdp.i_wr = chip->i_zwr;
+    chip->vdp.input.i_rd = chip->i_zrd;
+    chip->vdp.input.i_wr = chip->i_zwr;
 
     chip->arb.ext_m1 = chip->i_m1;
-    chip->vdp.i_m1 = chip->i_m1;
+    chip->vdp.input.i_m1 = chip->i_m1;
 
-    chip->vdp.i_as = chip->i_as;
+    chip->vdp.input.i_as = chip->i_as;
     chip->arb.ext_as_in = chip->i_as;
     chip->tmss.ext_as_in = chip->i_as;
-    chip->vdp.i_uds = chip->i_uds;
+    chip->vdp.input.i_uds = chip->i_uds;
     chip->arb.ext_uds_in = chip->i_uds;
     chip->tmss.ext_uds_in = chip->i_uds;
-    chip->vdp.i_lds = chip->i_uds;
+    chip->vdp.input.i_lds = chip->i_uds;
     chip->arb.ext_lds_in = chip->i_lds;
     chip->tmss.ext_lds_in = chip->i_lds;
 
     chip->arb.ext_dtack_in = chip->i_dtack;
-    chip->vdp.i_dtack = chip->i_dtack;
+    chip->vdp.input.i_dtack = chip->i_dtack;
 
     chip->ioc.ext_lwr = chip->i_lwr;
     chip->ioc.ext_cas0 = chip->i_cas0;
@@ -142,13 +144,13 @@ void FC1004_Clock(fc1004_t *chip, int cycles)
     chip->o_zaddress |= (chip->i_vaddress & 127) << 1;
     chip->o_zaddress |= chip->arb.ext_zaddress_out & 0xff00;
 
-    chip->o_vclk = (chip->tmss.ext_test_2 || chip->i_sel1) ? state_z : chip->vdp.mclk_cpu_clk1;
-    chip->fm_clk = chip->tmss.ext_test_2 ? chip->i_vclk : chip->vdp.mclk_cpu_clk1;
-    chip->o_zclk = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_clk0;
+    chip->o_vclk = (chip->tmss.ext_test_2 || chip->i_sel1) ? state_z : chip->vdp.prescaler.mclk_cpu_clk1;
+    chip->fm_clk = chip->tmss.ext_test_2 ? chip->i_vclk : chip->vdp.prescaler.mclk_cpu_clk1;
+    chip->o_zclk = chip->tmss.ext_test_2 ? state_z : chip->vdp.prescaler.o_clk0;
 
     chip->o_edclk = (chip->tmss.ext_test_0 && (chip->tmss.ext_test_2 || (chip->vdp.reg_test1 & 2) == 0))
         ? state_z :
-        ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.mclk_dclk : chip->arb.ext_edclk);
+        ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.prescaler.mclk_dclk : chip->arb.ext_edclk);
 
     chip->o_vdata_dir = 0;
     chip->o_vdata = 0;

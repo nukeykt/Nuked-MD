@@ -13,19 +13,54 @@ typedef struct {
 } sprpixel_t;
 
 typedef struct {
-    int t;
+    int i_clk_phase;
+    int i_pal;
+    int i_pen;
+    int i_sel0;
+    int i_as;
+    int i_uds;
+    int i_lds;
+    int i_m1;
+    int i_rd;
+    int i_wr;
+    int i_iorq;
+    int i_mreq;
+    int i_rw;
+    int i_cpu_clk0;
+    int i_cpu_clk1;
+    int i_bg;
+    int i_intak;
+    int i_bgack;
+    int i_reset;
+    int i_clk1;
+    int i_edclk;
+    int i_dtack;
+    int i_csync;
+    int i_hsync;
+    int i_vram_sd;
+    int i_vram_rd;
+    int i_vram_ad;
+    int i_spa;
+    int i_sel1;
+    int i_data;
+    int i_address;
+} vdp_i_state_t;
 
-    int dclk_prescaler_l1[2];
-    int dclk_prescaler_l2;
-    int dclk_prescaler_l3;
-    dff_t dclk_prescaler_dff1;
-    dff_t dclk_prescaler_dff2;
+typedef struct {
+    int mclk;
+    int i_reset;
+    int i_test_reset;
+    int i_clk1;
+    int i_edclk;
+    int i_pal;
+    int i_rs0; // 
+    int i_rs1; // 
+    int i_test_psg; // chip->reg_test1 & 1
+    int i_test_dclk; // chip->reg_test1 & 2
+} vdp_prescaler_i_state_t;
 
-    int reset_comb;
-    int reset_l1[2];
-    int reset_l2[2];
-    int reset_pulse;
-    int reset_ext;
+typedef struct {
+    vdp_prescaler_i_state_t input, input_old;
     dff_t mclk_prescaler_dff1;
     dff_t mclk_prescaler_dff2;
     int mclk_and1;
@@ -53,6 +88,28 @@ typedef struct {
     int mclk_cpu_clk0;
     int mclk_cpu_clk1;
     int mclk_dclk;
+    int o_clk0;
+    int o_clk1;
+    int o_sbcr;
+    int o_edclk;
+} vdp_prescaler_t;
+
+typedef struct {
+    int t;
+
+    vdp_prescaler_t prescaler;
+
+    int dclk_prescaler_l1[2];
+    int dclk_prescaler_l2;
+    int dclk_prescaler_l3;
+    dff_t dclk_prescaler_dff1;
+    dff_t dclk_prescaler_dff2;
+
+    int reset_comb;
+    int reset_l1[2];
+    int reset_l2[2];
+    int reset_pulse;
+    int reset_ext;
 
     int cpu_sel;
     int cpu_as;
@@ -2092,33 +2149,7 @@ typedef struct {
     int hclk1;
     int hclk2;
 
-    int i_sel0;
-    int i_as;
-    int i_uds;
-    int i_lds;
-    int i_m1;
-    int i_rd;
-    int i_wr;
-    int i_iorq;
-    int i_mreq;
-    int i_rw;
-    int i_cpu_clk1;
-    int i_bg;
-    int i_intak;
-    int i_bgack;
-    int i_reset;
-    int i_clk1;
-    int i_edclk;
-    int i_dtack;
-    int i_csync;
-    int i_hsync;
-    int i_vram_sd;
-    int i_vram_rd;
-    int i_vram_ad;
-    int i_spa;
-    int i_sel1;
-    int i_data;
-    int i_address;
+    vdp_i_state_t input, input_old;
 
     int o_vram_se1;
     int o_vram_se0;
@@ -2137,10 +2168,6 @@ typedef struct {
     int o_vsync;
     int o_csync;
     int o_hsync;
-    int o_clk1;
-    int o_sbcr;
-    int o_clk0;
-    int o_edclk;
     int o_data;
     int o_data_z;
     int o_address;
@@ -2167,6 +2194,6 @@ typedef struct {
     int color_priority;
 } vdp_t;
 
-void VDP_ClockMCLK(vdp_t *chip, int mclk);
+void VDP_ClockMCLK(vdp_t *chip);
 void VDP_ClockDCLK(vdp_t *chip, int clk1, int clk2);
 void VDP_ClockPSG(vdp_t *chip);
