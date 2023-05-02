@@ -106,6 +106,7 @@ void update_vram(void)
 {
     int cas, wr, rd, owr, ord;
     int odata;
+    int ocas;
     // o_vram_ras
     // o_vram_cas
     // o_vram_we0
@@ -132,9 +133,9 @@ void update_vram(void)
         {
             int unscramble = 0;
             vram_addr_ser = vram_addr;
-            unscramble |= vram_addr & 1;
-            unscramble |= (vram_addr >> 7) & 0x1fe;
-            unscramble |= (vram_addr & 0xfe) << 8;
+            unscramble |= vram_addr & 3;
+            unscramble |= (vram_addr >> 6) & 0x1fc;
+            unscramble |= (vram_addr & 0xfc) << 8;
             vram_ser = vram[vram_addr_ser & 0xffff];
         }
     }
@@ -145,7 +146,8 @@ void update_vram(void)
         vram_addr &= ~0xff00;
         vram_addr |= (odata & 255) << 8;
     }
-    if (!vram_input_o.cas && cas)
+    ocas = !vram_input_o.ras && !vram_input_o.cas;
+    if (!ocas && cas)
     {
         vram_addr &= ~0xff;
         vram_addr |= odata & 255;
@@ -153,11 +155,11 @@ void update_vram(void)
     owr = !vram_input_o.ras && !vram_input_o.cas && !vram_input_o.we0;
     if (!owr && wr)
     {
-        vram[vram_addr] = odata;
         int unscramble = 0;
-        unscramble |= vram_addr & 1;
-        unscramble |= (vram_addr >> 7) & 0x1fe;
-        unscramble |= (vram_addr & 0xfe) << 8;
+        vram[vram_addr] = odata;
+        unscramble |= vram_addr & 3;
+        unscramble |= (vram_addr >> 6) & 0x1fc;
+        unscramble |= (vram_addr & 0xfc) << 8;
         vram_flat[unscramble] = odata;
     }
     ord = !vram_input_o.ras && !vram_input_o.cas && !vram_input_o.oe1 && !vram_dt;
@@ -169,9 +171,9 @@ void update_vram(void)
     {
         int low, high;
         int unscramble = 0;
-        unscramble |= vram_addr_ser & 1;
-        unscramble |= (vram_addr_ser >> 7) & 0x1fe;
-        unscramble |= (vram_addr_ser & 0xfe) << 8;
+        unscramble |= vram_addr_ser & 3;
+        unscramble |= (vram_addr_ser >> 6) & 0x1fc;
+        unscramble |= (vram_addr_ser & 0xfc) << 8;
         vram_ser = vram[vram_addr_ser & 0xffff];
         if (unscramble >= 0x3800 && (unscramble & 3) == 1)
         {
@@ -187,6 +189,8 @@ void update_vram(void)
     {
         ym.vdp.input.i_vram_sd = vram_ser;
     }
+
+    vram_input_o = vram_input;
 }
 
 SDL_Window* vid_window;
@@ -346,7 +350,7 @@ int main(int argc, char *argv[])
     {
         const int sdl_div = 1000;
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 4; i++)
         {
             if (ym.o_vclk != state_z)
                 vclk = ym.o_vclk;
@@ -442,7 +446,10 @@ int main(int argc, char *argv[])
                 ovclk = vclk;
             }
 #endif
-            if (mcycles == 1429208)
+            if (mcycles == 1430894)
+                mcycles += 0;
+
+            if (mcycles == 1422069)
                 mcycles += 0;
 
             // z80
@@ -527,26 +534,24 @@ int main(int argc, char *argv[])
                 if (ym.arb.ext_ia14)
                     laddress |= 0x2000;
                 laddress ^= 0x2000;
-                if (laddress * 2 == 0xc034)
-                    laddress += 0;
                 if (!ym.arb.ext_noe)
                 {
                     vdata &= ~0xff;
-                    vdata |= ram[laddress*2];
+                    vdata |= ram[laddress*2+1];
                 }
-                if (!ym.o_lwr)
-                {
-                    ram[laddress*2] = vdata & 0xff;
-                }
+                //if (!ym.o_lwr)
+                //{
+                //    ram[laddress*2+1] = vdata & 0xff;
+                //}
                 if (!ym.arb.ext_eoe)
                 {
                     vdata &= ~0xff00;
-                    vdata |= ram[(vaddress & 0x7fff)*2+1] << 8;
+                    vdata |= ram[(vaddress & 0x7fff)*2] << 8;
                 }
-                if (!ym.vdp.o_uwr)
-                {
-                    ram[(vaddress & 0x7fff)*2+1] = (vdata >> 8) & 0xff;
-                }
+                //if (!ym.vdp.o_uwr)
+                //{
+                //    ram[(vaddress & 0x7fff)*2] = (vdata >> 8) & 0xff;
+                //}
             }
 
             // z80 ram
@@ -556,10 +561,10 @@ int main(int argc, char *argv[])
                 {
                     zdata = zram[zaddress & 0x1fff];
                 }
-                if (!wr)
-                {
-                    zram[zaddress & 0x1fff] = zdata;
-                }
+                //if (!wr)
+                //{
+                //    zram[zaddress & 0x1fff] = zdata;
+                //}
             }
 
             // cart
@@ -569,6 +574,34 @@ int main(int argc, char *argv[])
                 {
                     vdata = rom[vaddress & 0x1fffff];
                 }
+            }
+        }
+
+        // 68k ram
+        if (!ym.vdp.o_ras0)
+        {
+            int laddress = vaddress & 0x5fff;
+            if (ym.arb.ext_ia14)
+                laddress |= 0x2000;
+            laddress ^= 0x2000;
+            if (laddress * 2 == 0xc008)
+                laddress += 0;
+            if (!ym.o_lwr)
+            {
+                ram[laddress * 2 + 1] = vdata & 0xff;
+            }
+            if (!ym.vdp.o_uwr)
+            {
+                ram[(vaddress & 0x7fff) * 2] = (vdata >> 8) & 0xff;
+            }
+        }
+
+        // z80 ram
+        if (!ym.arb.ext_zram)
+        {
+            if (!wr)
+            {
+                zram[zaddress & 0x1fff] = zdata;
             }
         }
 

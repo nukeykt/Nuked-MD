@@ -30,11 +30,18 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     chip->ce0_tmss = chip->tmss.ext_test_0 ? chip->i_sel1 : chip->arb.ext_ce0;
 
 
-    chip->vdp_data_dir = !chip->vdp.w155 || chip->tmss.ext_test_2;
+    chip->vdp_data_dir = !chip->vdp.w151 || chip->tmss.ext_test_2;
     chip->vdp_address_dir = !chip->vdp.w267 || chip->tmss.ext_test_2;
 
     if (!chip->vdp_data_dir)
     {
+        static int bit1;
+        VDP_UpdateBusOutput(&chip->vdp);
+        bit1 = (chip->vdp.io_data >> 1) & 1;
+        if (bit1)
+            bit1 += 0;
+        else
+            bit1 += 0;
         chip->o_vdata = chip->vdp.io_data;
     }
     else
@@ -43,6 +50,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     }
     if (!chip->vdp_address_dir)
     {
+        VDP_UpdateBusOutput(&chip->vdp);
         chip->o_vaddress = chip->vdp.io_address & 0x3fffff;
         chip->o_vaddress |= (chip->vdp.io_address_22o << 22);
     }
@@ -106,7 +114,6 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
         ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.prescaler.mclk_dclk : chip->arb.edclk.ext_edclk);
 
     chip->o_vdata_dir = 0;
-    chip->o_vdata = 0;
     if (chip->ioc.ext_bc2 && chip->tmss.ext_data_out_en && chip->vdp_data_dir)
     {
         chip->o_vdata_dir |= 0xff;
@@ -157,7 +164,6 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     chip->o_lds = chip->arb.ext_strobe_dir ? state_z : chip->arb.ext_lds_out;
     chip->dtack = chip->arb.ext_dtack_out && chip->tmss.ext_dtack_out && (chip->tmss.ext_test_2 || chip->vdp.w117);
     chip->o_dtack = chip->dtack ? state_z : 0;
-    chip->o_lwr = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_lwr;
     chip->o_cas0 = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_cas0;
     chip->o_rw = chip->arb.ext_rw_dir ? state_z : chip->arb.ext_rw_out;
 
@@ -166,7 +172,6 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
         || chip->tmss.ext_test_3;
 
     chip->o_zdata_dir = 0;
-    chip->o_zdata = 0;
     if (chip->colorbus && chip->ioc.ext_bc4 && chip->fm_read)
     {
         chip->o_zdata = 0;
@@ -257,10 +262,8 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     chip->vdp.psg.input.i_data = chip->vdp.io_data;
     chip->vdp.psg.input.i_test = chip->vdp.reg_test0;
     VDP_ClockPSG2(&chip->vdp.psg, chip->vdp.prescaler.mclk_cpu_clk0);
-    if (chip->vdp.w93)
-    {
-        chip->vdp.io_data = chip->vdp.psg.o_psg_debug;
-    }
+
+    chip->o_lwr = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_lwr;
 
     // Arbiter
     ARB_UpdateDelays(&chip->arb, cycles);

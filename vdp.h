@@ -2213,3 +2213,5 @@ void VDP_ClockPSG(vdp_psg_t *chip);
 void VDP_ClockMCLK2(vdp_prescaler_t* chip, int mclk);
 void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2);
 void VDP_ClockPSG2(vdp_psg_t* chip, int clk);
+
+void VDP_UpdateBusOutput(vdp_t *chip);
