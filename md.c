@@ -12,7 +12,7 @@ m68k_t m68k;
 z80_t z80;
 fc1004_t ym;
 
-unsigned short ram[32768];
+unsigned char ram[32768][2];
 unsigned short rom[ROM_SIZE];
 unsigned char zram[8192];
 
@@ -212,6 +212,8 @@ int halt;
 int rw;
 int iorq;
 int mreq;
+int wr;
+int rd;
 
 int main(int argc, char *argv[])
 {
@@ -294,7 +296,14 @@ int main(int argc, char *argv[])
                 mreq = !z80.o_mreq;
             if (ym.o_mreq != state_z)
                 mreq = ym.o_mreq;
-
+            if (ym.o_zwr != state_z)
+                wr = ym.o_zwr;
+            if (z80.o_wr != state_z)
+                wr = !z80.o_wr;
+            if (z80.o_rd != state_z)
+                rd = !z80.o_rd;
+            
+            // 68k
             m68k.input.i_vpa = ym.arb.ext_vpa;
             m68k.input.i_br = ym.o_br == state_z ? 1 : 0;
             m68k.input.i_bgack = ym.o_bgack == state_z ? 1 : 0;
@@ -311,6 +320,16 @@ int main(int argc, char *argv[])
             else
                 M68K_Clock2(&m68k, 0, 1);
 
+            // z80
+            z80.input.ext_data_i = zdata;
+            z80.input.i_int = ym.vdp.o_zint != state_z ? 0 : 1;
+            z80.input.i_nmi = !ym.arb.ext_nmi;
+            z80.input.i_wait = ym.o_wait == state_z ? 1 : !ym.o_wait;
+            z80.input.i_reset = ym.o_zres == state_z ? 1 : !ym.o_zres;
+            z80.input.i_busrq = ym.o_zbr == state_z ? 0 : !ym.o_zbr;
+            Z80_Clock2(&z80, ym.o_zclk == state_z ? 0 : ym.o_zclk);
+
+            // fc1004
             ym.vdp.input.i_csync = ym.vdp.o_csync == state_z ? 1 : 0;
             ym.i_hsync = hsync;
             ym.arb.input.ext_fc0 = m68k.o_fc0;
@@ -342,17 +361,84 @@ int main(int argc, char *argv[])
             ym.arb.input.ext_mreq_in = mreq;
             ym.i_dtack = dtack;
             ym.i_zres = ym.o_zres == state_z ? 1 : 0;
+            ym.i_zwr = wr;
+            ym.i_zrd = rd;
 
             FC1004_Clock(&ym, mcycles & 1, mcycles);
 
-            z80.input.ext_data_i = zdata;
-            z80.input.i_int = ym.vdp.o_zint != state_z ? 0 : 1;
-            z80.input.i_nmi = !ym.arb.ext_nmi;
-            z80.input.i_wait = ym.o_wait == state_z ? 1 : !ym.o_wait;
-            z80.input.i_reset = ym.o_zres == state_z ? 1 : !ym.o_zres;
-            z80.input.i_busrq = ym.o_zbr == state_z ? 0 : !ym.o_zbr;
+            // VRAM
+            update_vram();
 
-            Z80_Clock2(&z80, ym.o_zclk == state_z ? 0 : ym.o_zclk);
+            // busses
+
+            zaddress |= 1;
+
+            zaddress &= ym.o_zaddress_dir;
+            zaddress |= ym.o_zaddress & (~ym.o_zaddress_dir);
+
+            zdata &= ym.o_zdata_dir;
+            zdata |= ym.o_zdata & (~ym.o_zdata_dir);
+
+            vaddress &= ym.o_vaddress_dir;
+            vaddress |= ym.o_vaddress & (~ym.o_vaddress_dir);
+
+            vdata &= ym.o_vdata_dir;
+            vdata |= ym.o_vdata & (~ym.o_vdata_dir);
+
+            if (!z80.o_addr_high)
+                zaddress = z80.o_addr;
+            if (!z80.ext_data_o_high)
+                zdata = z80.ext_data_o;
+
+            if (!m68k.o_address_z)
+                vaddress = m68k.o_address;
+            if (!m68k.o_data_z)
+                vdata = m68k.o_data;
+
+            // 68k ram
+            if (!ym.vdp.o_ras0)
+            {
+                if (!ym.arb.ext_noe)
+                {
+                    vdata &= ~0xff;
+                    vdata |= ram[vaddress & 0x7fff][0];
+                }
+                if (!ym.o_lwr)
+                {
+                    ram[vaddress & 0x7fff][0] = vdata & 0xff;
+                }
+                if (!ym.arb.ext_eoe)
+                {
+                    vdata &= ~0xff00;
+                    vdata |= ram[vaddress & 0x7fff][1] << 8;
+                }
+                if (!ym.vdp.o_uwr)
+                {
+                    ram[vaddress & 0x7fff][1] = (vdata >> 8) & 0xff;
+                }
+            }
+
+            // z80 ram
+            if (!ym.arb.ext_zram)
+            {
+                if (!rd)
+                {
+                    zdata = zram[zaddress & 0x1fff];
+                }
+                if (!wr)
+                {
+                    zram[zaddress & 0x1fff] = zdata;
+                }
+            }
+
+            // cart
+            if (!ym.o_ce0)
+            {
+                if (!ym.o_cas0)
+                {
+                    vdata = rom[vaddress & 0x3fffff];
+                }
+            }
         }
         mcycles++;
     }
