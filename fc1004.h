@@ -34,7 +34,7 @@ typedef struct
     int colorbus;
     int fm_read;
 
-    // busses
+    int old_dclk[3];
 
     int i_hsync;
     int i_m3;
@@ -55,7 +55,6 @@ typedef struct
     int i_sel1;
     int i_vclk;
     int i_zclk;
-    int i_mclk;
     int i_edclk;
     int i_vdata;
     int i_bgack;
@@ -70,6 +69,9 @@ typedef struct
     int i_dtack;
     int i_lwr;
     int i_cas0;
+    int i_zdata;
+    int i_rw;
+    int i_cart;
 
     int o_ys;
     int o_vsync;
@@ -115,4 +117,4 @@ typedef struct
 
 void FC1004_Init(fc1004_t *chip);
 void FC1004_Destroy(fc1004_t* chip);
-void FC1004_Clock(fc1004_t *chip);
+void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles);

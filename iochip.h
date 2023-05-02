@@ -161,3 +161,5 @@ typedef struct {
 
     iochip_input_t input, input_old;
 } iochip_t;
+
+void IOC_Clock2(iochip_t *chip);

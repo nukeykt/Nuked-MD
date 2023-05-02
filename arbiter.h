@@ -541,3 +541,9 @@ typedef struct {
 
 void ARB_Init(arbiter_t *chip);
 void ARB_Destroy(arbiter_t *chip);
+void ARB_UpdateDelays(arbiter_t *chip, uint64_t cycles);
+void ARB_ClockEDCLK(arbiter_edclk_t *chip);
+void ARB_Clock(arbiter_t *chip);
+
+void ARB_ClockEDCLK2(arbiter_edclk_t *chip, int mclk);
+void ARB_Clock2(arbiter_t *chip);

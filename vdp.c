@@ -74,17 +74,21 @@ void VDP_ClockMCLK(vdp_prescaler_t *chip)
     else
         chip->mclk_dclk = chip->mclk_clk2; // h32
 
-    if (chip->input.i_clk1)
+#if 0
+    if (chip->input.i_sel1)
         chip->o_clk1 = state_z;
     else
         chip->o_clk1 = chip->mclk_cpu_clk1;
+#endif
 
     chip->o_sbcr = chip->mclk_sbcr;
     chip->o_clk0 = chip->mclk_cpu_clk0;
+#if 0
     if (chip->input.i_test_dclk)
         chip->o_edclk = chip->mclk_dclk;
     else
         chip->o_edclk = state_z;
+#endif
 }
 
 static void VDP_DCLKPrescale(vdp_t *chip, int clk1, int clk2)
@@ -1705,11 +1709,6 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->hclk2)
     {
         chip->l104[1] = chip->l104[0];
-    }
-
-    if (chip->w93)
-    {
-        chip->io_data = chip->input.i_psgdebug;
     }
 }
 

@@ -322,3 +322,6 @@ typedef struct {
 
 
 int FM_ReadStatus(fm_t *chip);
+
+void FM_Prescaler2(fm_prescaler_t *chip, int clk);
+void FM_Clock2(fm_t *chip, int phi1, int phi2);

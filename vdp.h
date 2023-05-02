@@ -32,8 +32,6 @@ typedef struct {
     int i_intak;
     int i_bgack;
     int i_reset;
-    int i_clk1;
-    int i_edclk;
     int i_dtack;
     int i_csync;
     int i_hsync;
@@ -41,10 +39,8 @@ typedef struct {
     int i_vram_rd;
     int i_vram_ad;
     int i_spa;
-    int i_sel1;
-    int i_data;
-    int i_address;
-    int i_psgdebug;
+    // int i_data;
+    // int i_address;
 } vdp_i_state_t;
 
 typedef struct {
@@ -57,7 +53,7 @@ typedef struct {
     int i_rs0; // 
     int i_rs1; // 
     int i_test_psg; // chip->reg_test1 & 1
-    int i_test_dclk; // chip->reg_test1 & 2
+    //int i_test_dclk; // chip->reg_test1 & 2
 } vdp_prescaler_i_state_t;
 
 typedef struct {
@@ -2212,3 +2208,7 @@ typedef struct {
 void VDP_ClockMCLK(vdp_prescaler_t *chip);
 void VDP_ClockDCLK(vdp_t *chip, int clk1, int clk2);
 void VDP_ClockPSG(vdp_psg_t *chip);
+
+void VDP_ClockMCLK2(vdp_prescaler_t* chip, int mclk);
+void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2);
+void VDP_ClockPSG2(vdp_psg_t* chip, int clk);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <stdlib.h>
 
 enum {
@@ -237,7 +238,7 @@ static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int r
 
 
 typedef struct {
-    int lastcycle;
+    uint64_t lastcycle;
     int items;
     int pos;
     int lastval;
@@ -259,7 +260,7 @@ static inline void DELAY_Free(delaychain_t *delay)
     free(delay->fifo);
 }
 
-static inline int DELAY_Update(delaychain_t *delay, int cycles, int pushval)
+static inline int DELAY_Update(delaychain_t *delay, uint64_t cycles, int pushval)
 {
     if (!delay->fifo || delay->items < 1)
         return pushval;

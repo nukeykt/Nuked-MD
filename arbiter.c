@@ -1,5 +1,6 @@
 // FC1004 bus arbiter
 #include <stdio.h>
+#include <string.h>
 #include "arbiter.h"
 
 // CART
@@ -36,7 +37,7 @@ void ARB_Destroy(arbiter_t *chip)
     DELAY_Free(&chip->d8);
 }
 
-void ARB_UpdateDelays(arbiter_t *chip, int cycles)
+void ARB_UpdateDelays(arbiter_t *chip, uint64_t cycles)
 {
     chip->input.d1_out = DELAY_Update(&chip->d1, cycles, chip->input.ext_m1);
     chip->input.d2_out = DELAY_Update(&chip->d2, cycles, chip->w188);
@@ -689,7 +690,6 @@ void ARB_Clock(arbiter_t *chip)
     chip->ext_ia14 = !(chip->input.ext_m3 && chip->va14_in); // IA14
 
     ARB_ClockZToV(chip);
-    ARB_ClockEDCLK(chip);
     ARB_ClockM3(chip);
     ARB_ClockZ80(chip);
     ARB_ClockVToZ(chip);
@@ -697,4 +697,29 @@ void ARB_Clock(arbiter_t *chip)
     ARB_ClockCart(chip);
     ARB_ClockVCLKDivider(chip);
     ARB_ClockRAMOE(chip);
+}
+
+void ARB_ClockEDCLK2(arbiter_edclk_t *chip, int mclk)
+{
+    chip->input.mclk = mclk;
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    ARB_ClockEDCLK(chip);
+    ARB_ClockEDCLK(chip);
+    ARB_ClockEDCLK(chip);
+    chip->input_old = chip->input;
+}
+
+void ARB_Clock2(arbiter_t* chip)
+{
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    ARB_Clock(chip);
+    ARB_Clock(chip);
+    ARB_Clock(chip);
+    ARB_Clock(chip);
+    ARB_Clock(chip);
+    chip->input_old = chip->input;
 }

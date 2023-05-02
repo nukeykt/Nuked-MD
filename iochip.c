@@ -1,5 +1,5 @@
 // FC1004 IO chip
-#include <stdio.h>
+#include <string.h>
 #include "iochip.h"
 
 void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
@@ -440,4 +440,17 @@ void IOC_Clock(iochip_t *chip)
         *chip->ext_vaddress_out &= ~0x7f;
         *chip->ext_vaddress_out |= chip->ztov_address & 0x7f;
     }
+}
+
+void IOC_Clock2(iochip_t *chip)
+{
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    chip->input_old = chip->input;
 }
