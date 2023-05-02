@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "SDL.h"
 #include "common.h"
 #include "68k.h"
 #include "z80.h"
@@ -12,7 +13,7 @@ m68k_t m68k;
 z80_t z80;
 fc1004_t ym;
 
-unsigned char ram[32768][2];
+unsigned char ram[0x10000];
 unsigned short rom[ROM_SIZE];
 unsigned char zram[8192];
 
@@ -188,6 +189,90 @@ void update_vram(void)
     }
 }
 
+SDL_Window* vid_window;
+SDL_Renderer *vid_renderer;
+SDL_Texture *vid_texture;
+
+#define VID_WIDTH 400
+#define VID_HEIGHT 300
+
+void Video_Init(void)
+{
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+        return;
+
+    vid_window = SDL_CreateWindow("Nuked MD", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        VID_WIDTH * 2, VID_HEIGHT * 2, SDL_WINDOW_SHOWN);
+    if (!vid_window)
+        return;
+
+    vid_renderer = SDL_CreateRenderer(vid_window, -1, 0);
+    if (!vid_renderer)
+        return;
+
+    vid_texture = SDL_CreateTexture(vid_renderer, SDL_PIXELFORMAT_BGR888, SDL_TEXTUREACCESS_STREAMING,
+        VID_WIDTH, VID_HEIGHT);
+
+    if (!vid_texture)
+        return;
+}
+
+uint32_t vid_workbuffer[VID_HEIGHT][VID_WIDTH];
+uint32_t vid_currentbuffer[VID_HEIGHT][VID_WIDTH];
+
+void Video_Blit(void)
+{
+    SDL_UpdateTexture(vid_texture, NULL, vid_currentbuffer, VID_WIDTH * 4);
+    SDL_RenderCopy(vid_renderer, vid_texture, NULL, NULL);
+    SDL_RenderPresent(vid_renderer);
+
+    SDL_Event sdl_event;
+    while (SDL_PollEvent(&sdl_event))
+    {
+        switch (sdl_event.type)
+        {
+        default:
+            break;
+        }
+    }
+}
+
+void Video_PlotVDP(void)
+{
+    static int ohsync;
+    static int ovsync;
+    static int plot_x;
+    static int plot_y;
+
+    if (ohsync && ym.vdp.o_hsync == 0)
+    {
+        plot_x = 0;
+        plot_y++;
+    }
+    if (ovsync && ym.vdp.o_vsync == 0)
+    {
+        plot_y = 0;
+        memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
+    }
+
+    if (plot_x >= 0 && plot_x < VID_WIDTH * 2 && plot_y >= 0 && plot_y < VID_HEIGHT)
+    {
+        uint32_t abgr = 0;
+
+        abgr |= ym.vdp.rgb_out[0] << 0;
+        abgr |= ym.vdp.rgb_out[1] << 8;
+        abgr |= ym.vdp.rgb_out[2] << 16;
+
+        vid_workbuffer[plot_y][plot_x / 2] = abgr;
+    }
+
+    plot_x++;
+
+
+    ohsync = ym.vdp.o_hsync != 0;
+    ovsync = ym.vdp.o_vsync != 0;
+}
+
 int vclk;
 int vaddress;
 int vdata;
@@ -214,7 +299,10 @@ int iorq;
 int mreq;
 int wr;
 int rd;
+
+
 int ovclk;
+int odclk;
 
 int main(int argc, char *argv[])
 {
@@ -252,8 +340,12 @@ int main(int argc, char *argv[])
     port_a = 127;
     port_a = 127;
 
+    Video_Init();
+
     while (1)
     {
+        const int sdl_div = 1000;
+
         for (i = 0; i < 2; i++)
         {
             if (ym.o_vclk != state_z)
@@ -320,16 +412,17 @@ int main(int argc, char *argv[])
                 M68K_Clock2(&m68k, 1, 0);
             else
                 M68K_Clock2(&m68k, 0, 1);
-            if (ovclk != vclk)
+#if 1
+            if (ovclk != vclk && m68k.input.i_reset)
             {
                 printf("cyc %i ", mcycles);
                 //printf("c1: %i c2 %i c3 %i c4 %i c5 %i w286 %i ", m68k.c1, m68k.c2, m68k.c3, m68k.c4, m68k.c5, m68k.w286);
-                printf("code %x ", (m68k.codebus2 & 0x3ff) ^ 0x3ff);
-                printf("ucd %i ", m68k.dbg_ucode_last);
-                printf("ir %x ", m68k.w530);
+                //printf("code %x ", (m68k.codebus2 & 0x3ff) ^ 0x3ff);
+                //printf("ucd %i ", m68k.dbg_ucode_last);
+                //printf("ir %x ", m68k.w530);
                 printf("hr %i%i ", m68k.input.i_reset, m68k.input.i_halt);
                 printf("dtack %i ", m68k.input.i_dtack);
-                printf("w147 %x ", m68k.w147);
+                //printf("w147 %x ", m68k.w147);
                 if (!m68k.o_address_z)
                 {
                     printf("address %x ", (m68k.o_address & 0x7fffff) * 2);
@@ -342,10 +435,15 @@ int main(int argc, char *argv[])
                 printf("io %x ", m68k.data_io);
                 printf("input %x ", m68k.input.i_data);
 #endif
-
+                printf("cdt %i ", ym.arb.w72);
+                printf("dff33 %i ", ym.arb.dff33.q);
+                printf("w43 %i ", ym.arb.w43);
                 printf("\n");
                 ovclk = vclk;
             }
+#endif
+            if (mcycles == 1429208)
+                mcycles += 0;
 
             // z80
             z80.input.ext_data_i = zdata;
@@ -425,23 +523,29 @@ int main(int argc, char *argv[])
             // 68k ram
             if (!ym.vdp.o_ras0)
             {
+                int laddress = vaddress & 0x5fff;
+                if (ym.arb.ext_ia14)
+                    laddress |= 0x2000;
+                laddress ^= 0x2000;
+                if (laddress * 2 == 0xc034)
+                    laddress += 0;
                 if (!ym.arb.ext_noe)
                 {
                     vdata &= ~0xff;
-                    vdata |= ram[vaddress & 0x7fff][0];
+                    vdata |= ram[laddress*2];
                 }
                 if (!ym.o_lwr)
                 {
-                    ram[vaddress & 0x7fff][0] = vdata & 0xff;
+                    ram[laddress*2] = vdata & 0xff;
                 }
                 if (!ym.arb.ext_eoe)
                 {
                     vdata &= ~0xff00;
-                    vdata |= ram[vaddress & 0x7fff][1] << 8;
+                    vdata |= ram[(vaddress & 0x7fff)*2+1] << 8;
                 }
                 if (!ym.vdp.o_uwr)
                 {
-                    ram[vaddress & 0x7fff][1] = (vdata >> 8) & 0xff;
+                    ram[(vaddress & 0x7fff)*2+1] = (vdata >> 8) & 0xff;
                 }
             }
 
@@ -466,6 +570,16 @@ int main(int argc, char *argv[])
                     vdata = rom[vaddress & 0x1fffff];
                 }
             }
+        }
+
+        if (ym.vdp.input.i_clk1 && !odclk)
+            Video_PlotVDP();
+
+        odclk = ym.vdp.input.i_clk1;
+
+        if ((mcycles % sdl_div) == 0)
+        {
+            Video_Blit();
         }
         mcycles++;
     }

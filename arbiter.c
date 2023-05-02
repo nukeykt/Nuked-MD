@@ -243,7 +243,7 @@ void ARB_ClockCart(arbiter_t *chip)
     chip->w167 = chip->w170 && chip->w202;
     chip->w211 = !chip->input.ext_m3 || chip->input.ext_as_in || chip->va23_in;
     chip->w72 = chip->dff15.nq || chip->w43;
-    chip->w132 = chip->w72 || chip->w211; // DTACK
+    chip->w132 = chip->w72 || chip->w211; // cartridge DTACK
     chip->w69 = !(chip->w44 || !chip->dff12.l2);
     chip->w168 = !(chip->w69 || !chip->dff26.l2);
     chip->w169 = chip->w168 || chip->w211 || !chip->va22_cart;
@@ -284,8 +284,8 @@ void ARB_ClockCart(arbiter_t *chip)
     chip->ext_asel = !chip->w64;
 
     chip->w59 = !chip->input.ext_m3 || chip->input.ext_as_in;
-    chip->w54 = !(chip->dff23.l2 && chip->va23_in);
-    chip->w84 = !(!chip->dff23.l2 && chip->dff33.nq && chip->w356);
+    chip->w54 = !(chip->dff23.q && chip->va23_in);
+    chip->w84 = !(chip->dff23.nq && chip->dff33.nq && chip->w356);
     chip->w58 = chip->w54 && chip->w84;
     SDFFS_Update(&chip->dff17, chip->input.ext_vclk, chip->w58, chip->w73);
     chip->w49 = chip->dff17.q;
@@ -304,7 +304,7 @@ void ARB_ClockCart(arbiter_t *chip)
     chip->w41 = chip->w27 || chip->dff15.q;
     SDFF_Update(&chip->dff12, !chip->input.ext_vclk, chip->w41);
     chip->w26 = !(chip->dff15.nq && chip->dff12.l2);
-    chip->w83 = !chip->dff23.l2 || chip->va23_in;
+    chip->w83 = chip->dff23.nq || chip->va23_in;
     chip->w40 = chip->w26 && chip->w83;
     SDFFS_Update(&chip->dff15, chip->input.ext_vclk, chip->w40, chip->w73);
 
@@ -335,7 +335,7 @@ void ARB_ClockVCLKDivider(arbiter_t *chip)
     // outputs: w287, w356
 
     chip->w183 = !(chip->dff33.q || chip->dff23.l2 || chip->w356 || !chip->w223);
-    chip->w283 = (chip->w183 || chip->w287 || chip->w343);
+    chip->w283 = !(chip->w183 || chip->w287 || chip->w343);
     SDFFS_Update(&chip->dff33, chip->input.ext_vclk, chip->w283, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.nq, chip->dff33.nq);
 }

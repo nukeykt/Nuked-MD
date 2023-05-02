@@ -350,7 +350,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     DFF_Update(&chip->dff22, chip->input.i_cpu_clk1, chip->t4, 0);
 
-    chip->w42 = !(chip->dff2.l2 && chip->cpu_sel);
+    chip->w42 = !(chip->dff22.l2 && chip->cpu_sel);
 
     i = chip->w64 + chip->dff23.l2;
     DFF_Update(&chip->dff23, chip->input.i_cpu_clk1, i & 1, chip->w41);
