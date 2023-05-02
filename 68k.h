@@ -3,10 +3,7 @@
 #include "common.h"
 
 typedef struct {
-    int val;
-} busstate_t;
-
-typedef struct {
+    int i_clk_phase;
     int i_vpa;
     int i_br;
     int i_bgack;
@@ -18,6 +15,15 @@ typedef struct {
     int i_dtack;
     int i_berr;
     int i_data;
+} m68k_input_t;
+
+typedef struct {
+    int val;
+} busstate_t;
+
+typedef struct {
+    m68k_input_t input, input_old;
+
     int o_e;
     int o_bg;
     int o_reset;

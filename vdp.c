@@ -1,5 +1,5 @@
 // YM7101 core
-#include <stdio.h>
+#include <string.h>
 #include "vdp.h"
 
 void DFF_Update(dff_t *dff, int clk, int input, int reset)
@@ -1705,6 +1705,11 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->hclk2)
     {
         chip->l104[1] = chip->l104[0];
+    }
+
+    if (chip->w93)
+    {
+        chip->io_data = chip->input.i_psgdebug;
     }
 }
 
@@ -6489,7 +6494,7 @@ const float ympsg_vol[17] = {
     1.f, 0.772f, 0.622f, 0.485f, 0.382f, 0.29f, 0.229f, 0.174f, 0.132f, 0.096f, 0.072f, 0.051f, 0.034f, 0.019f, 0.009f, 0.f, -1.059f
 };
 
-void VDP_ClockPSG(vdp_t *chip)
+void VDP_ClockPSG(vdp_psg_t *chip)
 {
     int i;
     chip->psg_clk1 = chip->input.i_cpu_clk0;
@@ -6497,7 +6502,7 @@ void VDP_ClockPSG(vdp_t *chip)
 
     if (chip->psg_clk1)
     {
-        chip->l631[0] = chip->reset_comb;
+        chip->l631[0] = chip->input.i_reset;
         chip->l632[0] = chip->l631[1];
         chip->l633[0] = chip->w1105;
         chip->l634 = !chip->l649[1];
@@ -6534,14 +6539,14 @@ void VDP_ClockPSG(vdp_t *chip)
 
     if (chip->l635[1])
         chip->t43 = 1;
-    else if (chip->w111)
+    else if (chip->input.i_write)
         chip->t43 = 0;
 
-    chip->w1106 = !chip->t43 && !chip->w111;
+    chip->w1106 = !chip->t43 && !chip->input.i_write;
 
     if (chip->psg_hclk1)
     {
-        chip->l637[0] = chip->reset_comb;
+        chip->l637[0] = chip->input.i_reset;
         chip->l638[0] = chip->t44;
         chip->l639[0] = chip->w1111;
         chip->l650[0] = chip->l650[1] << 1;
@@ -6574,10 +6579,10 @@ void VDP_ClockPSG(vdp_t *chip)
 
     chip->w1111 = (chip->l662 & 3) == 3 ? chip->l647[1] : chip->l648[1];
 
-    chip->w1112 = (chip->reg_test0 & 512) != 0 && (chip->reg_test0 & 0xc00) != 0x000;
-    chip->w1113 = (chip->reg_test0 & 512) != 0 && (chip->reg_test0 & 0xc00) != 0x400;
-    chip->w1114 = (chip->reg_test0 & 512) != 0 && (chip->reg_test0 & 0xc00) != 0x800;
-    chip->w1115 = (chip->reg_test0 & 512) != 0 && (chip->reg_test0 & 0xc00) != 0xc00;
+    chip->w1112 = (chip->input.i_test & 512) != 0 && (chip->input.i_test & 0xc00) != 0x000;
+    chip->w1113 = (chip->input.i_test & 512) != 0 && (chip->input.i_test & 0xc00) != 0x400;
+    chip->w1114 = (chip->input.i_test & 512) != 0 && (chip->input.i_test & 0xc00) != 0x800;
+    chip->w1115 = (chip->input.i_test & 512) != 0 && (chip->input.i_test & 0xc00) != 0xc00;
 
     chip->w1116 = chip->w1121 ? chip->l644[1] : 0;
     chip->w1117 = (chip->w1116 + 1) & 1023;
@@ -6695,9 +6700,9 @@ void VDP_ClockPSG(vdp_t *chip)
 
     chip->w1133 = !chip->l651[1];
 
-    if (chip->w111)
+    if (chip->input.i_write)
     {
-        chip->l653 = chip->io_data & 255;
+        chip->l653 = chip->input.i_data & 255;
     }
 
     chip->w1134 = chip->w1133 ? chip->l653 : 0;
@@ -6783,24 +6788,21 @@ void VDP_ClockPSG(vdp_t *chip)
         chip->l662 |= chip->w1134 & 7;
     }
 
-    chip->w1145 = (chip->reg_test0 & 512) == 0 && !chip->l645[1];
-    chip->w1146 = (chip->reg_test0 & 512) == 0 && !chip->l646[1];
-    chip->w1147 = (chip->reg_test0 & 512) == 0 && !chip->l647[1];
-    chip->w1148 = (chip->reg_test0 & 512) == 0 && (chip->l640[1] & 0x4000) == 0;
+    chip->w1145 = (chip->input.i_test & 512) == 0 && !chip->l645[1];
+    chip->w1146 = (chip->input.i_test & 512) == 0 && !chip->l646[1];
+    chip->w1147 = (chip->input.i_test & 512) == 0 && !chip->l647[1];
+    chip->w1148 = (chip->input.i_test & 512) == 0 && (chip->l640[1] & 0x4000) == 0;
 
     chip->w1149 = chip->w1145 ? 15 : chip->l655;
     chip->w1150 = chip->w1146 ? 15 : chip->l656;
     chip->w1151 = chip->w1147 ? 15 : chip->l657;
     chip->w1152 = chip->w1148 ? 15 : chip->l658;
 
-    if (chip->w93)
-    {
-        chip->io_data = 0;
-        chip->io_data |= (chip->w1149 ^ 15) << 12;
-        chip->io_data |= (chip->w1150 ^ 15) << 8;
-        chip->io_data |= (chip->w1151 ^ 15) << 4;
-        chip->io_data |= (chip->w1152 ^ 15) << 0;
-    }
+    chip->o_psg_debug = 0;
+    chip->o_psg_debug |= (chip->w1149 ^ 15) << 12;
+    chip->o_psg_debug |= (chip->w1150 ^ 15) << 8;
+    chip->o_psg_debug |= (chip->w1151 ^ 15) << 4;
+    chip->o_psg_debug |= (chip->w1152 ^ 15) << 0;
 
     chip->psg_out = 0.f;
 
@@ -6825,10 +6827,6 @@ void VDP_ClockPSG(vdp_t *chip)
 
 void VDP_ClockDCLK(vdp_t* chip, int clk1, int clk2)
 {
-    if (clk1)
-        chip->input.i_clk_phase = 1;
-    if (clk2)
-        chip->input.i_clk_phase = 2;
     VDP_DCLKPrescale(chip, clk1, clk2);
     VDP_ResetLogic(chip, clk1, clk2);
     VDP_ClockAsync(chip, clk1, clk2);
@@ -6839,3 +6837,41 @@ void VDP_ClockDCLK(vdp_t* chip, int clk1, int clk2)
     VDP_ClockVideoMux(chip);
 }
 
+void VDP_ClockMCLK2(vdp_prescaler_t *chip, int mclk)
+{
+    chip->input.mclk = mclk;
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    VDP_ClockMCLK(chip);
+    VDP_ClockMCLK(chip);
+    chip->input_old = chip->input;
+}
+
+void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
+{
+    if (clk1)
+        chip->input.i_clk_phase = 1;
+    if (clk2)
+        chip->input.i_clk_phase = 2;
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    VDP_ClockDCLK(chip, clk1, clk2);
+    VDP_ClockDCLK(chip, clk1, clk2);
+    VDP_ClockDCLK(chip, clk1, clk2);
+    VDP_ClockDCLK(chip, clk1, clk2);
+    VDP_ClockDCLK(chip, clk1, clk2);
+    chip->input_old = chip->input;
+}
+
+void VDP_ClockPSG2(vdp_psg_t *chip, int clk)
+{
+    chip->input.i_cpu_clk0 = clk;
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+    VDP_ClockPSG(chip);
+    VDP_ClockPSG(chip);
+    VDP_ClockPSG(chip);
+    chip->input_old = chip->input;
+}

@@ -28,14 +28,14 @@ void FC1004_Clock(fc1004_t *chip)
     chip->tmss.ext_m3 = chip->i_m3;
     chip->vdp.input.i_pal = chip->i_ntsc;
     chip->ioc.input.ext_ntsc = chip->i_ntsc;
-    chip->fm.cs = !(chip->tmss.ext_test_0 ? chip->i_sound : chip->arb.ext_sound);
-    chip->fm.ic = !chip->i_zres;
+    chip->fm.input.cs = !(chip->tmss.ext_test_0 ? chip->i_sound : chip->arb.ext_sound);
+    chip->fm.input.ic = !chip->i_zres;
     chip->hl_vdp = chip->tmss.ext_test_1 ? chip->i_zbr : chip->ioc.ext_hl;
     chip->vdp.input.i_pen = chip->hl_vdp;
     chip->intak_vdp = chip->tmss.ext_test_0 ? chip->i_disk : chip->arb.ext_intak;
     chip->vdp.input.i_intak = chip->intak_vdp;
     chip->tmss.ext_intak_vdp = chip->intak_vdp;
-    chip->fm.test = chip->i_test0;
+    chip->fm.input.test = chip->i_test0;
     chip->ioc.input.ext_test = chip->i_test0;
     chip->oe0_arb = (!chip->tmss.ext_test_0 && chip->tmss.ext_test_2) ? chip->i_jap : chip->vdp.o_oe0;
     chip->arb.input.ext_oe0 = chip->oe0_arb;
@@ -224,7 +224,7 @@ void FC1004_Clock(fc1004_t *chip)
     chip->o_cas0 = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_cas0;
 
     chip->colorbus = !(chip->tmss.ext_test_1 && chip->tmss.ext_test_2 && chip->tmss.ext_test_3);
-    chip->fm_read = !(chip->fm.cs && chip->fm.rd && !chip->fm.ic);
+    chip->fm_read = !(chip->fm.input.cs && chip->fm.input.rd && !chip->fm.input.ic);
 
 
     chip->o_zdata_dir = 0;

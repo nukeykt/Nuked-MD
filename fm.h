@@ -6,8 +6,24 @@ enum {
 };
 
 typedef struct {
-    int flags;
-    // input
+    int phi;
+    int ic;
+} fm_prescaler_input_t;
+
+typedef struct {
+    fm_prescaler_input_t input, input_old;
+
+    // clock
+    int phi;
+    int ic_latch[2]; // 12
+    int ic_check_latch[2]; // 4
+    int prescaler_latch[2]; // 6
+    int phi1_latch[2];
+    int phi2_latch[2];
+} fm_prescaler_t;
+
+typedef struct {
+    int phi_phase;
     int ic;
     int rd;
     int wr;
@@ -15,6 +31,17 @@ typedef struct {
     int address;
     int data;
     int test;
+    int i_fsm_reset; // (chip->ic_check_latch[1] & 16) != 0;
+} fm_input_t;
+
+typedef struct {
+    int flags;
+    // input
+    fm_input_t input_old, input;
+    int i_phi1;
+    int i_phi2;
+
+    fm_prescaler_t prescaler;
 
     // output
     int dac_val;
@@ -288,14 +315,6 @@ typedef struct {
     int fsm_dac_ch6_l;
     int fsm_dac_load_l;
     int fsm_dac_out_sel_l;
-
-    // clock
-    int phi;
-    int ic_latch[2]; // 12
-    int ic_check_latch[2]; // 4
-    int prescaler_latch[2]; // 6
-    int phi1_latch[2];
-    int phi2_latch[2];
 
     int status_time;
     int last_status;

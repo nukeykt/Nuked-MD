@@ -79,6 +79,8 @@ void init_chips(void)
     memset(&ym, 0, sizeof(ym));
 }
 
+uint64_t mcycles;
+
 int main(int argc, char *argv[])
 {
     if (load_tmss_rom())

@@ -2,16 +2,21 @@
 #include "common.h"
 
 typedef struct {
-    // input
+    int clk;
+    int ext_data_i;
     int i_int;
     int i_nmi;
     int i_wait;
     int i_reset;
     int i_busrq;
+} z80_input_t;
+
+typedef struct {
+    // input
+    z80_input_t input, input_old;
 
     // output
 
-    int ext_data_i;
     int ext_data_o;
     int ext_data_o_high;
     int o_mreq;
@@ -656,3 +661,5 @@ typedef struct {
 } z80_t;
 
 void Z80_Clock(z80_t* chip, int clk);
+void Z80_Clock2(z80_t *chip, int clk);
+

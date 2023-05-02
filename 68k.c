@@ -1900,7 +1900,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w257 = chip->w211 ? chip->w853 : 0;
 
-    chip->w266 = chip->i_vpa == state_test;
+    chip->w266 = chip->input.i_vpa == state_test;
 
     if (clk1)
     {
@@ -2100,10 +2100,10 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
         chip->w267 = chip->w266;
 
-        chip->w268[0] = !chip->i_br;
+        chip->w268[0] = !chip->input.i_br;
         chip->w268[2] = chip->w268[1];
 
-        chip->w269[0] = !chip->i_bgack;
+        chip->w269[0] = !chip->input.i_bgack;
         chip->w269[2] = chip->w269[1];
 
         chip->w273 = chip->w268[2];
@@ -2113,10 +2113,10 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
         chip->o_bg = chip->w270[0] & 1;
 
-        chip->w275[0] = !chip->i_reset;
+        chip->w275[0] = !chip->input.i_reset;
         chip->w275[2] = chip->w275[1];
 
-        chip->w276[0] = !chip->i_halt;
+        chip->w276[0] = !chip->input.i_halt;
         chip->w276[2] = chip->w276[1];
 
         chip->w277[1] = chip->w277[0];
@@ -2137,13 +2137,13 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
         chip->w294[1] = chip->w294[0];
 
-        chip->w296[0] = !chip->i_ipl0;
+        chip->w296[0] = !chip->input.i_ipl0;
         chip->w296[2] = chip->w296[1];
 
-        chip->w297[0] = !chip->i_ipl1;
+        chip->w297[0] = !chip->input.i_ipl1;
         chip->w297[2] = chip->w297[1];
 
-        chip->w298[0] = !chip->i_ipl2;
+        chip->w298[0] = !chip->input.i_ipl2;
         chip->w298[2] = chip->w298[1];
 
         chip->w308 = !chip->w307;
@@ -2155,10 +2155,10 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
         chip->w317 = chip->w305;
 
-        chip->w343[0] = !chip->i_vpa;
+        chip->w343[0] = !chip->input.i_vpa;
         chip->w343[2] = chip->w343[0];
 
-        chip->w359[0] = !chip->i_dtack;
+        chip->w359[0] = !chip->input.i_dtack;
         chip->w359[2] = chip->w359[1];
 
         chip->w364[1] = chip->w364[0];
@@ -2183,7 +2183,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
         chip->w414[1] = chip->w414[0];
 
-        chip->w435[0] = !chip->i_berr;
+        chip->w435[0] = !chip->input.i_berr;
         chip->w435[2] = chip->w435[1];
 
         chip->w436[1] = chip->w436[0];
@@ -2245,7 +2245,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w291 = !(chip->w293 || chip->w278 || chip->w292);
 
-    chip->w295 = chip->i_ipl0;
+    chip->w295 = chip->input.i_ipl0;
     chip->o_ipl0 = state_z;
     if (chip->w297[2] && chip->w298[2] && chip->w266)
     {
@@ -6608,7 +6608,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w987 = chip->w819 ? 0 : clk1;
 
     if (clk2)
-        chip->data_l = chip->i_data;
+        chip->data_l = chip->input.i_data;
 
     if (chip->w361)
     {

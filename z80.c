@@ -1,11 +1,12 @@
 // Z80(NMOS)
 #include <stdint.h>
+#include <string.h>
 #include "z80.h"
 
 
 void Z80_SetData(z80_t *chip, int data)
 {
-    chip->ext_data_i = data & 255;
+    chip->input.ext_data_i = data & 255;
 }
 
 int Z80_GetData(z80_t *chip)
@@ -26,7 +27,7 @@ void Z80_ResetLogic(z80_t *chip, int clk)
 {
     chip->w52 = !clk && chip->l19;
     if (!clk)
-        chip->w50 = chip->i_reset;
+        chip->w50 = chip->input.i_reset;
     else
         chip->w51 = chip->w50;
     if (chip->w52)
@@ -127,12 +128,12 @@ void Z80_InterruptLogic(z80_t *chip, int clk)
     // nmi pin
     if (clk)
         chip->l2 = !(chip->w55 || chip->w19);
-    if (!chip->i_nmi)
+    if (!chip->input.i_nmi)
         chip->w7 = 1;
     if (!chip->l2)
         chip->w7 = 0;
 
-    if (chip->i_nmi)
+    if (chip->input.i_nmi)
         chip->w6 = chip->w7;
     if (!chip->l2)
         chip->w6 = 0;
@@ -149,7 +150,7 @@ void Z80_InterruptLogic(z80_t *chip, int clk)
 
     // int pin
     if (!clk)
-        chip->w4 = !chip->i_int;
+        chip->w4 = !chip->input.i_int;
     else
         chip->w5 = chip->w4;
     chip->w12 = !(chip->w5 || chip->w9 || chip->l3);
@@ -168,7 +169,7 @@ void Z80_InterruptLogic(z80_t *chip, int clk)
 void Z80_IOLogic(z80_t *chip, int clk)
 {
     if (!clk)
-        chip->w58 = chip->i_busrq;
+        chip->w58 = chip->input.i_busrq;
 
     if (clk)
         chip->l23 = chip->w55;
@@ -703,7 +704,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     if (clk)
         chip->w38 = !(((chip->w18 && chip->w131) || chip->w106) && (!chip->w37 || chip->w114));
     if (clk)
-        chip->w39 = chip->w38 && !chip->i_wait;
+        chip->w39 = chip->w38 && !chip->input.i_wait;
     if (clk)
         chip->l15 = !(chip->w201 && chip->w110);
     chip->w46 = !(chip->w131 || (chip->w127 && chip->pla[35]) || (chip->w127 && chip->w107));
@@ -1779,7 +1780,7 @@ void Z80_BusLogic2(z80_t *chip, int clk)
         }
     }
     if (chip->w2)
-        chip->w145 = chip->ext_data_i ^ 255;
+        chip->w145 = chip->input.ext_data_i ^ 255;
     else if (chip->w42)
         chip->w145 = chip->w146;
     chip->ext_data_o_high = 1;
@@ -2116,4 +2117,16 @@ void Z80_Clock(z80_t *chip, int clk)
     Z80_AluLogic2(chip, clk);
     Z80_RegistersLogic3(chip, clk);
     Z80_ConditionLogic(chip, clk);
+}
+
+
+void Z80_Clock2(z80_t *chip, int clk)
+{
+    chip->input.clk = clk;
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    Z80_Clock(chip, clk);
+    Z80_Clock(chip, clk);
+    chip->input_old = chip->input;
 }
