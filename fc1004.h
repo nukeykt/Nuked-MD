@@ -112,6 +112,7 @@ typedef struct
     int o_cas0;
     int o_zdata;
     int o_zdata_dir;
+    int o_rw;
 } fc1004_t;
 
 

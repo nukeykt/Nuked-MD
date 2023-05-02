@@ -1093,3 +1093,4 @@ typedef struct {
 } m68k_t;
 
 void M68K_Clock(m68k_t* chip, int clk1, int clk2);
+void M68K_Clock2(m68k_t *chip, int clk1, int clk2);

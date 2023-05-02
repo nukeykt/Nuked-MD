@@ -159,6 +159,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     chip->o_dtack = chip->dtack ? state_z : 0;
     chip->o_lwr = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_lwr;
     chip->o_cas0 = chip->tmss.ext_test_2 ? state_z : chip->vdp.o_cas0;
+    chip->o_rw = chip->arb.ext_rw_dir ? state_z : chip->arb.ext_rw_out;
 
     chip->colorbus = !(chip->tmss.ext_test_1 && chip->tmss.ext_test_2 && chip->tmss.ext_test_3);
     chip->fm_read = !(chip->fm.input.cs && chip->fm.input.rd && !chip->fm.input.ic)

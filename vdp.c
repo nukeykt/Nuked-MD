@@ -6849,18 +6849,24 @@ void VDP_ClockMCLK2(vdp_prescaler_t *chip, int mclk)
 
 void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
 {
-    if (clk1)
-        chip->input.i_clk_phase = 1;
-    if (clk2)
-        chip->input.i_clk_phase = 2;
-    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+    chip->input.i_clk1 = clk1;
+    chip->input.i_clk2 = clk2;
+    if (memcmp(&chip->input, &chip->input_old, sizeof(chip->input)) != 0)
         return;
 
-    VDP_ClockDCLK(chip, clk1, clk2);
-    VDP_ClockDCLK(chip, clk1, clk2);
-    VDP_ClockDCLK(chip, clk1, clk2);
-    VDP_ClockDCLK(chip, clk1, clk2);
-    VDP_ClockDCLK(chip, clk1, clk2);
+    if (clk1 == 0 && clk2 == 0)
+    {
+        VDP_ClockDCLK(chip, clk1, clk2);
+        VDP_ClockDCLK(chip, clk1, clk2);
+    }
+    else
+    {
+        VDP_ClockDCLK(chip, clk1, clk2);
+        VDP_ClockDCLK(chip, clk1, clk2);
+        VDP_ClockDCLK(chip, clk1, clk2);
+        VDP_ClockDCLK(chip, clk1, clk2);
+        VDP_ClockDCLK(chip, clk1, clk2);
+    }
     chip->input_old = chip->input;
 }
 

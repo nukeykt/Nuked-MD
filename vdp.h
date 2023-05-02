@@ -13,7 +13,8 @@ typedef struct {
 } sprpixel_t;
 
 typedef struct {
-    int i_clk_phase;
+    int i_clk1;
+    int i_clk2;
     int i_pal;
     int i_pen;
     int i_sel0;

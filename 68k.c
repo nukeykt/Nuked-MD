@@ -6724,3 +6724,18 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     else
         chip->o_lds = !chip->lds_l2;
 }
+
+void M68K_Clock2(m68k_t *chip, int clk1, int clk2)
+{
+    if (clk1)
+        chip->input.i_clk_phase = 1;
+    if (clk2)
+        chip->input.i_clk_phase = 2;
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    M68K_Clock(chip, clk1, clk2);
+    M68K_Clock(chip, clk1, clk2);
+    M68K_Clock(chip, clk1, clk2);
+    M68K_Clock(chip, clk1, clk2);
+}
