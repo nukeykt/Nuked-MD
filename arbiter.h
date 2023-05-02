@@ -270,7 +270,7 @@ typedef struct {
     //int w225;
     int w226;
     int w227;
-    int va23_cart;
+    int va22_cart;
     int w229;
     sdff_t dff44;
     int w232;
@@ -547,3 +547,4 @@ void ARB_Clock(arbiter_t *chip);
 
 void ARB_ClockEDCLK2(arbiter_edclk_t *chip, int mclk);
 void ARB_Clock2(arbiter_t *chip);
+void ARB_UpdateOutputBus(arbiter_t *chip);

@@ -247,7 +247,7 @@ typedef struct {
 
 static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 {
-    delay->fifo = malloc((delaycycles + 1) * sizeof(int));
+    delay->fifo = (int*)malloc((delaycycles + 1) * sizeof(int));
     if (!delay->fifo)
         return;
     delay->lastcycle = 0;

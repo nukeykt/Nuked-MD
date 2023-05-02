@@ -181,6 +181,10 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
         chip->o_zdata = FM_ReadStatus(&chip->fm);
     }
 
+    ARB_UpdateOutputBus(&chip->arb);
+    IOC_UpdateOutputBus(&chip->ioc);
+    TMSS_UpdateOutputBus(&chip->tmss);
+
     // FM
     chip->fm.prescaler.input.ic = chip->fm.input.ic = !chip->i_zres;
     FM_Prescaler2(&chip->fm.prescaler, chip->fm_clk);

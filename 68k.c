@@ -6738,4 +6738,5 @@ void M68K_Clock2(m68k_t *chip, int clk1, int clk2)
     M68K_Clock(chip, clk1, clk2);
     M68K_Clock(chip, clk1, clk2);
     M68K_Clock(chip, clk1, clk2);
+    chip->input_old = chip->input;
 }

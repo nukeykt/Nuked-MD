@@ -325,7 +325,7 @@ void IOC_Clock(iochip_t *chip)
     chip->zwrite_sel = !((chip->address & 0xfe) == 0x3e && !chip->input.ext_m3 && !chip->vwrite);
     chip->zread_sel = !((chip->address & 0xe2) == 0xc0
         && ((chip->address & 0x1c) == 0 || (chip->address & 0x1c) == 0x1c) && !chip->input.ext_m3);
-    chip->zaccess = chip->zwrite_sel && chip->zread_sel;
+    chip->zaccess = (chip->zwrite_sel && chip->zread_sel) && chip->vsel;
 
     chip->zwrite0 = chip->zread_sel || (chip->address & 1) != 0;
     chip->zwrite1 = chip->zread_sel || (chip->address & 1) == 0;
@@ -389,7 +389,7 @@ void IOC_Clock(iochip_t *chip)
 
     chip->byte_sel = chip->input.ext_cas0 && (chip->input.ext_zaddress_in & 1) == 0;
 
-    chip->arb_w1 = !(chip->byte_sel && chip->input.ext_m3) && (chip->input.ext_zv || chip->input.ext_cas0) && (chip->input.ext_vz || !chip->input.ext_cas0);
+    chip->arb_w1 = !(chip->io_access && chip->input.ext_m3) && (chip->input.ext_zv || chip->input.ext_cas0) && (chip->input.ext_vz || !chip->input.ext_cas0);
     chip->arb_w2 = (chip->input.ext_zv || !chip->input.ext_cas0) && (chip->input.ext_vz || chip->input.ext_cas0);
 
     chip->ext_bc1 = chip->input.ext_zv || chip->input.ext_t1;
@@ -412,7 +412,23 @@ void IOC_Clock(iochip_t *chip)
         chip->ext_hl = !(((chip->port_a_d & 64) != 0 && (chip->port_a.ext_port_i & 64) == 0)
             || ((chip->port_b_d & 64) != 0 && (chip->port_b.ext_port_i & 64) == 0));
     }
+}
 
+void IOC_Clock2(iochip_t *chip)
+{
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
+        return;
+
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    IOC_Clock(chip);
+    chip->input_old = chip->input;
+}
+
+void IOC_UpdateOutputBus(iochip_t *chip)
+{
     if (!chip->ext_bc2)
     {
         *chip->ext_vdata_out &= ~0xff;
@@ -440,17 +456,4 @@ void IOC_Clock(iochip_t *chip)
         *chip->ext_vaddress_out &= ~0x7f;
         *chip->ext_vaddress_out |= chip->ztov_address & 0x7f;
     }
-}
-
-void IOC_Clock2(iochip_t *chip)
-{
-    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
-        return;
-
-    IOC_Clock(chip);
-    IOC_Clock(chip);
-    IOC_Clock(chip);
-    IOC_Clock(chip);
-    IOC_Clock(chip);
-    chip->input_old = chip->input;
 }

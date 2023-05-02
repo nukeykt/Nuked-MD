@@ -163,3 +163,4 @@ typedef struct {
 } iochip_t;
 
 void IOC_Clock2(iochip_t *chip);
+void IOC_UpdateOutputBus(iochip_t *chip);

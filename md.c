@@ -214,6 +214,7 @@ int iorq;
 int mreq;
 int wr;
 int rd;
+int ovclk;
 
 int main(int argc, char *argv[])
 {
@@ -314,11 +315,37 @@ int main(int argc, char *argv[])
             m68k.input.i_ipl2 = ym.vdp.o_ipl2 == state_z ? 1 : 0;
             m68k.input.i_dtack = dtack;
             m68k.input.i_berr = 1;
-            m68k.input.i_data = vdata;
+            m68k.input.i_data = vdata & 0xffff;
             if (!vclk)
                 M68K_Clock2(&m68k, 1, 0);
             else
                 M68K_Clock2(&m68k, 0, 1);
+            if (ovclk != vclk)
+            {
+                printf("cyc %i ", mcycles);
+                //printf("c1: %i c2 %i c3 %i c4 %i c5 %i w286 %i ", m68k.c1, m68k.c2, m68k.c3, m68k.c4, m68k.c5, m68k.w286);
+                printf("code %x ", (m68k.codebus2 & 0x3ff) ^ 0x3ff);
+                printf("ucd %i ", m68k.dbg_ucode_last);
+                printf("ir %x ", m68k.w530);
+                printf("hr %i%i ", m68k.input.i_reset, m68k.input.i_halt);
+                printf("dtack %i ", m68k.input.i_dtack);
+                printf("w147 %x ", m68k.w147);
+                if (!m68k.o_address_z)
+                {
+                    printf("address %x ", (m68k.o_address & 0x7fffff) * 2);
+                }
+
+#if 0
+                printf("w948 %x ", m68k.w948);
+                printf("w880 %i ", m68k.w880);
+                printf("w881 %i ", m68k.w881);
+                printf("io %x ", m68k.data_io);
+                printf("input %x ", m68k.input.i_data);
+#endif
+
+                printf("\n");
+                ovclk = vclk;
+            }
 
             // z80
             z80.input.ext_data_i = zdata;
@@ -436,7 +463,7 @@ int main(int argc, char *argv[])
             {
                 if (!ym.o_cas0)
                 {
-                    vdata = rom[vaddress & 0x3fffff];
+                    vdata = rom[vaddress & 0x1fffff];
                 }
             }
         }

@@ -180,12 +180,6 @@ void ARB_ClockVToZ(arbiter_t *chip)
 
     chip->w63 = !(chip->w99 && !chip->w122 && !chip->input.ext_uds_in);
     chip->w12 = chip->test || !chip->input.ext_rw_in || chip->w63;
-    if (!chip->w12)
-    {
-        *chip->ext_data_out &= ~256;
-        if (chip->w33)
-            *chip->ext_data_out |= 256;
-    }
     chip->w36 = chip->w63 || chip->input.ext_rw_in;
     SDFFR_Update(&chip->zbr, chip->w36, chip->vd8, chip->sres_syncv.l2); // Z80 bus req
     chip->w33 = chip->input.ext_zbak; // Z80 BUSACK
@@ -244,7 +238,7 @@ void ARB_ClockCart(arbiter_t *chip)
     chip->w269 = chip->dff45.q && chip->va23_in && chip->w274;
     chip->w248 = chip->w223 || chip->w269;
     chip->w208 = !chip->dff26.l2 ? chip->w248 : chip->w254;
-    chip->w202 = chip->w208 || !chip->va23_cart;
+    chip->w202 = chip->w208 || !chip->va22_cart;
     chip->w170 = !chip->dff26.l2 || chip->input.d5_out;
     chip->w167 = chip->w170 && chip->w202;
     chip->w211 = !chip->input.ext_m3 || chip->input.ext_as_in || chip->va23_in;
@@ -252,7 +246,7 @@ void ARB_ClockCart(arbiter_t *chip)
     chip->w132 = chip->w72 || chip->w211; // DTACK
     chip->w69 = !(chip->w44 || !chip->dff12.l2);
     chip->w168 = !(chip->w69 || !chip->dff26.l2);
-    chip->w169 = chip->w168 || chip->w211 || !chip->va23_cart;
+    chip->w169 = chip->w168 || chip->w211 || !chip->va22_cart;
 
     SDFFR_Update(&chip->dff25, !chip->input.ext_vclk, !chip->dff12.l2, chip->w73); // FIXME: check reset wire
     chip->w101 = !(chip->dff20.nq || chip->dff25.l2);
@@ -268,17 +262,17 @@ void ARB_ClockCart(arbiter_t *chip)
 
 
     chip->w254 = chip->w223 || chip->va23_in;
-    chip->w206 = !chip->va21_in || chip->va23_cart || chip->w254;
+    chip->w206 = !chip->va21_in || chip->va22_cart || chip->w254;
     chip->w238 = chip->input.ext_cas0 || chip->w223;
-    chip->w204 = !(!chip->w211 && chip->w69 && !chip->va23_cart && chip->va21_in);
+    chip->w204 = !(!chip->w211 && chip->w69 && !chip->va22_cart && chip->va21_in);
     chip->w197 = chip->w206 && chip->input.d5_out;
     chip->w198 = !(chip->w197 && chip->w101 && chip->w204);
     chip->ext_ras2 = !chip->w198;
 
 
-    chip->w234 = chip->va23_cart || chip->va21_in || chip->w211;
-    chip->va23_cart = chip->va22_in ^ chip->input.ext_cart;
-    chip->w232 = chip->va23_cart || chip->w248 || chip->va21_in;
+    chip->w234 = chip->va22_cart || chip->va21_in || chip->w211;
+    chip->va22_cart = !(chip->va22_in ^ chip->input.ext_cart);
+    chip->w232 = chip->va22_cart || chip->w248 || chip->va21_in;
     chip->w235 = !(chip->w234 && chip->w232);
     chip->ext_rom = !chip->w235;
 
@@ -600,18 +594,6 @@ void ARB_Clock(arbiter_t *chip)
 
     chip->ext_zram = chip->w136;
 
-    if (!chip->w131)
-    {
-        *chip->ext_vaddress_out &= ~0xfff80;
-        *chip->ext_vaddress_out |= (chip->va_out << 7) & 0xfff80;
-    }
-
-    if (!chip->w142)
-    {
-        *chip->ext_vaddress_out &= ~0x700000;
-        *chip->ext_vaddress_out |= (chip->va_out << 7) & 0x700000;
-    }
-
     chip->va14_in = (chip->input.ext_vaddress_in & 0x2000) != 0;
 
     chip->va21_in = (chip->input.ext_vaddress_in & 0x100000) != 0;
@@ -722,4 +704,26 @@ void ARB_Clock2(arbiter_t* chip)
     ARB_Clock(chip);
     ARB_Clock(chip);
     chip->input_old = chip->input;
+}
+
+void ARB_UpdateOutputBus(arbiter_t *chip)
+{
+    if (!chip->w12)
+    {
+        *chip->ext_data_out &= ~256;
+        if (chip->w33)
+            *chip->ext_data_out |= 256;
+    }
+
+    if (!chip->w131)
+    {
+        *chip->ext_vaddress_out &= ~0xfff80;
+        *chip->ext_vaddress_out |= (chip->va_out << 7) & 0xfff80;
+    }
+
+    if (!chip->w142)
+    {
+        *chip->ext_vaddress_out &= ~0x700000;
+        *chip->ext_vaddress_out |= (chip->va_out << 7) & 0x700000;
+    }
 }

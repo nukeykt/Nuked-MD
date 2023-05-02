@@ -6851,7 +6851,7 @@ void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
 {
     chip->input.i_clk1 = clk1;
     chip->input.i_clk2 = clk2;
-    if (memcmp(&chip->input, &chip->input_old, sizeof(chip->input)) != 0)
+    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
         return;
 
     if (clk1 == 0 && clk2 == 0)

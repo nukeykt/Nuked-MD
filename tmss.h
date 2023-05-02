@@ -67,3 +67,4 @@ typedef struct {
 
 
 void TMSS_Clock2(tmss_t *chip);
+void TMSS_UpdateOutputBus(tmss_t *chip);

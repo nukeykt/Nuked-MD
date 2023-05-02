@@ -23,12 +23,6 @@ void TMSS_Clock(tmss_t *chip)
     chip->w40 = !(!chip->input.ext_rw_in && chip->w15);
     chip->w41 = !(chip->input.ext_rw_in && chip->w15);
 
-    if (!chip->ext_data_out_en)
-    {
-        chip->w20 = (chip->input.ext_address_in & 1) != 0 ? chip->l2 : chip->l1;
-        *chip->ext_data_out = chip->w28 ? chip->w20 : tmss_rom[chip->input.ext_address_in & 1023];
-    }
-
 
     SDFFR_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
 
@@ -75,4 +69,13 @@ void TMSS_Clock2(tmss_t *chip)
     TMSS_Clock(chip);
     TMSS_Clock(chip);
     chip->input_old = chip->input;
+}
+
+void TMSS_UpdateOutputBus(tmss_t *chip)
+{
+    if (!chip->ext_data_out_en)
+    {
+        chip->w20 = (chip->input.ext_address_in & 1) != 0 ? chip->l2 : chip->l1;
+        *chip->ext_data_out = chip->w28 ? chip->w20 : tmss_rom[chip->input.ext_address_in & 1023];
+    }
 }
