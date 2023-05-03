@@ -1347,11 +1347,11 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     chip->w290 = chip->w149 || (chip->w249 && clk1);
 
-    i = chip->l51[1];
-    i += chip->w264;
-    i &= 3;
     if (clk1)
     {
+        i = chip->l51[1];
+        i += chip->w264;
+        i &= 3;
         chip->l51[0] = i;
         if (chip->reset_comb)
             chip->l51[0] = 0;
@@ -1361,12 +1361,12 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
         chip->l51[1] = chip->l51[0];
     }
 
-    chip->w291 = chip->w290 && i == 2;
-    chip->w292 = chip->w290 && i == 3;
-    chip->w293 = chip->w290 && i == 0;
-    chip->w294 = chip->w290 && i == 1;
+    chip->w291 = chip->w290 && chip->l51[1] == 2;
+    chip->w292 = chip->w290 && chip->l51[1] == 3;
+    chip->w293 = chip->w290 && chip->l51[1] == 0;
+    chip->w294 = chip->w290 && chip->l51[1] == 1;
 
-    chip->w295 = i == (chip->l54[1] * 2 + chip->l53[1]);
+    chip->w295 = chip->l51[1] == (chip->l54[1] * 2 + chip->l53[1]);
 
     chip->w296 = chip->l49[1] && chip->w305;
     chip->w297 = chip->l49[1] && !chip->w305;

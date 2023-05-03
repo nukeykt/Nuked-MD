@@ -424,7 +424,7 @@ int main(int argc, char *argv[])
 #if 1
             if (ovclk != vclk && m68k.input.i_reset)
                 if (!m68k.o_rw && !m68k.o_as &&
-                    ((m68k.o_address * 2) & 0xfffffc) == 0xc00004
+                    ((m68k.o_address * 2) & 0xfffff8) == 0xc00000
                     && (!m68k.o_uds || !m68k.o_lds))
             {
                 printf("cyc %i ", mcycles);
