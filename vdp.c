@@ -1110,7 +1110,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     }
     if (chip->w275)
     {
-        chip->vram_address = chip->l35 & 0x1ffff;
+        chip->vram_address = (chip->l35 ^ 1) & 0x1ffff;
     }
 
     if (chip->w294)
