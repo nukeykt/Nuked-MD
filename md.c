@@ -161,6 +161,8 @@ void update_vram(void)
         unscramble |= (vram_addr >> 6) & 0x1fc;
         unscramble |= (vram_addr & 0xfc) << 8;
         vram_flat[unscramble] = odata;
+        if (unscramble == 0xc20 && odata != 0)
+            unscramble += 0;
     }
     ord = !vram_input_o.ras && !vram_input_o.cas && !vram_input_o.oe1 && !vram_dt;
     if (!ord && rd)
@@ -416,7 +418,7 @@ int main(int argc, char *argv[])
                 M68K_Clock2(&m68k, 1, 0);
             else
                 M68K_Clock2(&m68k, 0, 1);
-#if 1
+#if 0
             if (ovclk != vclk && m68k.input.i_reset)
             {
                 printf("cyc %i ", mcycles);

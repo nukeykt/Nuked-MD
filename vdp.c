@@ -1608,7 +1608,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->w328)
     {
         chip->vram_data = (chip->w351 & 255) | ((chip->l96 & 255) << 8);
-        chip->unk_data = chip->l96;
+        chip->unk_data = chip->l97;
     }
 
     if (chip->w291)
@@ -1620,7 +1620,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->w327)
     {
         chip->vram_data = (chip->w352 & 255) | ((chip->l98 & 255) << 8);
-        chip->unk_data = chip->l98;
+        chip->unk_data = chip->l99;
     }
 
     if (chip->w292)
@@ -1632,7 +1632,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->w329)
     {
         chip->vram_data = (chip->w353 & 255) | ((chip->l100 & 255) << 8);
-        chip->unk_data = chip->l100;
+        chip->unk_data = chip->l101;
     }
 
     if (chip->w293)
@@ -1644,7 +1644,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->w326)
     {
         chip->vram_data = (chip->w354 & 255) | ((chip->l102 & 255) << 8);
-        chip->unk_data = chip->l102;
+        chip->unk_data = chip->l103;
     }
 
     if (!chip->w268)
