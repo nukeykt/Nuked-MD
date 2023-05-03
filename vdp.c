@@ -2849,7 +2849,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     chip->w573 = chip->l216[1] && clk2;
 
     chip->w574 = !chip->w541 && chip->reg_m5 && (chip->l106[1] & 8) == 0;
-    chip->w575 = !chip->w541 && chip->reg_m5 && (chip->l106[1] & 8) == 0;
+    chip->w575 = !chip->w541 && chip->reg_m5 && (chip->l106[1] & 8) != 0;
 
     chip->w576 = chip->l217[1] ? (chip->w355 & 15) : (chip->w522 & 15);
 

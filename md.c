@@ -84,10 +84,12 @@ uint64_t mcycles;
 
 static int vram[64 * 1024];
 static int vram_flat[64 * 1024];
+static int vram_page[256];
 static int vram_addr;
 static int vram_dt;
 static int vram_addr_ser;
 static int vram_ser;
+static int vram_addr_o;
 
 typedef struct {
     int ras;
@@ -134,9 +136,10 @@ void update_vram(void)
             int unscramble = 0;
             vram_addr_ser = vram_addr;
             unscramble |= vram_addr & 3;
-            unscramble |= (vram_addr >> 6) & 0x1fc;
+            unscramble |= (vram_addr >> 6) & 0x3fc;
             unscramble |= (vram_addr & 0xfc) << 8;
-            vram_ser = vram[vram_addr_ser & 0xffff];
+            memcpy(vram_page, &vram[vram_addr & 0xff00], sizeof(vram_page));
+            vram_ser = vram_page[vram_addr_ser & 0xff];
         }
     }
 
@@ -158,7 +161,7 @@ void update_vram(void)
         int unscramble = 0;
         vram[vram_addr] = odata;
         unscramble |= vram_addr & 3;
-        unscramble |= (vram_addr >> 6) & 0x1fc;
+        unscramble |= (vram_addr >> 6) & 0x3fc;
         unscramble |= (vram_addr & 0xfc) << 8;
         vram_flat[unscramble] = odata;
         if (unscramble == 0xc20 && odata != 0)
@@ -169,14 +172,14 @@ void update_vram(void)
     {
         ym.vdp.input.i_vram_ad = vram[vram_addr & 0xffff];
     }
-    if (vram_input_o.sc && !vram_input.sc && vram_dt)
+    if (!vram_input_o.sc && vram_input.sc && !vram_input.se0)
     {
         int low, high;
         int unscramble = 0;
         unscramble |= vram_addr_ser & 3;
-        unscramble |= (vram_addr_ser >> 6) & 0x1fc;
+        unscramble |= (vram_addr_ser >> 6) & 0x3fc;
         unscramble |= (vram_addr_ser & 0xfc) << 8;
-        vram_ser = vram[vram_addr_ser & 0xffff];
+        vram_ser = vram_page[vram_addr_ser & 0xff];
         if (unscramble >= 0x3800 && (unscramble & 3) == 1)
         {
             vram_ser ^= 0;
@@ -418,8 +421,11 @@ int main(int argc, char *argv[])
                 M68K_Clock2(&m68k, 1, 0);
             else
                 M68K_Clock2(&m68k, 0, 1);
-#if 0
+#if 1
             if (ovclk != vclk && m68k.input.i_reset)
+                if (!m68k.o_rw && !m68k.o_as &&
+                    ((m68k.o_address * 2) & 0xfffffc) == 0xc00004
+                    && (!m68k.o_uds || !m68k.o_lds))
             {
                 printf("cyc %i ", mcycles);
                 //printf("c1: %i c2 %i c3 %i c4 %i c5 %i w286 %i ", m68k.c1, m68k.c2, m68k.c3, m68k.c4, m68k.c5, m68k.w286);
@@ -444,6 +450,7 @@ int main(int argc, char *argv[])
                 printf("cdt %i ", ym.arb.w72);
                 printf("dff33 %i ", ym.arb.dff33.q);
                 printf("w43 %i ", ym.arb.w43);
+                printf("data %x ", m68k.o_data);
                 printf("\n");
                 ovclk = vclk;
             }
