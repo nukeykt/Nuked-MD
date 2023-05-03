@@ -1943,7 +1943,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     chip->w393 = chip->l133[1] && chip->w380;
 
-    chip->w394 = chip->w384 || (chip->w380 && chip->l126[1]);
+    chip->w394 = chip->w383 || (chip->w380 && chip->l126[1]);
 
     chip->w395 = !(chip->w486 || chip->w489 || chip->w482 || chip->w488);
 
@@ -2881,12 +2881,12 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     }
 
     chip->w580 = chip->w106 ? ((chip->w577 >> 3) & 1) | (chip->l221 << 1) | ((chip->l222 & 7) << 9)
-        : chip->l221 | (chip->l222 << 8) | ((chip->w581 & 7) << 11);
+        : chip->l221 | ((chip->l222 & 7) << 8) | (chip->w581 << 11);
 
     if (chip->l218[1])
     {
         chip->vram_address &= ~0x1ffe0;
-        chip->vram_address |= chip->w580;
+        chip->vram_address |= chip->w580 << 5;
     }
 
 
@@ -3173,7 +3173,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
         if (chip->l239 & mask)
             chip->w607 |= 8;
     }
-    else if (chip->l241[1] & 8)
+    else if ((chip->l241[1] & 8) == 0)
     {
         if (chip->w606 == 7)
             chip->w607 = chip->l261 & 15;
@@ -3459,13 +3459,15 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 
     chip->w644 = !(chip->l311[1] == 15);
 
+    chip->w645 = chip->l317 && chip->hclk2;
+
     if (chip->hclk1)
     {
         chip->l317 = !chip->w644;
     }
 
     chip->w646 = chip->l269[1] != 0;
-    if (chip->l311[1] & 8)
+    if ((chip->l311[1] & 8) == 0)
     {
         if (chip->w641 == 7)
             chip->w647 = chip->l307 & 15;
@@ -6702,9 +6704,6 @@ void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
     }
     else
     {
-        VDP_ClockDCLK(chip, clk1, clk2);
-        VDP_ClockDCLK(chip, clk1, clk2);
-        VDP_ClockDCLK(chip, clk1, clk2);
         VDP_ClockDCLK(chip, clk1, clk2);
         VDP_ClockDCLK(chip, clk1, clk2);
         VDP_ClockDCLK(chip, clk1, clk2);

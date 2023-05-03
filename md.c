@@ -139,7 +139,7 @@ void update_vram(void)
             unscramble |= (vram_addr >> 6) & 0x3fc;
             unscramble |= (vram_addr & 0xfc) << 8;
             memcpy(vram_page, &vram[vram_addr & 0xff00], sizeof(vram_page));
-            vram_ser = vram_page[vram_addr_ser & 0xff];
+            //vram_ser = vram_page[vram_addr_ser & 0xff];
         }
     }
 
@@ -255,7 +255,7 @@ void Video_PlotVDP(void)
 
     if (ohsync && ym.vdp.o_hsync == 0)
     {
-        plot_x = 0;
+        plot_x = -90;
         plot_y++;
     }
     if (ovsync && ym.vdp.o_vsync == 0)
@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
     {
         const int sdl_div = 1000;
 
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < 2; i++)
         {
             if (ym.o_vclk != state_z)
                 vclk = ym.o_vclk;
@@ -463,10 +463,10 @@ int main(int argc, char *argv[])
 
             // z80
             z80.input.ext_data_i = zdata;
-            z80.input.i_int = ym.vdp.o_zint != state_z ? 0 : 1;
+            z80.input.i_int = ym.vdp.o_zint == state_z ? 0 : 1;
             z80.input.i_nmi = !ym.arb.ext_nmi;
-            z80.input.i_wait = ym.o_wait == state_z ? 1 : !ym.o_wait;
-            z80.input.i_reset = ym.o_zres == state_z ? 1 : !ym.o_zres;
+            z80.input.i_wait = ym.o_wait == state_z ? 0 : !ym.o_wait;
+            z80.input.i_reset = ym.o_zres == state_z ? 0 : !ym.o_zres;
             z80.input.i_busrq = ym.o_zbr == state_z ? 0 : !ym.o_zbr;
             Z80_Clock2(&z80, ym.o_zclk == state_z ? 0 : ym.o_zclk);
 
