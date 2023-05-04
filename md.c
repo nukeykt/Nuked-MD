@@ -54,7 +54,7 @@ int load_game_rom(void)
     int i;
     FILE* romfile;
 
-    romfile = fopen("gems.bin", "rb");
+    romfile = fopen("rom.bin", "rb");
     if (!romfile)
         return 1;
 
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
     FC1004_Init(&ym);
 
     m3 = 1;
-    ntsc = 0;
+    ntsc = 1;
     cart = 0;
     wres = 1;
     disk = 1;

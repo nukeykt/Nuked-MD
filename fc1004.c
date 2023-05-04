@@ -224,7 +224,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     VDP_ClockMCLK2(&chip->vdp.prescaler, mclk);
 
     // do externally: csync, vram(sd,rd,ad), spa
-    chip->vdp.input.i_pal = chip->i_ntsc;
+    chip->vdp.input.i_pal = !chip->i_ntsc;
     chip->vdp.input.i_pen = chip->hl_vdp;
     chip->vdp.input.i_sel0 = chip->i_m3;
     chip->vdp.input.i_as = chip->i_as;
