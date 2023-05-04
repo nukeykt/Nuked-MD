@@ -3350,19 +3350,19 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     else
         chip->w626 = (chip->w625 << 1) | chip->w624;
 
-    if (chip->w627)
+    if (chip->w630)
     {
         chip->l294 = chip->vram_serial;
     }
-    if (chip->w628)
+    if (chip->w629)
     {
         chip->l295 = chip->vram_serial;
     }
-    if (chip->w629)
+    if (chip->w628)
     {
         chip->l296 = chip->vram_serial;
     }
-    if (chip->w630)
+    if (chip->w627)
     {
         chip->l297 = chip->vram_serial;
     }
@@ -3467,7 +3467,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     }
 
     chip->w646 = chip->l269[1] != 0;
-    if ((chip->l311[1] & 8) == 0)
+    if (chip->l311[1] & 8)
     {
         if (chip->w641 == 7)
             chip->w647 = chip->l307 & 15;

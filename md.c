@@ -255,7 +255,7 @@ void Video_PlotVDP(void)
 
     if (ohsync && ym.vdp.o_hsync == 0)
     {
-        plot_x = -90;
+        plot_x = -75;
         plot_y++;
     }
     if (ovsync && ym.vdp.o_vsync == 0)
