@@ -3236,19 +3236,19 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
         chip->color_priority = chip->l274[1];
     }
 
-    if (chip->w619)
+    if (chip->w622)
     {
         chip->l275 = chip->vram_serial;
     }
-    if (chip->w620)
+    if (chip->w621)
     {
         chip->l276 = chip->vram_serial;
     }
-    if (chip->w621)
+    if (chip->w620)
     {
         chip->l277 = chip->vram_serial;
     }
-    if (chip->w622)
+    if (chip->w619)
     {
         chip->l278 = chip->vram_serial;
     }
