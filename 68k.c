@@ -2438,6 +2438,8 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->o_rw = 0;
     else if (chip->rw_l && !chip->w409)
         chip->o_rw = 1;
+    else
+        chip->o_rw = state_z;
 
     if (clk2)
         chip->w362 = chip->w382;

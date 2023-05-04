@@ -114,6 +114,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
         ((chip->tmss.ext_test_0 && !chip->tmss.ext_test_2) ? chip->vdp.prescaler.mclk_dclk : chip->arb.edclk.ext_edclk);
 
     chip->o_vdata_dir = 0;
+    chip->o_vaddress_dir = 0;
     if (chip->ioc.ext_bc2 && chip->tmss.ext_data_out_en && chip->vdp_data_dir)
     {
         chip->o_vdata_dir |= 0xff;
@@ -132,17 +133,17 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     if (chip->ioc.ext_bc5 && chip->vdp_address_dir)
     {
         chip->o_vaddress_dir |= 0x7f;
-        chip->o_vaddress |= ~0x7f;
+        chip->o_vaddress &= ~0x7f;
     }
     if (chip->arb.w131 && chip->vdp_address_dir)
     {
         chip->o_vaddress_dir |= 0xfff80;
-        chip->o_vaddress |= ~0xfff80;
+        chip->o_vaddress &= ~0xfff80;
     }
     if (chip->arb.w142 && chip->vdp_address_dir)
     {
         chip->o_vaddress_dir |= 0x700000;
-        chip->o_vaddress |= ~0x700000;
+        chip->o_vaddress &= ~0x700000;
     }
 
     chip->br = 1;

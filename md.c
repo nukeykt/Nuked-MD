@@ -393,8 +393,10 @@ int main(int argc, char *argv[])
                 rw = ym.o_rw;
             if (m68k.o_rw != state_z)
                 rw = m68k.o_rw;
+            iorq = 1;
             if (z80.o_iorq != state_z)
                 iorq = !z80.o_iorq;
+            mreq = 1;
             if (z80.o_mreq != state_z)
                 mreq = !z80.o_mreq;
             if (ym.o_mreq != state_z)
@@ -403,6 +405,8 @@ int main(int argc, char *argv[])
                 wr = ym.o_zwr;
             if (z80.o_wr != state_z)
                 wr = !z80.o_wr;
+            if (ym.o_zrd != state_z)
+                rd = ym.o_zrd;
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
             
@@ -506,6 +510,8 @@ int main(int argc, char *argv[])
             ym.i_zwr = wr;
             ym.i_zrd = rd;
             ym.i_m1 = !z80.o_m1;
+            if (ym.o_cas0 != state_z)
+                ym.i_cas0 = ym.o_cas0;
 
             FC1004_Clock(&ym, mcycles & 1, mcycles);
 
@@ -587,6 +593,17 @@ int main(int argc, char *argv[])
                 }
             }
         }
+
+#if 0
+        if (m68k.o_rw == state_z)
+        {
+            if ((uds == 0 || lds == 0) && as == 0)
+            {
+                printf("vdp/z80 access ulrw %i%i%i address %x data %x\n",
+                    uds, lds, rw, vaddress*2, vdata);
+            }
+        }
+#endif
 
         // 68k ram
         if (!ym.vdp.o_ras0)
