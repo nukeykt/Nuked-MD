@@ -258,7 +258,7 @@ void Z80_BusLogic(z80_t *chip, int clk)
     chip->w69 = !(chip->w55 || (chip->w41 && !chip->w131));
     if (clk)
         chip->l1 = chip->w69;
-    if (!clk && chip->l1)
+    if (!clk && !chip->l1)
         chip->w2 = 0;
     if (clk && chip->w15)
         chip->w2 = 1;

@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
             ym.i_iorq = iorq;
             ym.arb.input.ext_mreq_in = mreq;
             ym.i_dtack = dtack;
-            ym.i_zres = ym.o_zres == state_z ? 1 : 0;
+            ym.i_zres = ym.o_zres == state_z ? 1 : ym.o_zres;
             ym.i_zwr = wr;
             ym.i_zrd = rd;
             ym.i_m1 = !z80.o_m1;
@@ -577,6 +577,8 @@ int main(int argc, char *argv[])
                 if (!rd)
                 {
                     zdata = zram[zaddress & 0x1fff];
+                    //if (zaddress == 0x36)
+                    //    printf("read vdata %x zdata %x\n", vdata, zdata);
                 }
                 //if (!wr)
                 //{
@@ -594,13 +596,39 @@ int main(int argc, char *argv[])
             }
         }
 
-#if 0
+#if 1
         if (m68k.o_rw == state_z)
         {
             if ((uds == 0 || lds == 0) && as == 0)
             {
-                printf("vdp/z80 access ulrw %i%i%i address %x data %x\n",
-                    uds, lds, rw, vaddress*2, vdata);
+                if (mcycles == 4705622)
+                    mcycles += 0;
+                printf("cycles %i vdp/z80 acc ulrw %i%i%i va %x vd %x za %x zd %x zrw %i%i\n",
+                    (int)mcycles, uds, lds, rw, vaddress*2, vdata, zaddress, zdata, z80.o_rd, z80.o_wr);
+                printf("z80: clk %i w2 %i wait %i\n", z80.input.clk, z80.w2, z80.input.i_wait);
+            }
+        }
+
+        {
+            static int bit;
+            static int zbank;
+            static int st;
+            if (!ym.arb.w150)
+            {
+                bit = zdata & 1;
+                printf("cycles %i bank upd: %i\n", (int)mcycles, bit);
+                st = 1;
+            }
+            else
+            {
+                if (st)
+                {
+                    zbank = zbank >> 1;
+                    zbank |= bit << 23;
+                    zbank &= 0xff8000;
+                    printf("zbank %x\n", zbank);
+                    st = 0;
+                }
             }
         }
 #endif
@@ -630,6 +658,12 @@ int main(int argc, char *argv[])
             if (!wr)
             {
                 zram[zaddress & 0x1fff] = zdata;
+                if ((zaddress & 0x1fc0) == 0x1b40 || zaddress == 0x36)
+                {
+                    //if (zaddress == 0x36)
+                    //    printf("write vdata %x zdata %x\n", vdata, zdata);
+                    printf("cycles %d: z80 %x = %x\n", (int)mcycles, zaddress, zdata);
+                }
             }
         }
 

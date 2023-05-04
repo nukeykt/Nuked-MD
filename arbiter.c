@@ -618,13 +618,13 @@ void ARB_Clock(arbiter_t *chip)
     chip->za15_in = (chip->input.ext_zaddress_in & 32768) != 0;
 
 
-    SDFFR_UpdateWide(&chip->z80bank, chip->w150, ((chip->z80bank.l2 & 0x1ff) >> 1) | ((chip->input.ext_zdata_in & 1) << 8),
+    SDFFR_UpdateWide(&chip->z80bank, chip->w150, ((chip->z80bank.q & 0x1ff) >> 1) | ((chip->input.ext_zdata_in & 1) << 8),
         chip->sres_syncv.l2, 511);
     if (chip->input.ext_m3) // MD
     {
         chip->va_out = (chip->input.ext_zaddress_in & 0x7f00) >> 8;
         if (chip->w86)
-            chip->va_out |= (chip->z80bank.l2 & 0x1ff) << 7;
+            chip->va_out |= (chip->z80bank.q & 0x1ff) << 7;
         else
             chip->va_out |= 0xc000;
     }
