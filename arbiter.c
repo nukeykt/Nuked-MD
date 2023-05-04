@@ -610,7 +610,7 @@ void ARB_Clock(arbiter_t *chip)
     if (!chip->vtoz)
     {
         chip->ext_zaddress_out &= ~0xff00;
-        chip->ext_zaddress_out = (chip->input.ext_vaddress_in << 1) & 0x7f00;
+        chip->ext_zaddress_out |= (chip->input.ext_vaddress_in << 1) & 0x7f00;
     }
 
     chip->ext_vz = chip->vtoz;

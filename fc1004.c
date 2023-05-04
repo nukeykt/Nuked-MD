@@ -228,7 +228,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     chip->vdp.input.i_sel0 = chip->i_m3;
     chip->vdp.input.i_as = chip->i_as;
     chip->vdp.input.i_uds = chip->i_uds;
-    chip->vdp.input.i_lds = chip->i_uds;
+    chip->vdp.input.i_lds = chip->i_lds;
     chip->vdp.input.i_m1 = chip->i_m1;
     chip->vdp.input.i_rd = chip->i_zrd;
     chip->vdp.input.i_wr = chip->i_zwr;
