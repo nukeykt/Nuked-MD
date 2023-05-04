@@ -313,6 +313,15 @@ int rd;
 int ovclk;
 int odclk;
 
+float psg_sum;
+int fm_sum[2];
+int fm_sample[2];
+int psg_sample;
+short snd_buf[16 * 1024];
+int snd_buf_cnt = 0;
+
+FILE *audio_out;
+
 int main(int argc, char *argv[])
 {
     int i;
@@ -351,10 +360,14 @@ int main(int argc, char *argv[])
 
     Video_Init();
 
+    audio_out = fopen("audioout.bin", "wb");
+
     while (1)
     {
         const int sdl_div = 1000;
         const int frame_div = 1789772;
+        const int psg_div = 30 * 16;
+        const int fm_div = 14 * 144;
 
         for (i = 0; i < 2; i++)
         {
@@ -596,7 +609,7 @@ int main(int argc, char *argv[])
             }
         }
 
-#if 1
+#if 0
         if (m68k.o_rw == state_z)
         {
             if ((uds == 0 || lds == 0) && as == 0)
@@ -658,12 +671,37 @@ int main(int argc, char *argv[])
             if (!wr)
             {
                 zram[zaddress & 0x1fff] = zdata;
-                if ((zaddress & 0x1fc0) == 0x1b40 || zaddress == 0x36)
+            }
+        }
+
+        {
+            fm_sum[0] += ym.fm.out_l;
+            fm_sum[1] += ym.fm.out_r;
+            if ((mcycles % fm_div) == 0)
+            {
+                fm_sample[0] = fm_sum[0] / 48;
+                fm_sample[1] = fm_sum[1] / 48;
+                fm_sum[0] = fm_sum[1] = 0;
+            }
+
+            psg_sum += ym.vdp.psg.psg_out * 4.f;
+            if ((mcycles % psg_div) == 0)
+            {
+                psg_sample = (int)psg_sum;
+                snd_buf[snd_buf_cnt] = fm_sample[0] + psg_sample;
+                snd_buf_cnt++;
+                snd_buf[snd_buf_cnt] = fm_sample[1] + psg_sample;
+                snd_buf_cnt++;
+                if (snd_buf_cnt == 16 * 1024)
                 {
-                    //if (zaddress == 0x36)
-                    //    printf("write vdata %x zdata %x\n", vdata, zdata);
-                    printf("cycles %d: z80 %x = %x\n", (int)mcycles, zaddress, zdata);
+                    snd_buf_cnt = 0;
+                    if (audio_out)
+                    {
+                        fwrite(snd_buf, 1, sizeof(snd_buf), audio_out);
+                        fflush(audio_out);
+                    }
                 }
+                psg_sum = 0;
             }
         }
 
@@ -683,6 +721,7 @@ int main(int argc, char *argv[])
         mcycles++;
     }
 
+    fclose(audio_out);
     FC1004_Destroy(&ym);
 
     return 0;
