@@ -392,11 +392,11 @@ void IOC_Clock(iochip_t *chip)
     chip->arb_w1 = !(chip->io_access && chip->input.ext_m3) && (chip->input.ext_zv || chip->input.ext_cas0) && (chip->input.ext_vz || !chip->input.ext_cas0);
     chip->arb_w2 = (chip->input.ext_zv || !chip->input.ext_cas0) && (chip->input.ext_vz || chip->input.ext_cas0);
 
-    chip->ext_bc1 = chip->input.ext_zv || chip->input.ext_t1;
+    chip->ext_bc1 = chip->input.ext_vz || chip->input.ext_t1;
     chip->ext_bc2 = chip->arb_w1 || chip->input.ext_t1;
     chip->ext_bc3 = (chip->arb_w1 && chip->input.ext_m3) || chip->input.ext_t1;
     chip->ext_bc4 = chip->arb_w2 || chip->input.ext_t1;
-    chip->ext_bc5 = chip->input.ext_vz || chip->input.ext_t1;
+    chip->ext_bc5 = chip->input.ext_zv || chip->input.ext_t1;
 
     chip->vdata = chip->io_access ? chip->read_data : chip->input.ext_zdata_in;
     chip->zdata = chip->io_access ? chip->read_data :

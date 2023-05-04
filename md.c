@@ -54,7 +54,7 @@ int load_game_rom(void)
     int i;
     FILE* romfile;
 
-    romfile = fopen("rom.bin", "rb");
+    romfile = fopen("gems.bin", "rb");
     if (!romfile)
         return 1;
 
@@ -354,6 +354,7 @@ int main(int argc, char *argv[])
     while (1)
     {
         const int sdl_div = 1000;
+        const int frame_div = 1789772;
 
         for (i = 0; i < 2; i++)
         {
@@ -504,6 +505,7 @@ int main(int argc, char *argv[])
             ym.i_zres = ym.o_zres == state_z ? 1 : 0;
             ym.i_zwr = wr;
             ym.i_zrd = rd;
+            ym.i_m1 = !z80.o_m1;
 
             FC1004_Clock(&ym, mcycles & 1, mcycles);
 
@@ -622,6 +624,10 @@ int main(int argc, char *argv[])
         if ((mcycles % sdl_div) == 0)
         {
             Video_Blit();
+        }
+        if ((mcycles % frame_div) == 0)
+        {
+            printf("frame %lld\n", mcycles / frame_div);
         }
         mcycles++;
     }
