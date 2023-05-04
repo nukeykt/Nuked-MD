@@ -14,7 +14,6 @@ typedef struct {
     fm_prescaler_input_t input, input_old;
 
     // clock
-    int phi;
     int ic_latch[2]; // 12
     int ic_check_latch[2]; // 4
     int prescaler_latch[2]; // 6

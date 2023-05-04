@@ -84,10 +84,6 @@ void FM_HandleIO(fm_t *chip)
     int write_data = chip->input.cs && chip->input.wr && (chip->input.address & 1) == 1 && !chip->input.ic;
     int write_addr = (chip->input.cs && chip->input.wr && (chip->input.address & 1) == 0) || chip->input.ic;
     int read_enable = chip->input.cs && chip->input.rd && !chip->input.ic;
-    if (chip->flags & fm_flags_ym2612)
-    {
-        read_enable = read_enable && chip->input.address == 0;
-    }
     int io_dir = chip->input.cs && chip->input.rd && !chip->input.ic;
     int data_enable = !io_dir && !chip->input.ic;
 
@@ -145,10 +141,6 @@ int FM_ReadStatus(fm_t *chip)
 {
     int io_dir = chip->input.cs && chip->input.rd && !chip->input.ic;
     int read_enable = chip->input.cs && chip->input.rd && !chip->input.ic;
-    if (chip->flags & fm_flags_ym2612)
-    {
-        read_enable = read_enable && chip->input.address == 0;
-    }
     int status;
     int testdata = 0;
     if (!io_dir)
@@ -2181,7 +2173,7 @@ void FM_Timers1(fm_t *chip)
 
 void FM_Timers2(fm_t *chip)
 {
-    int read_enable = chip->input.cs && chip->input.rd && chip->input.address == 0 && !chip->input.ic;
+    int read_enable = chip->input.cs && chip->input.rd && !chip->input.ic;
     chip->timer_a_load_latch[1] = chip->timer_a_load_latch[0];
     chip->timer_a_load_old[1] = chip->timer_a_load_old[0];
     chip->timer_a_cnt[1] = chip->timer_a_cnt[0] & 1023;
@@ -2261,7 +2253,7 @@ void FM_Clock(fm_t *chip)
 
 void FM_Prescaler2(fm_prescaler_t *chip, int clk)
 {
-    chip->phi = clk;
+    chip->input.phi = clk;
     if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
         return;
     FM_Prescaler(chip);
