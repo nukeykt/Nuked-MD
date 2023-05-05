@@ -4623,7 +4623,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l442[8] = chip->l442[7];
         chip->l442[10] = chip->l442[9];
 
-        chip->l443[0] = chip->l416;
+        chip->l443[0] = chip->l425;
         chip->l443[2] = chip->l443[1];
         chip->l443[4] = chip->l443[3];
         chip->l443[6] = chip->l443[5];
