@@ -35,13 +35,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
 
     if (!chip->vdp_data_dir)
     {
-        static int bit1;
         VDP_UpdateBusOutput(&chip->vdp);
-        bit1 = (chip->vdp.io_data >> 1) & 1;
-        if (bit1)
-            bit1 += 0;
-        else
-            bit1 += 0;
         chip->o_vdata = chip->vdp.io_data;
     }
     else

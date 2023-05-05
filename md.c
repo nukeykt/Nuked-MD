@@ -473,7 +473,7 @@ int main(int argc, char *argv[])
                 M68K_Clock2(&m68k, 1, 0);
             else
                 M68K_Clock2(&m68k, 0, 1);
-#if 1
+#if 0
             if (ovclk != vclk && m68k.input.i_reset)
                 if (!m68k.o_rw && !m68k.o_as &&
                     ((m68k.o_address * 2) & 0xfffff8) == 0xc00000

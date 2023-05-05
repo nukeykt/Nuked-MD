@@ -1088,7 +1088,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->w226 = (chip->w206 && (chip->reg_data.l2 & 0x700) == 0x500) || chip->reset_comb; // 85
     chip->w227 = (chip->w208 && (chip->reg_data.l2 & 0x700) == 0x700) || chip->reset_comb; // 97
     chip->w228 = (chip->w208 && (chip->reg_data.l2 & 0x700) == 0x500) || chip->reset_comb; // 95
-    chip->w229 = chip->w207 && (chip->reg_data.l2 & 0x700) == 0x400; // 8a
+    chip->w229 = chip->w207 && (chip->reg_data.l2 & 0x700) == 0x200; // 8a
     chip->w230 = (chip->w207 && (chip->reg_data.l2 & 0x700) == 0x100) || chip->reset_comb; // 89
     chip->w231 = (chip->w207 && (chip->reg_data.l2 & 0x700) == 0x000) || chip->reset_comb; // 88
     chip->w232 = (chip->w209 && (chip->reg_data.l2 & 0x700) == 0x600) || chip->reset_comb; // 8e
