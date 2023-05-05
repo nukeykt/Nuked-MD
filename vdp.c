@@ -4498,7 +4498,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w778 = chip->w106 ? (chip->l418 >> 4) & 3 : (chip->l418 >> 3) & 3;
 
-    chip->w779 = chip->w778 + chip->w786;
+    chip->w779 = (chip->w778 + chip->w786) & 15;
 
     if (chip->l428[1])
     {
@@ -4898,17 +4898,17 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
             if (chip->l491 & 128)
                 chip->w843 |= 128;
             if (chip->l492 & 128)
-                chip->w843 |= 32;
-            if (chip->l493 & 128)
-                chip->w843 |= 8;
-            if (chip->l494 & 128)
-                chip->w843 |= 2;
-            if (chip->l491 & 64)
                 chip->w843 |= 64;
-            if (chip->l492 & 64)
+            if (chip->l493 & 128)
+                chip->w843 |= 32;
+            if (chip->l494 & 128)
                 chip->w843 |= 16;
-            if (chip->l493 & 64)
+            if (chip->l491 & 64)
+                chip->w843 |= 8;
+            if (chip->l492 & 64)
                 chip->w843 |= 4;
+            if (chip->l493 & 64)
+                chip->w843 |= 2;
             if (chip->l494 & 64)
                 chip->w843 |= 1;
         }
@@ -4917,17 +4917,17 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
             if (chip->l491 & 32)
                 chip->w843 |= 128;
             if (chip->l492 & 32)
-                chip->w843 |= 32;
-            if (chip->l493 & 32)
-                chip->w843 |= 8;
-            if (chip->l494 & 32)
-                chip->w843 |= 2;
-            if (chip->l491 & 16)
                 chip->w843 |= 64;
-            if (chip->l492 & 16)
+            if (chip->l493 & 32)
+                chip->w843 |= 32;
+            if (chip->l494 & 32)
                 chip->w843 |= 16;
-            if (chip->l493 & 16)
+            if (chip->l491 & 16)
+                chip->w843 |= 8;
+            if (chip->l492 & 16)
                 chip->w843 |= 4;
+            if (chip->l493 & 16)
+                chip->w843 |= 2;
             if (chip->l494 & 16)
                 chip->w843 |= 1;
         }
@@ -4936,17 +4936,17 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
             if (chip->l491 & 8)
                 chip->w843 |= 128;
             if (chip->l492 & 8)
-                chip->w843 |= 32;
-            if (chip->l493 & 8)
-                chip->w843 |= 8;
-            if (chip->l494 & 8)
-                chip->w843 |= 2;
-            if (chip->l491 & 4)
                 chip->w843 |= 64;
-            if (chip->l492 & 4)
+            if (chip->l493 & 8)
+                chip->w843 |= 32;
+            if (chip->l494 & 8)
                 chip->w843 |= 16;
-            if (chip->l493 & 4)
+            if (chip->l491 & 4)
+                chip->w843 |= 8;
+            if (chip->l492 & 4)
                 chip->w843 |= 4;
+            if (chip->l493 & 4)
+                chip->w843 |= 2;
             if (chip->l494 & 4)
                 chip->w843 |= 1;
         }
@@ -4955,17 +4955,17 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
             if (chip->l491 & 2)
                 chip->w843 |= 128;
             if (chip->l492 & 2)
-                chip->w843 |= 32;
-            if (chip->l493 & 2)
-                chip->w843 |= 8;
-            if (chip->l494 & 2)
-                chip->w843 |= 2;
-            if (chip->l491 & 1)
                 chip->w843 |= 64;
-            if (chip->l492 & 1)
+            if (chip->l493 & 2)
+                chip->w843 |= 32;
+            if (chip->l494 & 2)
                 chip->w843 |= 16;
-            if (chip->l493 & 1)
+            if (chip->l491 & 1)
+                chip->w843 |= 8;
+            if (chip->l492 & 1)
                 chip->w843 |= 4;
+            if (chip->l493 & 1)
+                chip->w843 |= 2;
             if (chip->l494 & 1)
                 chip->w843 |= 1;
         }
@@ -4975,41 +4975,11 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w844 = 0;
     if (chip->w847)
     {
-        if (chip->w843 & 64)
-            chip->w844 |= 8;
-        if (chip->w843 & 16)
-            chip->w844 |= 4;
-        if (chip->w843 & 4)
-            chip->w844 |= 2;
-        if (chip->w843 & 1)
-            chip->w844 |= 1;
-        if (chip->w843 & 128)
-            chip->w844 |= 128;
-        if (chip->w843 & 32)
-            chip->w844 |= 64;
-        if (chip->w843 & 8)
-            chip->w844 |= 32;
-        if (chip->w843 & 2)
-            chip->w844 |= 16;
+        chip->w844 = ((chip->w843 >> 4) & 15) | ((chip->w843 << 4) & 240);
     }
     else
     {
-        if (chip->w843 & 64)
-            chip->w844 |= 128;
-        if (chip->w843 & 16)
-            chip->w844 |= 64;
-        if (chip->w843 & 4)
-            chip->w844 |= 32;
-        if (chip->w843 & 1)
-            chip->w844 |= 16;
-        if (chip->w843 & 128)
-            chip->w844 |= 8;
-        if (chip->w843 & 32)
-            chip->w844 |= 4;
-        if (chip->w843 & 8)
-            chip->w844 |= 2;
-        if (chip->w843 & 2)
-            chip->w844 |= 1;
+        chip->w844 = chip->w843;
     }
 
     if (clk1)
@@ -5107,42 +5077,42 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     if (chip->w872)
     {
-        chip->l515 = chip->w845 & 15;
+        chip->l515 = (chip->w845 >> 4) & 15;
     }
 
     if (chip->w874)
     {
-        chip->l516 = (chip->w845 >> 4) & 15;
+        chip->l516 = chip->w845 & 15;
     }
 
     if (chip->w875)
     {
-        chip->l517 = chip->w845 & 15;
+        chip->l517 = (chip->w845 >> 4) & 15;
     }
 
     if (chip->w878)
     {
-        chip->l518 = (chip->w845 >> 4) & 15;
+        chip->l518 = chip->w845 & 15;
     }
 
     if (chip->w879)
     {
-        chip->l519 = chip->w845 & 15;
+        chip->l519 = (chip->w845 >> 4) & 15;
     }
 
     if (chip->w881)
     {
-        chip->l520 = (chip->w845 >> 4) & 15;
+        chip->l520 = chip->w845 & 15;
     }
 
     if (chip->w882)
     {
-        chip->l521 = chip->w845 & 15;
+        chip->l521 = (chip->w845 >> 4) & 15;
     }
 
     if (chip->w884)
     {
-        chip->l522 = (chip->w845 >> 4) & 15;
+        chip->l522 = chip->w845 & 15;
     }
 
     chip->w885 = clk2 && (chip->l562[1] || chip->l499);
