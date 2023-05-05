@@ -2686,7 +2686,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 
     if (chip->w233)
     {
-        chip->reg_wd = chip->reg_data.l2 & 127;
+        chip->reg_hs = chip->reg_data.l2 & 127;
     }
 
     chip->w537 = chip->w106 ? ((chip->w355 >> 1) & 255) : (chip->w355 & 255);
