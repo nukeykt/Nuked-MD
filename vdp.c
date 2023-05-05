@@ -4687,7 +4687,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w800 = (chip->w799 >> 3) + chip->w795 + (chip->w791 + chip->w794 * 2 + chip->w796 * (4 + 8) + chip->w797 * (16 + 32));
     chip->w800 &= 63;
 
-    chip->w801 = chip->l444[1] ? chip->l447[1] : chip->l446[1];
+    chip->w801 = chip->l444[1] ? chip->l446[1] : chip->l447[1];
 
     chip->w802 = chip->w801 + chip->w798 + (chip->w790 * (1+2+4+8+16+32));
     chip->w802 &= 63;
