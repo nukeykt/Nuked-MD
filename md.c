@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <string.h>
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "common.h"
 #include "68k.h"
@@ -17,19 +19,19 @@ unsigned char ram[0x10000];
 unsigned short rom[ROM_SIZE];
 unsigned char zram[8192];
 
-inline unsigned short short_swap(unsigned short v)
+static inline unsigned short short_swap(unsigned short v)
 {
     unsigned short b1 = v & 255;
     unsigned short b2 = (v >> 8) & 255;
     return (b1 << 8) | b2;
 }
 
-int load_tmss_rom(void)
+int load_tmss_rom(char *filename)
 {
     int i;
     FILE* tmss;
 
-    tmss = fopen("tmss.bin", "rb");
+    tmss = fopen(filename, "rb");
     if (!tmss)
         return 1;
 
@@ -49,12 +51,12 @@ int load_tmss_rom(void)
     return 0;
 }
 
-int load_game_rom(void)
+int load_game_rom(char *filename)
 {
     int i;
     FILE* romfile;
 
-    romfile = fopen("rom.bin", "rb");
+    romfile = fopen(filename, "rb");
     if (!romfile)
         return 1;
 
@@ -325,11 +327,43 @@ FILE *audio_out;
 int main(int argc, char *argv[])
 {
     int i;
-    if (load_tmss_rom())
-        return 1;
-    if (load_game_rom())
-        return 1;
-
+    char *tmss_filename = "tmss.bin";
+    char *rom_filename = "rom.bin";
+    for (i = 1; i < argc && *argv[i] == '-'; i++)
+    {
+        switch(argv[i][1])
+        {
+            case 't':
+                if (i + 1 < argc)
+                {
+                    tmss_filename = argv[i + 1];
+                    i++;
+                }
+                else
+                {
+                    printf("missing argument for -t\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            default:
+                printf("usage: %s [-t tmss.bin] [rom.bin]\n", argv[0]);
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+    argv += i;
+    if (*argv)
+        rom_filename = *argv;
+    if (load_tmss_rom(tmss_filename))
+    {
+        printf("%s not found\n", tmss_filename);
+        exit(EXIT_FAILURE);
+    }
+    if (load_game_rom(rom_filename))
+    {
+        printf("%s not found\n", rom_filename);
+        exit(EXIT_FAILURE);
+    }
 
     memset(&ym, 0, sizeof(ym));
     memset(&m68k, 0, sizeof(m68k));
