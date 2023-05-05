@@ -3571,8 +3571,8 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l330[0] = chip->l329[1];
         chip->l331[0] = chip->l134[1];
         chip->l333 = !chip->w679;
-        chip->l336[0] = (chip->l332 & 1024) == 0;
-        chip->l337[0] = (chip->l332 & 512) == 0;
+        chip->l336[0] = (chip->l332 & 512) == 0;
+        chip->l337[0] = (chip->l332 & 256) == 0;
         chip->l338[0] = chip->w656;
         chip->l339[0] = chip->w657;
         chip->l340 = chip->w666 ^ 1023;
@@ -3753,9 +3753,9 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w655 = chip->reg_m5 && (chip->l332 & 127) == 127;
 
-    chip->w656 = chip->reg_m5 && (chip->l332 & 512) == 0;
+    chip->w656 = chip->reg_m5 && (chip->l332 & 256) == 0;
 
-    chip->w657 = chip->reg_m5 ? (chip->l332 & 256) == 0 : chip->reg_81_b1;
+    chip->w657 = chip->reg_m5 ? (chip->l332 & 128) == 0 : chip->reg_81_b1;
 
     chip->w658 = chip->w676 && (chip->w655 || chip->w667);
 
@@ -4512,7 +4512,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         else
         {
             chip->vram_address |= chip->w780 << 5;
-            chip->vram_address |= chip->reg_86_b5;
+            chip->vram_address |= chip->reg_86_b5 << 16;
         }
     }
 
