@@ -5595,7 +5595,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     chip->w975 = chip->l556[1] == 3;
     chip->w976 = chip->l558[1] != 0;
     chip->w977 = chip->l558[1] == 14;
-    chip->w978 = chip->l558[1] == 5;
+    chip->w978 = chip->l558[1] == 15;
 
     if (clk1)
     {
