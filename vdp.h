@@ -816,7 +816,6 @@ typedef struct {
     int t36;
     int w446;
     int l167[2];
-    int w449;
     int l168[2];
     int l169[2];
     int t37;
@@ -826,7 +825,6 @@ typedef struct {
     int l171[2];
     int l172[2];
     int t39;
-    int w460;
     int l173[2];
     int l174[2];
     int l175[2];

@@ -1701,6 +1701,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 void VDP_ClockHVCounters(vdp_t* chip)
 {
     int i;
+    int w460 = chip->reg_80_b0 && !chip->l176[1] && chip->l175[1];
 
     if (chip->hclk1)
     {
@@ -1957,7 +1958,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
         int w426 = w420 && !chip->l161[1];
 
-        int w437 = chip->w438 || chip->reset_comb || chip->w86 || chip->w460;
+        int w437 = chip->w438 || chip->reset_comb || chip->w86 || w460;
         int w436 = ((chip->reg_test1 & 4) == 0 && chip->l115[1] && !w437) || ((chip->reg_test1 & 4) != 0 && !chip->cpu_bg);
 
 
@@ -2356,13 +2357,13 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
     int w449 = chip->l111[1] || !chip->w446;
 
-    int w444 = chip->l164[1] && chip->w449;
+    int w444 = chip->l164[1] && w449;
     if (w444)
         chip->t34 = 1;
-    else if (chip->reset_comb || (chip->l163[1] && chip->w449))
+    else if (chip->reset_comb || (chip->l163[1] && w449))
         chip->t34 = 0;
 
-    int w447 = chip->l165[1] && chip->w449;
+    int w447 = chip->l165[1] && w449;
 
     if (chip->reset_comb || w447)
         chip->t35 = 1;
@@ -2370,7 +2371,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
         chip->t35 = 0;
 
 
-    int w452 = chip->l169[1] && chip->w449;
+    int w452 = chip->l169[1] && w449;
     if (w452)
         chip->t36 = 1;
     else if (chip->reset_comb || w447)
@@ -2388,11 +2389,9 @@ void VDP_ClockHVCounters(vdp_t* chip)
     else if (w458)
         chip->t38 = 0;
 
-    chip->w460 = chip->reg_80_b0 && !chip->l176[1] && chip->l175[1];
+    int w461 = chip->reset_comb || (w460 && chip->l171[1]);
 
-    int w461 = chip->reset_comb || (chip->w460 && chip->l171[1]);
-
-    if (chip->w460 && chip->l173[1])
+    if (w460 && chip->l173[1])
         chip->t39 = 1;
     else if (w461)
         chip->t39 = 0;
