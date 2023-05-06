@@ -3571,8 +3571,8 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l330[0] = chip->l329[1];
         chip->l331[0] = chip->l134[1];
         chip->l333 = !chip->w679;
-        chip->l336[0] = (chip->l332 & 512) == 0;
-        chip->l337[0] = (chip->l332 & 256) == 0;
+        chip->l336[0] = (chip->l332 & 1024) == 0;
+        chip->l337[0] = (chip->l332 & 512) == 0;
         chip->l338[0] = chip->w656;
         chip->l339[0] = chip->w657;
         chip->l340 = chip->w666 ^ 1023;
