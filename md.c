@@ -142,6 +142,8 @@ void update_vram(void)
             unscramble |= (vram_addr & 0xfc) << 8;
             memcpy(vram_page, &vram[vram_addr & 0xff00], sizeof(vram_page));
             //vram_ser = vram_page[vram_addr_ser & 0xff];
+            //if (ym.vdp.l106[1] > 320)
+            //    printf("dt %x\n", unscramble);
         }
     }
 
@@ -230,10 +232,13 @@ void Video_Init(void)
 
 uint32_t vid_workbuffer[VID_HEIGHT][VID_WIDTH];
 uint32_t vid_currentbuffer[VID_HEIGHT][VID_WIDTH];
+SDL_mutex *vid_mutex;
 
 void Video_Blit(void)
 {
+    SDL_LockMutex(vid_mutex);
     SDL_UpdateTexture(vid_texture, NULL, vid_currentbuffer, VID_WIDTH * 4);
+    SDL_UnlockMutex(vid_mutex);
     SDL_RenderCopy(vid_renderer, vid_texture, NULL, NULL);
     SDL_RenderPresent(vid_renderer);
 
@@ -258,12 +263,16 @@ void Video_PlotVDP(void)
     if (ohsync && ym.vdp.o_hsync == 0)
     {
         plot_x = -75;
+        if (ym.vdp.reg_rs0 == 0)
+            plot_x = -15;
         plot_y++;
     }
     if (ovsync && ym.vdp.o_vsync == 0)
     {
         plot_y = 0;
+        SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
+        SDL_UnlockMutex(vid_mutex);
     }
 
     if (plot_x >= 0 && plot_x < VID_WIDTH * 2 && plot_y >= 0 && plot_y < VID_HEIGHT)
@@ -324,81 +333,13 @@ int snd_buf_cnt = 0;
 
 FILE *audio_out;
 
-int main(int argc, char *argv[])
+int work_thread_run;
+
+int SDLCALL work_thread(void *data)
 {
     int i;
-    char *tmss_filename = "tmss.bin";
-    char *rom_filename = "rom.bin";
-    for (i = 1; i < argc && *argv[i] == '-'; i++)
+    while (work_thread_run)
     {
-        switch(argv[i][1])
-        {
-            case 't':
-                if (i + 1 < argc)
-                {
-                    tmss_filename = argv[i + 1];
-                    i++;
-                }
-                else
-                {
-                    printf("missing argument for -t\n");
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            default:
-                printf("usage: %s [-t tmss.bin] [rom.bin]\n", argv[0]);
-                exit(EXIT_FAILURE);
-                break;
-        }
-    }
-    argv += i;
-    if (*argv)
-        rom_filename = *argv;
-    if (load_tmss_rom(tmss_filename))
-    {
-        printf("%s not found\n", tmss_filename);
-        exit(EXIT_FAILURE);
-    }
-    if (load_game_rom(rom_filename))
-    {
-        printf("%s not found\n", rom_filename);
-        exit(EXIT_FAILURE);
-    }
-
-    memset(&ym, 0, sizeof(ym));
-    memset(&m68k, 0, sizeof(m68k));
-    memset(&z80, 0, sizeof(z80));
-
-    FC1004_Init(&ym);
-
-    m3 = 1;
-    ntsc = 1;
-    cart = 0;
-    wres = 1;
-    disk = 1;
-    jap = 1;
-
-    ym.i_m3 = m3;
-    ym.i_ntsc = ntsc;
-    ym.i_cart = cart;
-    ym.arb.input.ext_wres = wres;
-    ym.i_disk = disk;
-    ym.i_test0 = 0;
-    ym.tmss.input.ext_test = 7;
-    ym.i_jap = jap;
-    ym.i_sel1 = 0;
-
-    port_a = 127;
-    port_a = 127;
-    port_a = 127;
-
-    Video_Init();
-
-    audio_out = fopen("audioout.bin", "wb");
-
-    while (1)
-    {
-        const int sdl_div = 1000;
         const int frame_div = 1789772;
         const int psg_div = 30 * 16;
         const int fm_div = 14 * 144;
@@ -744,19 +685,112 @@ int main(int argc, char *argv[])
 
         odclk = ym.vdp.input.i_clk1;
 
-        if ((mcycles % sdl_div) == 0)
-        {
-            Video_Blit();
-        }
         if ((mcycles % frame_div) == 0)
         {
             printf("frame %lld\n", mcycles / frame_div);
         }
         mcycles++;
     }
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    int i;
+    SDL_Thread *thread;
+    char *tmss_filename = "tmss.bin";
+    char *rom_filename = "rom.bin";
+    for (i = 1; i < argc && *argv[i] == '-'; i++)
+    {
+        switch(argv[i][1])
+        {
+            case 't':
+                if (i + 1 < argc)
+                {
+                    tmss_filename = argv[i + 1];
+                    i++;
+                }
+                else
+                {
+                    printf("missing argument for -t\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            default:
+                printf("usage: %s [-t tmss.bin] [rom.bin]\n", argv[0]);
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+    argv += i;
+    if (*argv)
+        rom_filename = *argv;
+    if (load_tmss_rom(tmss_filename))
+    {
+        printf("%s not found\n", tmss_filename);
+        exit(EXIT_FAILURE);
+    }
+    if (load_game_rom(rom_filename))
+    {
+        printf("%s not found\n", rom_filename);
+        exit(EXIT_FAILURE);
+    }
+
+    Video_Init();
+
+    memset(&ym, 0, sizeof(ym));
+    memset(&m68k, 0, sizeof(m68k));
+    memset(&z80, 0, sizeof(z80));
+
+    FC1004_Init(&ym);
+
+    m3 = 1;
+    ntsc = 1;
+    cart = 0;
+    wres = 1;
+    disk = 1;
+    jap = 1;
+
+    ym.i_m3 = m3;
+    ym.i_ntsc = ntsc;
+    ym.i_cart = cart;
+    ym.arb.input.ext_wres = wres;
+    ym.i_disk = disk;
+    ym.i_test0 = 0;
+    ym.tmss.input.ext_test = 7;
+    ym.i_jap = jap;
+    ym.i_sel1 = 0;
+
+    port_a = 127;
+    port_a = 127;
+    port_a = 127;
+
+    audio_out = fopen("audioout.bin", "wb");
+
+    vid_mutex = SDL_CreateMutex();
+
+    work_thread_run = 1;
+    thread = SDL_CreateThread(work_thread, "work thread", 0);
+
+    if (!thread)
+    {
+        fclose(audio_out);
+        return EXIT_FAILURE;
+    }
+
+    while (1)
+    {
+        SDL_Delay(30);
+        Video_Blit();
+    }
+
+    work_thread_run = 0;
+    SDL_WaitThread(thread, 0);
 
     fclose(audio_out);
     FC1004_Destroy(&ym);
+
+    SDL_Quit();
 
     return 0;
 }
