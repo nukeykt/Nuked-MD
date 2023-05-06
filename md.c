@@ -26,6 +26,21 @@ static inline unsigned short short_swap(unsigned short v)
     return (b1 << 8) | b2;
 }
 
+int load_dummy_tmss()
+{
+    static const short data[] = {
+        0x00ff,0x000c,
+        0x0000,0x0008,
+        0x41f9,0x00a1,0x4101,
+        0x2f3c,0x2058,0x4ed0,
+        0x2f3c,0x91c8,0x2e58,
+        0x2f3c,0x08d0,0x0000,
+        0x4ed7
+    };
+    printf("loading dummy TMSS ROM\n");
+    memcpy(tmss_rom, data, sizeof(data));
+}
+
 int load_tmss_rom(char *filename)
 {
     int i;
@@ -234,7 +249,7 @@ uint32_t vid_workbuffer[VID_HEIGHT][VID_WIDTH];
 uint32_t vid_currentbuffer[VID_HEIGHT][VID_WIDTH];
 SDL_mutex *vid_mutex;
 
-void Video_Blit(void)
+int Video_Blit(void)
 {
     SDL_LockMutex(vid_mutex);
     SDL_UpdateTexture(vid_texture, NULL, vid_currentbuffer, VID_WIDTH * 4);
@@ -247,10 +262,13 @@ void Video_Blit(void)
     {
         switch (sdl_event.type)
         {
+        case SDL_QUIT:
+            return 0;
         default:
             break;
         }
     }
+    return 1;
 }
 
 void Video_PlotVDP(void)
@@ -700,10 +718,23 @@ int main(int argc, char *argv[])
     SDL_Thread *thread;
     char *tmss_filename = "tmss.bin";
     char *rom_filename = "rom.bin";
+    char *audioout_filename = "audioout.bin";
     for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
         switch(argv[i][1])
         {
+            case 'a':
+                if (i + 1 < argc)
+                {
+                    audioout_filename = argv[i + 1];
+                    i++;
+                }
+                else
+                {
+                    printf("missing argument for -a\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
             case 't':
                 if (i + 1 < argc)
                 {
@@ -728,7 +759,7 @@ int main(int argc, char *argv[])
     if (load_tmss_rom(tmss_filename))
     {
         printf("%s not found\n", tmss_filename);
-        exit(EXIT_FAILURE);
+        load_dummy_tmss();
     }
     if (load_game_rom(rom_filename))
     {
@@ -765,7 +796,7 @@ int main(int argc, char *argv[])
     port_a = 127;
     port_a = 127;
 
-    audio_out = fopen("audioout.bin", "wb");
+    audio_out = fopen(audioout_filename, "wb");
 
     vid_mutex = SDL_CreateMutex();
 
@@ -778,11 +809,11 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    while (1)
+    do
     {
         SDL_Delay(30);
-        Video_Blit();
     }
+    while (Video_Blit());
 
     work_thread_run = 0;
     SDL_WaitThread(thread, 0);
