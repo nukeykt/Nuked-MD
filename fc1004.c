@@ -58,7 +58,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
 
 
     chip->o_ys = chip->tmss.ext_test_2 ? chip->arb.w353 : chip->vdp.w1009;
-    chip->o_vsync = chip->tmss.ext_test_2 ? chip->arb.w310 : chip->vdp.w374;
+    chip->o_vsync = chip->tmss.ext_test_2 ? chip->arb.w310 : chip->vdp.o_vsync;
     chip->o_hsync = chip->vdp.l136[1] || chip->tmss.ext_test_2 ? state_z : 0;
     chip->cpu_reset = (chip->tmss.ext_test_0 || chip->arb.ext_vres) && chip->tmss.ext_cpu_reset;
     chip->o_halt = chip->cpu_reset ? state_z : 0;
