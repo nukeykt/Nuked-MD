@@ -4518,7 +4518,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w780 = (chip->l424 + chip->w779) & 0x7ff;
 
-    chip->w781 = chip->l141[1] && chip->l147[1];
+    chip->w781 = chip->l141[1] && chip->reg_m5;
 
     chip->w782 = (chip->l425 & 0x1ff) != 0;
 
