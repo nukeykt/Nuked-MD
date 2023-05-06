@@ -267,9 +267,7 @@ typedef struct {
     int l3[2];
     int w6;
     int l4[2];
-    int w7;
     int l5[2];
-    int w8;
     int l6;
     int l7;
     int l8;
@@ -348,7 +346,6 @@ typedef struct {
     int l12[2];
     int w51;
     int l13[2];
-    int w52;
     int l14;
     int w53;
     int w54;
@@ -372,10 +369,7 @@ typedef struct {
     int t9;
     int t10;
     int t11;
-    int w67;
-    int w68;
     int cnt1[2];
-    int w69;
     int l15[2];
     int w70;
     int w71;
@@ -505,7 +499,6 @@ typedef struct {
     int w175;
     int t25;
     int w176;
-    int w177;
     int w178;
     int w179;
     int w180;
@@ -516,14 +509,12 @@ typedef struct {
     int l21;
     int l22;
     int l23;
-    int w184;
     int l24;
     int l25;
     int l26;
     int w185;
     int t26;
     int t26_n;
-    int w186;
     int l27[2];
     int w187;
     int w188;
@@ -531,11 +522,9 @@ typedef struct {
     int w190;
     int w191;
     int w192;
-    int w193;
     int w194;
     int w195;
     int l28[2];
-    int w196;
     int t27;
     int w197;
     int w198;
@@ -551,11 +540,6 @@ typedef struct {
     int l32;
     int l33[2];
     int l34;
-    int w205;
-    int w206;
-    int w207;
-    int w208;
-    int w209;
     int w210;
     int w211;
     int w212;
@@ -597,7 +581,6 @@ typedef struct {
     int w242;
     int w243;
 #endif
-    int w244;
     int w245;
     int w246;
     int w247;
@@ -606,15 +589,12 @@ typedef struct {
     int w249;
     int l41;
     int w250;
-    int w251;
     int l42[2];
     int w252;
     int l43[2];
     int l44[2];
     int l45[2];
     int w253;
-    int w254;
-    int w255;
     int l46[2];
     int w256;
     int w257;
@@ -627,17 +607,14 @@ typedef struct {
     int w264;
     int w265;
     int l47;
-    int w266;
     int l48[2];
     int w267;
     int w268;
-    int w269;
     int l49[2];
     int w270;
     int w271;
     int t28;
     int l50[2];
-    int w272;
     int w273;
     int w274;
     int w275;
@@ -662,8 +639,6 @@ typedef struct {
     int w293;
     int w294;
     int w295;
-    int w296;
-    int w297;
     int l52[2];
     int l53[2];
     int l54[2];
@@ -686,7 +661,6 @@ typedef struct {
     int w302;
     int w303;
     int w304;
-    int w305;
     int w306;
     int w307;
     int w308;
@@ -730,7 +704,6 @@ typedef struct {
     int w334;
     int l79[2];
     int l80[2];
-    int w335;
     int l81[2];
     int w336;
     int w337;
@@ -738,17 +711,11 @@ typedef struct {
     int l82[2];
     int l83[2];
     int l84[2];
-    int w339;
-    int w340;
     int l85[2];
     int l86[2];
     int l87[2];
-    int w341;
-    int w342;
     int l88[2];
     int l89[2];
-    int w343;
-    int w344;
     int w345;
     int w346;
     int l90;
@@ -763,17 +730,13 @@ typedef struct {
     int l95;
     int l96;
     int l97;
-    int w351;
     int unk_data;
     int l98;
     int l99;
-    int w352;
     int l100;
     int l101;
-    int w353;
     int l102;
     int l103;
-    int w354;
     int l104[2];
     int w1153;
 
