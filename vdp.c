@@ -6448,14 +6448,14 @@ void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
     if (clk1 == 0 && clk2 == 0)
     {
         VDP_ClockDCLK(chip, clk1, clk2);
-        VDP_ClockDCLK(chip, clk1, clk2);
+        //VDP_ClockDCLK(chip, clk1, clk2);
     }
     else
     {
         VDP_ClockDCLK(chip, clk1, clk2);
         VDP_ClockDCLK(chip, clk1, clk2);
-        VDP_ClockDCLK(chip, clk1, clk2);
-        VDP_ClockDCLK(chip, clk1, clk2);
+        //VDP_ClockDCLK(chip, clk1, clk2);
+        //VDP_ClockDCLK(chip, clk1, clk2);
     }
     chip->input_old = chip->input;
 }
