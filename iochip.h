@@ -76,10 +76,6 @@ typedef struct {
     int write_s_control;
     int write_tx_data;
     int read_rx_data;
-
-    int ext_port_o;
-    int ext_port_i;
-    int ext_port_d;
 } controller_port_t;
 
 typedef struct {

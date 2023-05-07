@@ -144,13 +144,21 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
     port->irq_uart = port->rx_ready.q && (port->s_control.q & 1) != 0;
 }
 
+static inline int IOC_PortData(int o, int i, int d)
+{
+    int data = 0;
+    data |= i & (~d);
+    data |= o & d;
+    return data & 127;
+}
+
 void IOC_Clock(iochip_t *chip)
 {
     int load;
 
-    chip->port_a.port_i = chip->input.port_a;
-    chip->port_b.port_i = chip->input.port_b;
-    chip->port_c.port_i = chip->input.port_c;
+    chip->port_a.port_i = IOC_PortData(chip->port_a_o, chip->input.port_a, chip->port_a_d);
+    chip->port_b.port_i = IOC_PortData(chip->port_b_o, chip->input.port_b, chip->port_b_d);
+    chip->port_c.port_i = IOC_PortData(chip->port_c.port_o, chip->input.port_c, chip->port_c.port_d);
 
     SDFF_Update(&chip->res_dff, chip->input.ext_vclk, chip->input.ext_sres);
 
@@ -323,9 +331,9 @@ void IOC_Clock(iochip_t *chip)
     chip->vread = chip->input.ext_cas0 && chip->input.ext_io;
     chip->vwrite = chip->input.ext_lwr || chip->input.ext_io;
     chip->vsel = !(chip->input.ext_m3 && (chip->address & 0xf0) == 0);
-    chip->vread_high = !chip->vsel && (chip->address & 16) != 0 && !chip->vread;
-    chip->vwrite_low = !chip->vsel && (chip->address & 16) == 0 && !chip->vwrite;
-    chip->vwrite_high = !chip->vsel && (chip->address & 16) != 0 && !chip->vwrite;
+    chip->vread_high = !chip->vsel && (chip->address & 8) != 0 && !chip->vread;
+    chip->vwrite_low = !chip->vsel && (chip->address & 8) == 0 && !chip->vwrite;
+    chip->vwrite_high = !chip->vsel && (chip->address & 8) != 0 && !chip->vwrite;
 
     chip->zwrite_sel = !((chip->address & 0xfe) == 0x3e && !chip->input.ext_m3 && !chip->vwrite);
     chip->zread_sel = !((chip->address & 0xe2) == 0xc0
@@ -414,8 +422,8 @@ void IOC_Clock(iochip_t *chip)
     }
     else
     {
-        chip->ext_hl = !(((chip->port_a_d & 64) != 0 && (chip->port_a.ext_port_i & 64) == 0)
-            || ((chip->port_b_d & 64) != 0 && (chip->port_b.ext_port_i & 64) == 0));
+        chip->ext_hl = !(((chip->port_a_d & 64) != 0 && (chip->port_a.port_i & 64) == 0)
+            || ((chip->port_b_d & 64) != 0 && (chip->port_b.port_i & 64) == 0));
     }
 }
 
