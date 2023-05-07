@@ -569,6 +569,8 @@ int SDLCALL work_thread(void *data)
             ym.i_m1 = !z80.o_m1;
             if (ym.o_cas0 != state_z)
                 ym.i_cas0 = ym.o_cas0;
+            if (ym.o_lwr != state_z)
+                ym.i_lwr = ym.o_lwr;
 
             FC1004_Clock(&ym, mcycles & 1, mcycles);
 
