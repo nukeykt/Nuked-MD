@@ -1457,7 +1457,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (chip->hclk1)
     {
         int w339, w340, w341, w342;
-        w339 = !(chip->l84[1] && w345);
+        w339 = !(chip->l84[1] && w346);
         w340 = !(!chip->l84[1] && w346);
         w341 = chip->l87[1] && w340;
         w342 = chip->l87[1] && w339;
@@ -5670,7 +5670,7 @@ void VDP_ClockVideoMux(vdp_t *chip)
         chip->l602[0] = chip->w303;
         chip->l603[0] = chip->w1044;
         chip->l604[0] = chip->w1051;
-        chip->l605[0] = chip->w1057;
+        chip->l605[0] = chip->w1058;
         chip->l606[0] = chip->w1061;
         chip->l607[0] = chip->w1066;
         chip->l608[0] = chip->w1068;
@@ -5733,14 +5733,18 @@ void VDP_ClockVideoMux(vdp_t *chip)
     }
     chip->w1021 = chip->w302 || chip->w178 || chip->w303;
 
+    // l273[1] - A priority
+    // l320[1] - B priority
+    // w973 - sprite priority
+
     chip->w1022 = chip->l273[1] ? chip->w973 : !chip->l320[1];
     chip->w1023 = !chip->l273[1] && chip->w973 && chip->l320[1];
     chip->w1024 = chip->l273[1] && !chip->w973 && !chip->l320[1];
     chip->w1025 = !chip->l273[1] && !chip->w973 && chip->l320[1];
     chip->w1026 = chip->l273[1] && !chip->w973 && chip->l320[1];
+    chip->w1029 = chip->reg_ste && chip->reg_m5;
     chip->w1027 = chip->w1029 && !chip->l273[1] && !chip->w973 && !chip->l320[1];
     chip->w1028 = chip->w1029 && !chip->l273[1] && chip->w973 && !chip->l320[1];
-    chip->w1029 = chip->reg_ste && chip->reg_m5;
     chip->w1030 = chip->w1029 && chip->w975 && chip->w1065;
     chip->w1031 = chip->w1030 || !chip->w976;
 
@@ -5751,6 +5755,8 @@ void VDP_ClockVideoMux(vdp_t *chip)
     chip->w1035 = (chip->reg_test0 & 384) == 256;
     chip->w1036 = (chip->reg_test0 & 384) == 384;
     chip->w1037 = (chip->reg_test0 & 384) == 0;
+
+    chip->w1062 = (chip->reg_test0 & 64) == 0 && (chip->l618[1] & 4) != 0;
 
     chip->w1038 = chip->w1032 && chip->w1024;
     chip->w1039 = chip->w1025 && chip->w1033;
@@ -5782,8 +5788,6 @@ void VDP_ClockVideoMux(vdp_t *chip)
     chip->w1059 = chip->w1032 && chip->w1031 && chip->w1033;
     chip->w1060 = chip->w1059 || !chip->w1062;
     chip->w1061 = chip->w1060 && chip->w1037;
-
-    chip->w1062 = (chip->reg_test0 & 64) == 0 && (chip->l618[1] & 4) != 0;
 
     chip->w1063 = !chip->w1044 && !chip->w977;
     chip->w1064 = !chip->w1027 && !chip->w1028;
