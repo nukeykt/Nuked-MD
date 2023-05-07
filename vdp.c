@@ -747,10 +747,6 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     int w247 = chip->dff3.l2 && chip->reg_dmd == 0;
     int w248 = chip->dff3.l2 && chip->reg_dmd == 2;
 
-    int w180 = w245 || w345;
-
-    int w157 = w180 && chip->l28[1];
-
     chip->w160 = w113 && !w130;
 
     int w161 = w154 || chip->reset_comb;
@@ -832,6 +828,14 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     }
 
     int w185 = chip->l26 && chip->l24;
+
+    int w338 = !((chip->reg_code & 8) != 0 || (chip->reg_code & 4) != 0);
+
+    int w346 = !chip->w109 && cpu_sel && w338;
+
+    int w180 = w245 || w346;
+
+    int w157 = w180 && chip->l28[1];
 
     if (w157)
         chip->t26 = 1;
@@ -1449,10 +1453,6 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     int w337 = w334 || (chip->hclk1 && chip->l81[1]);
 
     int w336 = !cpu_sel || w337;
-
-    int w338 = !((chip->reg_code & 8) != 0 || (chip->reg_code & 4) != 0);
-
-    int w346 = !chip->w109 && cpu_sel && w338;
 
     if (chip->hclk1)
     {
