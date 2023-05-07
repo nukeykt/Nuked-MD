@@ -793,8 +793,8 @@ int main(int argc, char *argv[])
     ym.i_sel1 = 0;
 
     port_a = 127;
-    port_a = 127;
-    port_a = 127;
+    port_b = 127;
+    port_c = 127;
 
     audio_out = fopen(audioout_filename, "wb");
 

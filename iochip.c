@@ -147,6 +147,11 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 void IOC_Clock(iochip_t *chip)
 {
     int load;
+
+    chip->port_a.port_i = chip->input.port_a;
+    chip->port_b.port_i = chip->input.port_b;
+    chip->port_c.port_i = chip->input.port_c;
+
     SDFF_Update(&chip->res_dff, chip->input.ext_vclk, chip->input.ext_sres);
 
     chip->ext_fres = !chip->res_dff.l2;
