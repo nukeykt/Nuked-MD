@@ -359,6 +359,55 @@ void Video_UpdateTitle(uint64_t ms)
     SDL_SetWindowTitle(vid_window, buffer);
 }
 
+#define CTRL_BUTTON_UP 1
+#define CTRL_BUTTON_DOWN 2
+#define CTRL_BUTTON_LEFT 4
+#define CTRL_BUTTON_RIGHT 8
+#define CTRL_BUTTON_A 16
+#define CTRL_BUTTON_B 32
+#define CTRL_BUTTON_C 64
+#define CTRL_BUTTON_START 128
+#define CTRL_BUTTON_X 256
+#define CTRL_BUTTON_Y 512
+#define CTRL_BUTTON_Z 1024
+#define CTRL_BUTTON_MODE 4096
+
+int controller_buttons_state_1;
+int controller_buttons_state_2;
+
+int controller_handle_3button(int sel, int state)
+{
+    int value = 63;
+    if (sel) // 40
+    {
+        if (state & CTRL_BUTTON_UP)
+            value &= ~1;
+        if (state & CTRL_BUTTON_DOWN)
+            value &= ~2;
+        if (state & CTRL_BUTTON_LEFT)
+            value &= ~4;
+        if (state & CTRL_BUTTON_RIGHT)
+            value &= ~8;
+        if (state & CTRL_BUTTON_B)
+            value &= ~16;
+        if (state & CTRL_BUTTON_C)
+            value &= ~32;
+    }
+    else
+    {
+        if (state & CTRL_BUTTON_UP)
+            value &= ~1;
+        if (state & CTRL_BUTTON_DOWN)
+            value &= ~2;
+        value &= ~12;
+        if (state & CTRL_BUTTON_A)
+            value &= ~16;
+        if (state & CTRL_BUTTON_START)
+            value &= ~32;
+    }
+    return value;
+}
+
 #define MCLK_NTSC 53693182
 #define MCLK_PAL  53203425
 
@@ -466,6 +515,11 @@ int SDLCALL work_thread(void *data)
                 rd = ym.o_zrd;
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
+
+            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 && (ym.ioc.port_a_d & 64) != 0,
+                controller_buttons_state_1);
+            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 && (ym.ioc.port_b_d & 64) != 0,
+                controller_buttons_state_2);
             
             // 68k
             m68k.input.i_vpa = ym.arb.ext_vpa;

@@ -147,8 +147,8 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 static inline int IOC_PortData(int o, int i, int d)
 {
     int data = 0;
-    data |= i & (~d);
-    data |= o & d;
+    data |= i & d;
+    data |= o & (~d);
     return data & 127;
 }
 
