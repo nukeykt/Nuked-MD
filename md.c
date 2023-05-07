@@ -278,7 +278,7 @@ int Video_Blit(void)
                 }
             }
             fwrite(vid_filebuffer, 1, sizeof(vid_filebuffer), vid_dump_file);
-            fflush(vid_filebuffer);
+            fflush(vid_dump_file);
             vid_counter_write = vid_counter;
         }
     }
