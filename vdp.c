@@ -1452,11 +1452,13 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     int w338 = !((chip->reg_code & 8) != 0 || (chip->reg_code & 4) != 0);
 
+    int w346 = !chip->w109 && cpu_sel && w338;
+
     if (chip->hclk1)
     {
         int w339, w340, w341, w342;
         w339 = !(chip->l84[1] && w345);
-        w340 = !(!chip->l84[1] && w345);
+        w340 = !(!chip->l84[1] && w346);
         w341 = chip->l87[1] && w340;
         w342 = chip->l87[1] && w339;
         chip->l82[0] = chip->l88[1];
@@ -1479,8 +1481,6 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
         chip->l88[1] = chip->l88[0];
         chip->l89[1] = chip->l89[0];
     }
-
-    int w346 = !chip->w109 && cpu_sel && w338;
 
     if (w336)
         chip->l90 = chip->w355 & 255; // v counter
