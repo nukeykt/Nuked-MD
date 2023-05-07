@@ -1491,7 +1491,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     int w348 = w345 ? ((chip->vram_data >> 8) & 255) : (chip->vram_data & 255);
     if (chip->hclk1 && chip->l89[1])
         chip->l92 = w348;
-    int w349 = w346 ? ((chip->vram_data >> 8) & 255) : (chip->vram_data & 255);
+    int w349 = w346 ? (chip->vram_data & 255) : ((chip->vram_data >> 8) & 255);
     if (chip->hclk1 && chip->l88[1])
         chip->l93 = w349;
     
