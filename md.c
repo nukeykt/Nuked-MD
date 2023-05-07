@@ -224,8 +224,15 @@ SDL_Texture *vid_texture;
 #define VID_WIDTH 400
 #define VID_HEIGHT 300
 
+uint32_t vid_counter;
+uint32_t vid_counter_write;
+
+FILE *vid_dump_file;
+
 void Video_Init(void)
 {
+    vid_counter = vid_counter_write = 0;
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
         return;
 
@@ -247,12 +254,35 @@ void Video_Init(void)
 
 uint32_t vid_workbuffer[VID_HEIGHT][VID_WIDTH];
 uint32_t vid_currentbuffer[VID_HEIGHT][VID_WIDTH];
+uint8_t vid_filebuffer[VID_HEIGHT][VID_WIDTH][3];
 SDL_mutex *vid_mutex;
 
 int Video_Blit(void)
 {
     SDL_LockMutex(vid_mutex);
     SDL_UpdateTexture(vid_texture, NULL, vid_currentbuffer, VID_WIDTH * 4);
+
+    if (vid_dump_file)
+    {
+        if (vid_counter_write < vid_counter)
+        {
+            int x, y;
+            for (y = 0; y < VID_HEIGHT; y++)
+            {
+                for (x = 0; x < VID_WIDTH; x++)
+                {
+                    uint32_t abgr = vid_currentbuffer[y][x];
+                    vid_filebuffer[y][x][0] = (abgr >> 0) & 255;
+                    vid_filebuffer[y][x][1] = (abgr >> 8) & 255;
+                    vid_filebuffer[y][x][2] = (abgr >> 16) & 255;
+                }
+            }
+            fwrite(vid_filebuffer, 1, sizeof(vid_filebuffer), vid_dump_file);
+            fflush(vid_filebuffer);
+            vid_counter_write = vid_counter;
+        }
+    }
+
     SDL_UnlockMutex(vid_mutex);
     SDL_RenderCopy(vid_renderer, vid_texture, NULL, NULL);
     SDL_RenderPresent(vid_renderer);
@@ -290,6 +320,7 @@ void Video_PlotVDP(void)
         plot_y = 0;
         SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
+        vid_counter++;
         SDL_UnlockMutex(vid_mutex);
         memset(vid_workbuffer, 0, sizeof(vid_workbuffer));
     }
@@ -739,6 +770,7 @@ int main(int argc, char *argv[])
     char *tmss_filename = "tmss.bin";
     char *rom_filename = "rom.bin";
     char *audioout_filename = "audioout.bin";
+    char *videoout_filename = "videoout.bin";
     for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
         switch(argv[i][1])
@@ -752,6 +784,18 @@ int main(int argc, char *argv[])
                 else
                 {
                     printf("missing argument for -a\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'v':
+                if (i + 1 < argc)
+                {
+                    videoout_filename = argv[i + 1];
+                    i++;
+                }
+                else
+                {
+                    printf("missing argument for -v\n");
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -817,6 +861,7 @@ int main(int argc, char *argv[])
     port_c = 127;
 
     audio_out = fopen(audioout_filename, "wb");
+    vid_dump_file = fopen(videoout_filename, "wb");
 
     vid_mutex = SDL_CreateMutex();
 
@@ -845,6 +890,7 @@ int main(int argc, char *argv[])
     SDL_WaitThread(thread, 0);
 
     fclose(audio_out);
+    fclose(vid_dump_file);
     FC1004_Destroy(&ym);
 
     SDL_Quit();
