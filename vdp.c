@@ -142,7 +142,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     int cpu_mreq = !chip->input.i_mreq && !cpu_sel;
     int cpu_iorq = !chip->input.i_iorq && !cpu_sel;
     int cpu_rw = !chip->input.i_rw;
-    int cpu_bg = !chip->input.i_bg;
+    chip->cpu_bg = !chip->input.i_bg;
     chip->cpu_intak = !chip->input.i_intak;
     int cpu_bgack = chip->input.i_bgack;
     chip->cpu_pal = chip->input.i_pal;
@@ -1958,6 +1958,8 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
         int w426 = w420 && !chip->l161[1];
 
+        int w438 = chip->l115[1] && chip->l174[1];
+
         int w437 = chip->w438 || chip->reset_comb || chip->w86 || w460;
         int w436 = ((chip->reg_test1 & 4) == 0 && chip->l115[1] && !w437) || ((chip->reg_test1 & 4) != 0 && !chip->cpu_bg);
 
@@ -2341,17 +2343,15 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->w419 = chip->w381 || (chip->w380 && chip->l148[1]);
 
     chip->w422 = chip->reg_m5 ? (chip->l158[1] & 128) != 0 : chip->l129[1];
+    
+    int w423 = chip->reset_comb || chip->l131[1];
 
-    if (chip->w423)
+    if (w423)
         chip->t33 = 1;
     else if (chip->l123[1])
         chip->t33 = 0;
-    
-    chip->w423 = chip->reset_comb || chip->l131[1];
 
     chip->w424 = chip->l159[1] && chip->w380;
-
-    chip->w438 = chip->l115[1] && chip->l174[1];
 
     chip->w439 = !(chip->reg_disp && (chip->l162[1] || chip->t38));
 
