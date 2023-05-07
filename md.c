@@ -291,6 +291,7 @@ void Video_PlotVDP(void)
         SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
         SDL_UnlockMutex(vid_mutex);
+        memset(vid_workbuffer, 0, sizeof(vid_workbuffer));
     }
 
     if (plot_x >= 0 && plot_x < VID_WIDTH * 2 && plot_y >= 0 && plot_y < VID_HEIGHT)
@@ -310,6 +311,25 @@ void Video_PlotVDP(void)
     ohsync = ym.vdp.o_hsync != 0;
     ovsync = ym.vdp.o_vsync != 0;
 }
+
+void Video_UpdateTitle(uint64_t ms)
+{
+    char buffer[100];
+    int _ms = ms % 1000;
+    int _s = ms / 1000;
+    int mn = _s / 60;
+    _s %= 60;
+    sprintf_s(buffer, sizeof(buffer), "Nuked MD [%i:%02i:%03i]", mn, _s, _ms);
+    buffer[99] = 0;
+
+    if (!vid_window)
+        return;
+
+    SDL_SetWindowTitle(vid_window, buffer);
+}
+
+#define MCLK_NTSC 53693182
+#define MCLK_PAL  53203425
 
 int vclk;
 int vaddress;
@@ -672,12 +692,12 @@ int SDLCALL work_thread(void *data)
             fm_sum[1] += ym.fm.out_r;
             if ((mcycles % fm_div) == 0)
             {
-                fm_sample[0] = fm_sum[0] / 48;
-                fm_sample[1] = fm_sum[1] / 48;
+                fm_sample[0] = fm_sum[0] / 15;
+                fm_sample[1] = fm_sum[1] / 15;
                 fm_sum[0] = fm_sum[1] = 0;
             }
 
-            psg_sum += ym.vdp.psg.psg_out * 4.f;
+            psg_sum += ym.vdp.psg.psg_out * 8.f;
             if ((mcycles % psg_div) == 0)
             {
                 psg_sample = (int)psg_sum;
@@ -812,6 +832,12 @@ int main(int argc, char *argv[])
     do
     {
         SDL_Delay(30);
+
+        {
+            uint64_t divider = ntsc ? MCLK_NTSC : MCLK_PAL;
+            uint64_t ms = (mcycles * 1000) / (2 * divider);
+            Video_UpdateTitle(ms);
+        }
     }
     while (Video_Blit());
 
