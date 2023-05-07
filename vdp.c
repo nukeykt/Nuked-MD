@@ -3794,7 +3794,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     chip->w724 = (chip->l387 & 16) != 0 && (chip->l379 & 2) != 0;
 
-    chip->w725 = chip->reg_m5 ? ((chip->l380 >> 4) & 3) : ((chip->l380 >> 3) & 3);
+    chip->w725 = chip->w106 ? ((chip->l380 >> 4) & 3) : ((chip->l380 >> 3) & 3);
     chip->w726 = (chip->w725 + chip->w723) & 3;
 
     chip->w727 = !(chip->t40 || !chip->w676);
@@ -3809,7 +3809,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     if (chip->w724)
         chip->w730 ^= 2;
 
-    if (chip->reg_m5)
+    if (chip->w106)
     {
         chip->w729 = 0;
         chip->w729 |= (chip->w728 >> 3) & 1;
