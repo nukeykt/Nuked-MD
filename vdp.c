@@ -1960,7 +1960,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
         int w438 = chip->l115[1] && chip->l174[1];
 
-        int w437 = chip->w438 || chip->reset_comb || chip->w86 || w460;
+        int w437 = w438 || chip->reset_comb || chip->w86 || w460;
         int w436 = ((chip->reg_test1 & 4) == 0 && chip->l115[1] && !w437) || ((chip->reg_test1 & 4) != 0 && !chip->cpu_bg);
 
 

@@ -803,7 +803,6 @@ typedef struct {
     int l159[2];
     int l160[2];
     int l161[2];
-    int w438;
     int l162[2];
     int w439;
     int l163[2];
