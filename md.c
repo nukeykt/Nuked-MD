@@ -723,18 +723,29 @@ int SDLCALL work_thread(void *data)
             fm_sum[1] += ym.fm.out_r;
             if ((mcycles % fm_div) == 0)
             {
-                fm_sample[0] = fm_sum[0] / 15;
-                fm_sample[1] = fm_sum[1] / 15;
+                fm_sample[0] = fm_sum[0] / 6;
+                fm_sample[1] = fm_sum[1] / 6;
                 fm_sum[0] = fm_sum[1] = 0;
             }
 
-            psg_sum += ym.vdp.psg.psg_out * 8.f;
+            psg_sum += ym.vdp.psg.psg_out * 16.f;
             if ((mcycles % psg_div) == 0)
             {
+                int suml = 0, sumr = 0;
                 psg_sample = (int)psg_sum;
-                snd_buf[snd_buf_cnt] = fm_sample[0] + psg_sample;
+                suml = fm_sample[0] + psg_sample;
+                sumr = fm_sample[1] + psg_sample;
+                if (suml < -32768)
+                    suml = -32768;
+                else if (suml > 32767)
+                    suml = 32767;
+                if (sumr < -32768)
+                    sumr = -32768;
+                else if (sumr > 32767)
+                    sumr = 32767;
+                snd_buf[snd_buf_cnt] = suml;
                 snd_buf_cnt++;
-                snd_buf[snd_buf_cnt] = fm_sample[1] + psg_sample;
+                snd_buf[snd_buf_cnt] = sumr;
                 snd_buf_cnt++;
                 if (snd_buf_cnt == 16 * 1024)
                 {
