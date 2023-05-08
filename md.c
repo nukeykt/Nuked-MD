@@ -516,9 +516,9 @@ int SDLCALL work_thread(void *data)
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
 
-            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 && (ym.ioc.port_a_d & 64) != 0,
+            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 && (ym.ioc.port_a_d & 64) == 0,
                 controller_buttons_state_1);
-            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 && (ym.ioc.port_b_d & 64) != 0,
+            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 && (ym.ioc.port_b_d & 64) == 0,
                 controller_buttons_state_2);
             
             // 68k
