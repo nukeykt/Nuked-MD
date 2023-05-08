@@ -17,6 +17,7 @@ There are number of variations of chipsets across mega drive revisions. For exam
 Nuked MD currently targets NMOS 68k, NMOS Z80 and FC1004. No real mega drive used such combination, but Model 1 VA7 would be closest (CMOS 68k, NMOS Z80 and FC1004). Other variants possibly will be emulated in the future.
 
 ## Progress
+![image](https://user-images.githubusercontent.com/15833655/236791566-057499e5-a9a3-4a38-8482-92959ceb63c2.png)
 See [Progress.md](Progress.md)
 
 ## References
