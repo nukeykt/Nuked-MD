@@ -6379,7 +6379,7 @@ void VDP_ClockPSG(vdp_psg_t *chip)
     }
     if (chip->w1142)
     {
-        chip->l662 |= chip->w1134 & 7;
+        chip->l662 = chip->w1134 & 7;
     }
 
     chip->w1145 = (chip->input.i_test & 512) == 0 && !chip->l645[1];
