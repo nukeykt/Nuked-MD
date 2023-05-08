@@ -828,8 +828,9 @@ int SDLCALL work_thread(void *data)
             fm_sum[1] += ym.fm.out_r;
             if ((mcycles % fm_div) == 0)
             {
-                fm_sample[0] = fm_sum[0] / 6;
-                fm_sample[1] = fm_sum[1] / 6;
+#define FM_DIVIDE 8
+                fm_sample[0] = fm_sum[0] / FM_DIVIDE;
+                fm_sample[1] = fm_sum[1] / FM_DIVIDE;
                 fm_sum[0] = fm_sum[1] = 0;
             }
 
