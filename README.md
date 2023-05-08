@@ -34,3 +34,4 @@ See [Progress.md](Progress.md)
 * org(ogamespec) - FC1004 decap, RE help, useful tools, etc.
 * andkorzh - RE help
 * HardWareMan - YM2612 decap pics, RE help
+* ctr001 - code contributions
