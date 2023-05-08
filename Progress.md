@@ -1,7 +1,7 @@
 # Main chips
 
 * FM (CMOS/YM3438) - Done
-* VDP (YM7101) - C conversion is done, needs bugfixing
+* VDP (YM7101) - Mostly functional, needs more testing, bugfixing and optimizations
 * Arbiter (Integrated YM6045C) - Mostly functional, needs more testing, bugfixing and optimizations
 * IO Chip (Integrated YM6046) - Mostly functional, needs more testing, bugfixing and optimizations
 * TMSS - Mostly functional, needs more testing, bugfixing and optimizations
