@@ -15,6 +15,7 @@ typedef struct {
     int i_dtack;
     int i_berr;
     int i_data;
+    int i_vpa_test;
 } m68k_input_t;
 
 typedef struct {
@@ -22,7 +23,9 @@ typedef struct {
 } busstate_t;
 
 typedef struct {
-    m68k_input_t input, input_old;
+    m68k_input_t input;
+    int input_clk_phase_o;
+    int input_vpa_test_o;
 
     int o_e;
     int o_bg;

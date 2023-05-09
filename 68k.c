@@ -1900,7 +1900,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     chip->w257 = chip->w211 ? chip->w853 : 0;
 
-    chip->w266 = chip->input.i_vpa == state_test;
+    chip->w266 = chip->input.i_vpa_test;
 
     if (clk1)
     {
@@ -2156,7 +2156,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w317 = chip->w305;
 
         chip->w343[0] = !chip->input.i_vpa;
-        chip->w343[2] = chip->w343[0];
+        chip->w343[2] = chip->w343[1];
 
         chip->w359[0] = !chip->input.i_dtack;
         chip->w359[2] = chip->w359[1];
@@ -6733,12 +6733,31 @@ void M68K_Clock2(m68k_t *chip, int clk1, int clk2)
         chip->input.i_clk_phase = 1;
     if (clk2)
         chip->input.i_clk_phase = 2;
-    if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
-        return;
+    chip->input.i_vpa_test = chip->input.i_vpa = state_test;
 
-    M68K_Clock(chip, clk1, clk2);
-    M68K_Clock(chip, clk1, clk2);
-    M68K_Clock(chip, clk1, clk2);
-    M68K_Clock(chip, clk1, clk2);
-    chip->input_old = chip->input;
+    if (clk2)
+    {
+        chip->w343[0] = !chip->input.i_vpa;
+        chip->w268[0] = !chip->input.i_br;
+        chip->w269[0] = !chip->input.i_bgack;
+        chip->w275[0] = !chip->input.i_reset;
+        chip->w276[0] = !chip->input.i_halt;
+        chip->w296[0] = !chip->input.i_ipl0;
+        chip->w297[0] = !chip->input.i_ipl1;
+        chip->w298[0] = !chip->input.i_ipl2;
+        chip->w359[0] = !chip->input.i_dtack;
+        chip->w435[0] = !chip->input.i_berr;
+        chip->data_l = chip->input.i_data;
+    }
+
+    if (chip->input.i_clk_phase != chip->input_clk_phase_o
+        || chip->input.i_vpa_test != chip->input_vpa_test_o)
+    {
+        M68K_Clock(chip, clk1, clk2);
+        M68K_Clock(chip, clk1, clk2);
+        M68K_Clock(chip, clk1, clk2);
+        M68K_Clock(chip, clk1, clk2);
+        chip->input_clk_phase_o = chip->input.i_clk_phase;
+        chip->input_vpa_test_o = chip->input.i_vpa_test;
+    }
 }
