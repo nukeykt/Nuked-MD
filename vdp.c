@@ -2410,7 +2410,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 
     int w538 = w546 ^ (!chip->l187);
 
-    int w539 = w538 && (chip->l106[1] & 384) == 0;
+    int w539 = w538 && (chip->l106[1] & 384) != 384;
 
 
     int w545 = ((w537 >> 3) & 31) < chip->l190;

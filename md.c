@@ -26,7 +26,7 @@ static inline unsigned short short_swap(unsigned short v)
     return (b1 << 8) | b2;
 }
 
-int load_dummy_tmss()
+void load_dummy_tmss()
 {
     static const short data[] = {
         0x00ff,0x000c,
@@ -377,7 +377,7 @@ void Video_PlotVDP(void)
     {
         plot_x = -75;
         if (ym.vdp.reg_rs0 == 0)
-            plot_x = -15;
+            plot_x = 0;
         plot_y++;
     }
     if (ovsync && ym.vdp.o_vsync == 0)
