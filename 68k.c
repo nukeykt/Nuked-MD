@@ -6733,7 +6733,7 @@ void M68K_Clock2(m68k_t *chip, int clk1, int clk2)
         chip->input.i_clk_phase = 1;
     if (clk2)
         chip->input.i_clk_phase = 2;
-    chip->input.i_vpa_test = chip->input.i_vpa = state_test;
+    chip->input.i_vpa_test = chip->input.i_vpa == state_test;
 
     if (clk2)
     {
