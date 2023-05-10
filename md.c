@@ -338,7 +338,7 @@ int Video_Blit(void)
                     vid_filebuffer[y][x][2] = (abgr >> 16) & 255;
                 }
             }
-            memcpy(&vid_filebuffer, &vid_mcycles, sizeof(vid_mcycles));
+            memcpy(vid_filebuffer, &vid_mcycles, sizeof(vid_mcycles));
             fwrite(vid_filebuffer, 1, sizeof(vid_filebuffer), vid_dump_file);
             fflush(vid_dump_file);
             vid_counter_write = vid_counter;
@@ -659,6 +659,8 @@ int SDLCALL work_thread(void *data)
 
             // fc1004
             ym.vdp.input.i_csync = ym.vdp.o_csync == state_z ? 1 : 0;
+            if (!ym.vdp.o_vram_rd_z)
+                ym.vdp.input.i_vram_rd = ym.vdp.o_vram_rd;
             ym.i_hsync = hsync;
             ym.arb.input.ext_fc0 = m68k.o_fc0;
             ym.arb.input.ext_fc1 = m68k.o_fc1;
