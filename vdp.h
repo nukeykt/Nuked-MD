@@ -993,6 +993,8 @@ typedef struct {
     int l323[2];
     int vsram[40];
     int vsram_out;
+    int vsram_out_odd;
+    int vsram_out_even;
 
     //int w650;
     int l324;

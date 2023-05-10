@@ -3302,11 +3302,19 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
         }
         if (index < 40)
         {
-            chip->vsram_out = chip->vsram[index];
+            int value = chip->vsram[index];
+            chip->vsram_out = value;
+            if (index & 1)
+                chip->vsram_out_odd = value;
+            else
+                chip->vsram_out_even = value;
         }
         else
         {
-            chip->vsram_out = 0; // FIXME: undefined behaviour
+            if (index & 1)
+                chip->vsram_out &= chip->vsram_out_odd;
+            else
+                chip->vsram_out &= chip->vsram_out_even;
         }
     }
 }
