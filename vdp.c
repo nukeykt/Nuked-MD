@@ -3155,13 +3155,6 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
         chip->l254[0] = chip->l253[1];
     }
 
-    if (chip->l604[1])
-    {
-        chip->color_index = chip->l270[1];
-        chip->color_pal = chip->l272[1];
-        chip->color_priority = chip->l274[1];
-    }
-
     if (chip->l286[1] && clk2)
     {
         chip->l275 = chip->vram_serial;
@@ -3286,13 +3279,6 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     if (chip->hclk1)
     {
         chip->l317 = (chip->l311[1] == 15);
-    }
-
-    if (chip->l605[1])
-    {
-        chip->color_index = chip->l319[1];
-        chip->color_pal = chip->l323[1];
-        chip->color_priority = chip->l321[1];
     }
 
     // vsram
@@ -5141,13 +5127,6 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l561[1] = chip->l561[0];
     }
 
-    if (chip->l603[1])
-    {
-        chip->color_pal = chip->l559[1];
-        chip->color_priority = chip->l560[1];
-        chip->color_index = chip->l561[1];
-    }
-
     chip->w975 = chip->l556[1] == 3;
     chip->w976 = chip->l558[1] != 0;
     chip->w977 = chip->l558[1] == 14;
@@ -5569,11 +5548,69 @@ void VDP_ClockVideoMux(vdp_t *chip)
         chip->reg_col_b7 = (chip->reg_data.l2 >> 7) & 1;
     }
 
-    if (chip->l606[1])
+    if (chip->l606[1] + chip->l603[1] + chip->l605[1] + chip->l604[1] > 1)
     {
-        chip->color_index = chip->reg_col_index;
-        chip->color_pal = chip->reg_m5 ? chip->reg_col_pal : 1;
-        chip->color_priority = 0;
+        // overdrive 2 plane mixing hack
+        chip->color_index = 15;
+        chip->color_pal = 3;
+        chip->color_priority = 1;
+        if (chip->l606[1])
+        {
+            chip->color_index &= chip->reg_col_index;
+            chip->color_pal &= chip->reg_m5 ? chip->reg_col_pal : 1;
+            chip->color_priority &= 0;
+        }
+
+        if (chip->l603[1])
+        {
+            chip->color_pal &= chip->l559[1];
+            chip->color_priority &= chip->l560[1];
+            chip->color_index &= chip->l561[1];
+        }
+
+        if (chip->l605[1])
+        {
+            chip->color_index &= chip->l319[1];
+            chip->color_pal &= chip->l323[1];
+            chip->color_priority &= chip->l321[1];
+        }
+
+        if (chip->l604[1])
+        {
+            chip->color_index &= chip->l270[1];
+            chip->color_pal &= chip->l272[1];
+            chip->color_priority &= chip->l274[1];
+        }
+    }
+    else
+    {
+        if (chip->l606[1])
+        {
+            chip->color_index = chip->reg_col_index;
+            chip->color_pal = chip->reg_m5 ? chip->reg_col_pal : 1;
+            chip->color_priority = 0;
+        }
+
+        if (chip->l603[1])
+        {
+            chip->color_pal = chip->l559[1];
+            chip->color_priority = chip->l560[1];
+            chip->color_index = chip->l561[1];
+        }
+
+        if (chip->l605[1])
+        {
+            chip->color_index = chip->l319[1];
+            chip->color_pal = chip->l323[1];
+            chip->color_priority = chip->l321[1];
+        }
+
+        if (chip->l604[1])
+        {
+            chip->color_index = chip->l270[1];
+            chip->color_pal = chip->l272[1];
+            chip->color_priority = chip->l274[1];
+        }
     }
 
     chip->w1074 = !(chip->w1082 || (chip->l615[1] && !chip->reg_8c_b4));

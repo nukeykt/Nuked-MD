@@ -17,8 +17,41 @@ z80_t z80;
 fc1004_t ym;
 
 unsigned char ram[0x10000];
-unsigned short rom[ROM_SIZE];
+unsigned short rom[ROM_SIZE * 2];
 unsigned char zram[8192];
+
+#define MCLK_NTSC 53693182
+#define MCLK_PAL  53203425
+
+int vclk;
+int vaddress;
+int vdata;
+int zaddress;
+int zdata;
+int dtack;
+int hsync;
+int m3;
+int ntsc;
+int cart;
+int wres;
+int disk;
+int port_a;
+int port_b;
+int port_c;
+int jap;
+int as;
+int lds;
+int uds;
+int reset;
+int halt;
+int rw;
+int iorq;
+int mreq;
+int wr;
+int rd;
+
+int mapper_enable;
+int mapper_pages[8];
 
 static inline unsigned short short_swap(unsigned short v)
 {
@@ -81,11 +114,21 @@ int load_game_rom(char *filename)
     rewind(romfile);
 
     if (siz > ROM_SIZE * 2)
-        siz = ROM_SIZE * 2;
+    {
+        mapper_enable = 1;
+        if (siz > ROM_SIZE * 4)
+            siz = ROM_SIZE * 4;
+        for (i = 0; i < 8; i++)
+            mapper_pages[i] = i;
+    }
+    else
+    {
+        mapper_enable = 0;
+    }
 
     memset(rom, 0, sizeof(rom));
     fread(rom, 1, siz, romfile);
-    for (i = 0; i < ROM_SIZE; i++)
+    for (i = 0; i < ROM_SIZE * 2; i++)
         rom[i] = short_swap(rom[i]);
     fclose(romfile);
     return 0;
@@ -384,6 +427,8 @@ void Video_PlotVDP(void)
     if (ovsync && ym.vdp.o_vsync == 0)
     {
         plot_y = 0;
+        if (!ntsc)
+            plot_y = -22;
         SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
         vid_counter++;
@@ -457,36 +502,6 @@ int controller_handle_3button(int sel, int state)
     }
     return value;
 }
-
-#define MCLK_NTSC 53693182
-#define MCLK_PAL  53203425
-
-int vclk;
-int vaddress;
-int vdata;
-int zaddress;
-int zdata;
-int dtack;
-int hsync;
-int m3;
-int ntsc;
-int cart;
-int wres;
-int disk;
-int port_a;
-int port_b;
-int port_c;
-int jap;
-int as;
-int lds;
-int uds;
-int reset;
-int halt;
-int rw;
-int iorq;
-int mreq;
-int wr;
-int rd;
 
 
 int ovclk;
@@ -685,6 +700,13 @@ int SDLCALL work_thread(void *data)
 
             zaddress |= 1;
 
+            zdata |= 255;
+
+            if (!z80.o_addr_high)
+                zaddress = z80.o_addr;
+            if (!z80.ext_data_o_high)
+                zdata = z80.ext_data_o;
+
             zaddress &= ym.o_zaddress_dir;
             zaddress |= ym.o_zaddress & (~ym.o_zaddress_dir);
 
@@ -696,11 +718,6 @@ int SDLCALL work_thread(void *data)
 
             vdata &= ym.o_vdata_dir;
             vdata |= ym.o_vdata & (~ym.o_vdata_dir);
-
-            if (!z80.o_addr_high)
-                zaddress = z80.o_addr;
-            if (!z80.ext_data_o_high)
-                zdata = z80.ext_data_o;
 
             if (!m68k.o_address_z)
                 vaddress = m68k.o_address;
@@ -754,7 +771,47 @@ int SDLCALL work_thread(void *data)
             {
                 if (!ym.o_cas0)
                 {
-                    vdata = rom[vaddress & 0x1fffff];
+                    if (mapper_enable)
+                    {
+                        int address = vaddress & 0x3ffff;
+                        int page = (vaddress >> 18) & 7;
+                        int mapped_address = address | (mapper_pages[page] << 18);
+                        mapped_address &= 0x3fffff;
+                        vdata = rom[mapped_address];
+                    }
+                    else
+                        vdata = rom[vaddress & 0x1fffff];
+                }
+            }
+            // mapper
+            if (mapper_enable)
+            {
+                if (!ym.arb.ext_time && !ym.o_lwr)
+                {
+                    switch (vaddress & 0x7f)
+                    {
+                        case 0x79:
+                            mapper_pages[1] = vdata & 255;
+                            break;
+                        case 0x7a:
+                            mapper_pages[2] = vdata & 255;
+                            break;
+                        case 0x7b:
+                            mapper_pages[3] = vdata & 255;
+                            break;
+                        case 0x7c:
+                            mapper_pages[4] = vdata & 255;
+                            break;
+                        case 0x7d:
+                            mapper_pages[5] = vdata & 255;
+                            break;
+                        case 0x7e:
+                            mapper_pages[6] = vdata & 255;
+                            break;
+                        case 0x7f:
+                            mapper_pages[7] = vdata & 255;
+                            break;
+                    }
                 }
             }
         }
@@ -889,6 +946,8 @@ int main(int argc, char *argv[])
     char *rom_filename = "rom.bin";
     char *audioout_filename = "audioout.bin";
     char *videoout_filename = "videoout.bin";
+    int pal = 0;
+    int _jap = 0;
     for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
         switch(argv[i][1])
@@ -929,6 +988,20 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
                 break;
+            case 'p':
+                if (!strcmp(&argv[i][1], "pal"))
+                {
+                    pal = 1;
+                    break;
+                }
+                break;
+            case 'j':
+                if (!strcmp(&argv[i][1], "jap"))
+                {
+                    _jap = 1;
+                    break;
+                }
+                break;
             default:
                 printf("usage: %s [-t tmss.bin] [rom.bin]\n", argv[0]);
                 exit(EXIT_FAILURE);
@@ -958,11 +1031,11 @@ int main(int argc, char *argv[])
     FC1004_Init(&ym);
 
     m3 = 1;
-    ntsc = 1;
+    ntsc = !pal;
     cart = 0;
     wres = 1;
     disk = 1;
-    jap = 1;
+    jap = !_jap;
 
     ym.i_m3 = m3;
     ym.i_ntsc = ntsc;
@@ -977,6 +1050,8 @@ int main(int argc, char *argv[])
     port_a = 127;
     port_b = 127;
     port_c = 127;
+
+    zram[0] = 0xc3; // hack to get overdrive 2 running
 
     audio_out = fopen(audioout_filename, "wb");
     vid_dump_file = fopen(videoout_filename, "wb");
