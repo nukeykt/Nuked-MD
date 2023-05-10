@@ -8,6 +8,7 @@
 #include "z80.h"
 #include "fc1004.h"
 
+#define VERSION "1.0"
 
 #define ROM_SIZE (2 * 1024 * 1024)
 
@@ -415,7 +416,7 @@ void Video_UpdateTitle(uint64_t ms)
     int _s = ms / 1000;
     int mn = _s / 60;
     _s %= 60;
-    sprintf_s(buffer, sizeof(buffer), "Nuked MD [%i:%02i:%03i]", mn, _s, _ms);
+    sprintf_s(buffer, sizeof(buffer), "Nuked MD v" VERSION " [%i:%02i:%03i]", mn, _s, _ms);
     buffer[99] = 0;
 
     if (!vid_window)
