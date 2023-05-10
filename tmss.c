@@ -3,13 +3,15 @@
 #include "tmss.h"
 
 unsigned short tmss_rom[1024];
+#define MAGIC_SE   0x00005345 /* SE */
+#define MAGIC_GA   0x00004741 /* GA */
 
 void TMSS_Clock(tmss_t *chip)
 {
     SDFFR_Update(&chip->dff1, chip->w40, chip->w3, chip->input.ext_sres);
     SDFFS_Update(&chip->dff2, chip->w10, chip->dff1.q, chip->input.ext_sres);
 
-    chip->w3 = chip->l1 == 'SE' && chip->l2 == 'GA';
+    chip->w3 = chip->l1 == MAGIC_SE && chip->l2 == MAGIC_GA;
 
     chip->ext_cpu_reset = !(chip->input.ext_jap && chip->dff2.nq) || chip->ext_test_4;
 
