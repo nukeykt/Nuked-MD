@@ -270,6 +270,7 @@ SDL_Texture *vid_texture;
 
 uint32_t vid_counter;
 uint32_t vid_counter_write;
+uint64_t vid_mcycles;
 
 FILE *vid_dump_file;
 
@@ -337,6 +338,7 @@ int Video_Blit(void)
                     vid_filebuffer[y][x][2] = (abgr >> 16) & 255;
                 }
             }
+            memcpy(&vid_filebuffer, &vid_mcycles, sizeof(vid_mcycles));
             fwrite(vid_filebuffer, 1, sizeof(vid_filebuffer), vid_dump_file);
             fflush(vid_dump_file);
             vid_counter_write = vid_counter;
@@ -410,6 +412,8 @@ int Video_Blit(void)
     return 1;
 }
 
+uint64_t frame_mcycles;
+
 void Video_PlotVDP(void)
 {
     static int ohsync;
@@ -431,9 +435,11 @@ void Video_PlotVDP(void)
             plot_y = -22;
         SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
+        vid_mcycles = frame_mcycles;
         vid_counter++;
         SDL_UnlockMutex(vid_mutex);
         memset(vid_workbuffer, 0, sizeof(vid_workbuffer));
+        frame_mcycles = mcycles;
     }
 
     if (plot_x >= 0 && plot_x < VID_WIDTH * 2 && plot_y >= 0 && plot_y < VID_HEIGHT)
