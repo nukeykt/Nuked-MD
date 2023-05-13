@@ -587,9 +587,9 @@ int SDLCALL work_thread(void *data)
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
 
-            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 && (ym.ioc.port_a_d & 64) == 0,
+            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0,
                 controller_buttons_state_1);
-            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 && (ym.ioc.port_b_d & 64) == 0,
+            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0,
                 controller_buttons_state_2);
             
             // 68k
@@ -775,50 +775,71 @@ int SDLCALL work_thread(void *data)
             }
 
             // cart
-            if (!ym.o_ce0)
+            if (m3)
             {
-                if (!ym.o_cas0)
+                // MD
+                if (!ym.o_ce0)
                 {
-                    if (mapper_enable)
+                    if (!ym.o_cas0)
                     {
-                        int address = vaddress & 0x3ffff;
-                        int page = (vaddress >> 18) & 7;
-                        int mapped_address = address | (mapper_pages[page] << 18);
-                        mapped_address &= 0x3fffff;
-                        vdata = rom[mapped_address];
+                        if (mapper_enable)
+                        {
+                            int address = vaddress & 0x3ffff;
+                            int page = (vaddress >> 18) & 7;
+                            int mapped_address = address | (mapper_pages[page] << 18);
+                            mapped_address &= 0x3fffff;
+                            vdata = rom[mapped_address];
+                        }
+                        else
+                            vdata = rom[vaddress & 0x1fffff];
                     }
-                    else
-                        vdata = rom[vaddress & 0x1fffff];
+                }
+                // mapper
+                if (mapper_enable)
+                {
+                    if (!ym.arb.ext_time && !ym.o_lwr)
+                    {
+                        switch (vaddress & 0x7f)
+                        {
+                            case 0x79:
+                                mapper_pages[1] = vdata & 255;
+                                break;
+                            case 0x7a:
+                                mapper_pages[2] = vdata & 255;
+                                break;
+                            case 0x7b:
+                                mapper_pages[3] = vdata & 255;
+                                break;
+                            case 0x7c:
+                                mapper_pages[4] = vdata & 255;
+                                break;
+                            case 0x7d:
+                                mapper_pages[5] = vdata & 255;
+                                break;
+                            case 0x7e:
+                                mapper_pages[6] = vdata & 255;
+                                break;
+                            case 0x7f:
+                                mapper_pages[7] = vdata & 255;
+                                break;
+                        }
+                    }
                 }
             }
-            // mapper
-            if (mapper_enable)
+            else
             {
-                if (!ym.arb.ext_time && !ym.o_lwr)
+                // M3
+                vaddress &= ~0x700000;
+                vaddress |= 0x500000;
+                if (!(vaddress & 0x20000) && !ym.o_ce0) // cart chip enable
                 {
-                    switch (vaddress & 0x7f)
+                    if (!ym.o_cas0)
                     {
-                        case 0x79:
-                            mapper_pages[1] = vdata & 255;
-                            break;
-                        case 0x7a:
-                            mapper_pages[2] = vdata & 255;
-                            break;
-                        case 0x7b:
-                            mapper_pages[3] = vdata & 255;
-                            break;
-                        case 0x7c:
-                            mapper_pages[4] = vdata & 255;
-                            break;
-                        case 0x7d:
-                            mapper_pages[5] = vdata & 255;
-                            break;
-                        case 0x7e:
-                            mapper_pages[6] = vdata & 255;
-                            break;
-                        case 0x7f:
-                            mapper_pages[7] = vdata & 255;
-                            break;
+                        vdata &= ~0xff;
+                        if (vaddress & 1)
+                            vdata |= rom[(vaddress & 0xffff) >> 1] & 255;
+                        else
+                            vdata |= (rom[(vaddress & 0xffff) >> 1] >> 8) & 255;
                     }
                 }
             }
@@ -956,6 +977,7 @@ int main(int argc, char *argv[])
     char *videoout_filename = "videoout.bin";
     int pal = 0;
     int _jap = 0;
+    int _m3 = 0;
     for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
         switch(argv[i][1])
@@ -1010,6 +1032,13 @@ int main(int argc, char *argv[])
                     break;
                 }
                 break;
+            case 'm':
+                if (!strcmp(&argv[i][1], "m3"))
+                {
+                    _m3 = 1;
+                    break;
+                }
+                break;
             default:
                 printf("usage: %s [-t tmss.bin] [rom.bin]\n", argv[0]);
                 exit(EXIT_FAILURE);
@@ -1038,7 +1067,7 @@ int main(int argc, char *argv[])
 
     FC1004_Init(&ym);
 
-    m3 = 1;
+    m3 = !_m3;
     ntsc = !pal;
     cart = 0;
     wres = 1;

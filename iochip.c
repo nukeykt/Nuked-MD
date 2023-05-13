@@ -340,8 +340,8 @@ void IOC_Clock(iochip_t *chip)
         && ((chip->address & 0x1c) == 0 || (chip->address & 0x1c) == 0x1c) && !chip->input.ext_m3);
     chip->zaccess = (chip->zwrite_sel && chip->zread_sel) && chip->vsel;
 
-    chip->zwrite0 = chip->zread_sel || (chip->address & 1) != 0;
-    chip->zwrite1 = chip->zread_sel || (chip->address & 1) == 0;
+    chip->zwrite0 = chip->zwrite_sel || (chip->address & 1) != 0;
+    chip->zwrite1 = chip->zwrite_sel || (chip->address & 1) == 0;
 
     chip->port_a.read_rx_data = !(chip->vread_high && (chip->address & 7) == 0);
     chip->port_b.read_rx_data = !(chip->vread_high && (chip->address & 7) == 3);
