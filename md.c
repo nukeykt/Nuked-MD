@@ -53,6 +53,11 @@ int rd;
 int mapper_enable;
 int mapper_pages[8];
 
+int m3_mapper_enable;
+int m3_mapper_data;
+int m3_mapper_page[3];
+unsigned char m3_mapper_ram[0x4000];
+
 static inline unsigned short short_swap(unsigned short v)
 {
     unsigned short b1 = v & 255;
@@ -100,7 +105,7 @@ int load_tmss_rom(char *filename)
     return 0;
 }
 
-int load_game_rom(char *filename)
+int load_game_rom(char *filename, int _m3)
 {
     int i;
     FILE* romfile;
@@ -113,17 +118,34 @@ int load_game_rom(char *filename)
     size_t siz = ftell(romfile);
     rewind(romfile);
 
-    if (siz > ROM_SIZE * 2)
+    if (!_m3)
     {
-        mapper_enable = 1;
-        if (siz > ROM_SIZE * 4)
-            siz = ROM_SIZE * 4;
-        for (i = 0; i < 8; i++)
-            mapper_pages[i] = i;
+        if (siz > ROM_SIZE * 2)
+        {
+            mapper_enable = 1;
+            if (siz > ROM_SIZE * 4)
+                siz = ROM_SIZE * 4;
+            for (i = 0; i < 8; i++)
+                mapper_pages[i] = i;
+        }
+        else
+        {
+            mapper_enable = 0;
+        }
     }
     else
     {
-        mapper_enable = 0;
+        if (siz > 0x8000)
+        {
+            m3_mapper_enable = 1;
+            m3_mapper_page[0] = 0;
+            m3_mapper_page[1] = 1 << 14;
+            m3_mapper_page[2] = 2 << 14;
+        }
+        else
+        {
+            m3_mapper_enable = 0;
+        }
     }
 
     memset(rom, 0, sizeof(rom));
@@ -831,15 +853,78 @@ int SDLCALL work_thread(void *data)
                 // M3
                 vaddress &= ~0x700000;
                 vaddress |= 0x500000;
-                if (!(vaddress & 0x20000) && !ym.o_ce0) // cart chip enable
+                if (!(vaddress & 0x20000)) // cart chip enable
                 {
                     if (!ym.o_cas0)
                     {
-                        vdata &= ~0xff;
-                        if (vaddress & 1)
-                            vdata |= rom[(vaddress & 0xffff) >> 1] & 255;
+                        int address;
+                        int enable = 0;
+                        if (!m3_mapper_enable)
+                        {
+                            address = vaddress & 0x7fff;
+                            enable = !ym.o_ce0;
+                        }
                         else
-                            vdata |= (rom[(vaddress & 0xffff) >> 1] >> 8) & 255;
+                        {
+                            address = vaddress & 0x3fff;
+                            if (!ym.o_ce0)
+                            {
+                                address |= m3_mapper_page[(vaddress >> 14) & 1];
+                                enable = 1;
+                            }
+                            else if (!ym.arb.ext_cas2)
+                            {
+                                if (m3_mapper_data & 8)
+                                {
+                                    vdata &= ~0xff;
+                                    vdata |= m3_mapper_ram[address];
+                                }
+                                else
+                                {
+                                    address |= m3_mapper_page[2];
+                                    enable = 1;
+                                }
+                            }
+                            address &= 0x3fffff;
+                        }
+                        if (enable)
+                        {
+                            vdata &= ~0xff;
+                            if (address & 1)
+                                vdata |= rom[address >> 1] & 255;
+                            else
+                                vdata |= (rom[address >> 1] >> 8) & 255;
+                        }
+                    }
+                    if (!ym.o_lwr)
+                    {
+                        if (m3_mapper_enable)
+                        {
+                            if (!ym.arb.ext_cas2)
+                            {
+                                if (m3_mapper_data & 8)
+                                {
+                                    m3_mapper_ram[vaddress & 0x3fff] = vdata & 0xff;
+                                }
+                            }
+                            if ((vaddress & 0xffff) >= 0xfffc)
+                            {
+                                int page;
+
+                                // GPGX
+                                page = vdata & 15;
+                                if (m3_mapper_data & 3)
+                                    page = (page + ((4 - (m3_mapper_data & 3)) << 3)) & 15;
+                                if ((vaddress & 3) == 0)
+                                    m3_mapper_data = vdata & 0xff;
+                                if ((vaddress & 3) == 1)
+                                    m3_mapper_page[0] = page << 14;
+                                if ((vaddress & 3) == 2)
+                                    m3_mapper_page[1] = page << 14;
+                                if ((vaddress & 3) == 3)
+                                    m3_mapper_page[2] = page << 14;
+                            }
+                        }
                     }
                 }
             }
@@ -1053,7 +1138,7 @@ int main(int argc, char *argv[])
         printf("%s not found\n", tmss_filename);
         load_dummy_tmss();
     }
-    if (load_game_rom(rom_filename))
+    if (load_game_rom(rom_filename, _m3))
     {
         printf("%s not found\n", rom_filename);
         exit(EXIT_FAILURE);
