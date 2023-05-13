@@ -624,9 +624,9 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     else if (w143)
         chip->t14 = 0;
 
-    int w142 = w141 || chip->w134; // HV cnt read
+    chip->w142 = w141 || chip->w134; // HV cnt read
 
-    chip->w71 = !cpu_sel && (chip->reg_test0 & 4) != 0 && w142;
+    chip->w71 = !cpu_sel && (chip->reg_test0 & 4) != 0 && chip->w142;
 
     if (!w139)
         chip->l18 = w130;
@@ -734,7 +734,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     int w148 = !(w150 || chip->w252);
 
-    int w152 = w113 || w135 || w142;
+    int w152 = w113 || w135 || chip->w142;
 
     chip->w151 = w152 || chip->w47;
 
@@ -6331,7 +6331,7 @@ void VDP_UpdateBusOutput(vdp_t *chip)
         chip->io_data &= ~0xff00;
         chip->io_data |= (chip->l90 & 255) << 8;
     }
-    if (chip->w134)
+    if (chip->w142)
     {
         chip->io_data &= ~0xff;
         chip->io_data |= chip->w347 & 255;
