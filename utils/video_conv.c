@@ -58,7 +58,7 @@
 #define STREAM_FRAME_RATE 25 /* 25 images/s */
 #define STREAM_PIX_FMT    AV_PIX_FMT_YUV420P /* default pix_fmt */
 
-#define SCALE_FLAGS 0
+#define SCALE_FLAGS SWS_POINT
 
 FILE *dump_audio_f;
 FILE *dump_video_f;
@@ -197,8 +197,8 @@ static void add_stream(OutputStream *ost, AVFormatContext *oc,
 
         c->bit_rate = 16000000;
         /* Resolution must be a multiple of two. */
-        c->width    = FRAME_WIDTH * 2;
-        c->height   = FRAME_HEIGHT * 2;
+        c->width    = FRAME_WIDTH * 4;
+        c->height   = FRAME_HEIGHT * 4;
         /* timebase: This is the fundamental unit of time (in seconds) in terms
          * of which frame timestamps are represented. For fixed-fps content,
          * timebase should be 1/framerate and timestamp increments should be
