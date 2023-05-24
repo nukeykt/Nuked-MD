@@ -8,8 +8,7 @@
 #include "z80.h"
 #include "fc1004.h"
 #include "vram.h"
-
-#define VERSION "1.0"
+#include "video.h"
 
 #define ROM_SIZE (2 * 1024 * 1024)
 
@@ -166,42 +165,6 @@ void init_chips(void)
 
 uint64_t mcycles;
 
-SDL_Window* vid_window;
-SDL_Renderer *vid_renderer;
-SDL_Texture *vid_texture;
-
-#define VID_WIDTH 400
-#define VID_HEIGHT 300
-
-uint32_t vid_counter;
-uint32_t vid_counter_write;
-uint64_t vid_mcycles;
-
-FILE *vid_dump_file;
-
-void Video_Init(void)
-{
-    vid_counter = vid_counter_write = 0;
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
-        return;
-
-    vid_window = SDL_CreateWindow("Nuked MD", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        VID_WIDTH * 2, VID_HEIGHT * 2, SDL_WINDOW_SHOWN);
-    if (!vid_window)
-        return;
-
-    vid_renderer = SDL_CreateRenderer(vid_window, -1, 0);
-    if (!vid_renderer)
-        return;
-
-    vid_texture = SDL_CreateTexture(vid_renderer, SDL_PIXELFORMAT_BGR888, SDL_TEXTUREACCESS_STREAMING,
-        VID_WIDTH, VID_HEIGHT);
-
-    if (!vid_texture)
-        return;
-}
-
 #define CTRL_BUTTON_UP 1
 #define CTRL_BUTTON_DOWN 2
 #define CTRL_BUTTON_LEFT 4
@@ -217,169 +180,6 @@ void Video_Init(void)
 
 int controller_buttons_state_1;
 int controller_buttons_state_2;
-
-uint32_t vid_workbuffer[VID_HEIGHT][VID_WIDTH];
-uint32_t vid_currentbuffer[VID_HEIGHT][VID_WIDTH];
-uint8_t vid_filebuffer[VID_HEIGHT][VID_WIDTH][3];
-SDL_mutex *vid_mutex;
-
-int Video_Blit(void)
-{
-    SDL_LockMutex(vid_mutex);
-    SDL_UpdateTexture(vid_texture, NULL, vid_currentbuffer, VID_WIDTH * 4);
-
-    if (vid_dump_file)
-    {
-        if (vid_counter_write < vid_counter)
-        {
-            int x, y;
-            for (y = 0; y < VID_HEIGHT; y++)
-            {
-                for (x = 0; x < VID_WIDTH; x++)
-                {
-                    uint32_t abgr = vid_currentbuffer[y][x];
-                    vid_filebuffer[y][x][0] = (abgr >> 0) & 255;
-                    vid_filebuffer[y][x][1] = (abgr >> 8) & 255;
-                    vid_filebuffer[y][x][2] = (abgr >> 16) & 255;
-                }
-            }
-            memcpy(vid_filebuffer, &vid_mcycles, sizeof(vid_mcycles));
-            fwrite(vid_filebuffer, 1, sizeof(vid_filebuffer), vid_dump_file);
-            fflush(vid_dump_file);
-            vid_counter_write = vid_counter;
-        }
-    }
-
-    SDL_UnlockMutex(vid_mutex);
-    SDL_RenderCopy(vid_renderer, vid_texture, NULL, NULL);
-    SDL_RenderPresent(vid_renderer);
-
-    SDL_Event sdl_event;
-    while (SDL_PollEvent(&sdl_event))
-    {
-        switch (sdl_event.type)
-        {
-        case SDL_QUIT:
-            return 0;
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
-        {
-            int pressed = sdl_event.type == SDL_KEYDOWN;
-            int button1 = 0;
-            int button2 = 0;
-            switch (sdl_event.key.keysym.scancode)
-            {
-                case SDL_SCANCODE_UP:
-                    button1 = CTRL_BUTTON_UP;
-                    break;
-                case SDL_SCANCODE_DOWN:
-                    button1 = CTRL_BUTTON_DOWN;
-                    break;
-                case SDL_SCANCODE_LEFT:
-                    button1 = CTRL_BUTTON_LEFT;
-                    break;
-                case SDL_SCANCODE_RIGHT:
-                    button1 = CTRL_BUTTON_RIGHT;
-                    break;
-                case SDL_SCANCODE_Z:
-                    button1 = CTRL_BUTTON_A;
-                    break;
-                case SDL_SCANCODE_X:
-                    button1 = CTRL_BUTTON_B;
-                    break;
-                case SDL_SCANCODE_C:
-                    button1 = CTRL_BUTTON_C;
-                    break;
-                case SDL_SCANCODE_RETURN:
-                    button1 = CTRL_BUTTON_START;
-                    break;
-            }
-            if (button1)
-            {
-                if (pressed)
-                    controller_buttons_state_1 |= button1;
-                else
-                    controller_buttons_state_1 &= ~button1;
-
-            }
-            if (button2)
-            {
-                if (pressed)
-                    controller_buttons_state_2 |= button1;
-                else
-                    controller_buttons_state_2 &= ~button1;
-            }
-        }
-        default:
-            break;
-        }
-    }
-    return 1;
-}
-
-uint64_t frame_mcycles;
-
-void Video_PlotVDP(void)
-{
-    static int ohsync;
-    static int ovsync;
-    static int plot_x;
-    static int plot_y;
-
-    if (ohsync && ym.vdp.o_hsync == 0)
-    {
-        plot_x = -75;
-        if (ym.vdp.reg_rs0 == 0)
-            plot_x = 0;
-        plot_y++;
-    }
-    if (ovsync && ym.vdp.o_vsync == 0)
-    {
-        plot_y = 0;
-        if (!ntsc)
-            plot_y = -22;
-        SDL_LockMutex(vid_mutex);
-        memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));
-        vid_mcycles = frame_mcycles;
-        vid_counter++;
-        SDL_UnlockMutex(vid_mutex);
-        memset(vid_workbuffer, 0, sizeof(vid_workbuffer));
-        frame_mcycles = mcycles;
-    }
-
-    if (plot_x >= 0 && plot_x < VID_WIDTH * 2 && plot_y >= 0 && plot_y < VID_HEIGHT)
-    {
-        uint32_t abgr = 0;
-
-        abgr |= ym.vdp.rgb_out[0] << 0;
-        abgr |= ym.vdp.rgb_out[1] << 8;
-        abgr |= ym.vdp.rgb_out[2] << 16;
-
-        vid_workbuffer[plot_y][plot_x / 2] = abgr;
-    }
-
-    plot_x++;
-
-
-    ohsync = ym.vdp.o_hsync != 0;
-    ovsync = ym.vdp.o_vsync != 0;
-}
-
-void Video_UpdateTitle(uint64_t ms)
-{
-    char buffer[100];
-    int _ms = ms % 1000;
-    int _s = (int)(ms / 1000);
-    int mn = _s / 60;
-    _s %= 60;
-    SDL_snprintf(buffer, sizeof(buffer), "Nuked MD v" VERSION " [%i:%02i:%03i]", mn, _s, _ms);
-    buffer[99] = 0;
-
-    if (!vid_window)
-        return;
-
-    SDL_SetWindowTitle(vid_window, buffer);
-}
 
 int controller_handle_3button(int sel, int state)
 {
@@ -1027,7 +827,13 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    Video_Init();
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    {
+        printf("SDL_Init failed!\n");
+        return EXIT_FAILURE;
+    }
+
+    Video_Init(videoout_filename);
 
     memset(&ym, 0, sizeof(ym));
     memset(&m68k, 0, sizeof(m68k));
@@ -1059,9 +865,6 @@ int main(int argc, char *argv[])
     zram[0] = 0xc3; // hack to get overdrive 2 running
 
     audio_out = fopen(audioout_filename, "wb");
-    vid_dump_file = fopen(videoout_filename, "wb");
-
-    vid_mutex = SDL_CreateMutex();
 
     work_thread_run = 1;
     thread = SDL_CreateThread(work_thread, "work thread", 0);
@@ -1072,6 +875,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    int quit_signal = 0;
+
     do
     {
         SDL_Delay(30);
@@ -1081,14 +886,80 @@ int main(int argc, char *argv[])
             uint64_t ms = (mcycles * 1000) / (2 * divider);
             Video_UpdateTitle(ms);
         }
+
+        // Handle events
+
+        SDL_Event sdl_event;
+        while (SDL_PollEvent(&sdl_event))
+        {
+            switch (sdl_event.type)
+            {
+                case SDL_QUIT:
+                    quit_signal = 1;
+                    break;
+                case SDL_KEYDOWN:
+                case SDL_KEYUP:
+                {
+                    int pressed = sdl_event.type == SDL_KEYDOWN;
+                    int button1 = 0;
+                    int button2 = 0;
+                    switch (sdl_event.key.keysym.scancode)
+                    {
+                    case SDL_SCANCODE_UP:
+                        button1 = CTRL_BUTTON_UP;
+                        break;
+                    case SDL_SCANCODE_DOWN:
+                        button1 = CTRL_BUTTON_DOWN;
+                        break;
+                    case SDL_SCANCODE_LEFT:
+                        button1 = CTRL_BUTTON_LEFT;
+                        break;
+                    case SDL_SCANCODE_RIGHT:
+                        button1 = CTRL_BUTTON_RIGHT;
+                        break;
+                    case SDL_SCANCODE_Z:
+                        button1 = CTRL_BUTTON_A;
+                        break;
+                    case SDL_SCANCODE_X:
+                        button1 = CTRL_BUTTON_B;
+                        break;
+                    case SDL_SCANCODE_C:
+                        button1 = CTRL_BUTTON_C;
+                        break;
+                    case SDL_SCANCODE_RETURN:
+                        button1 = CTRL_BUTTON_START;
+                        break;
+                    }
+                    if (button1)
+                    {
+                        if (pressed)
+                            controller_buttons_state_1 |= button1;
+                        else
+                            controller_buttons_state_1 &= ~button1;
+
+                    }
+                    if (button2)
+                    {
+                        if (pressed)
+                            controller_buttons_state_2 |= button1;
+                        else
+                            controller_buttons_state_2 &= ~button1;
+                    }
+                }
+                default:
+                    break;
+                }
+        }
+
+        Video_Blit();
     }
-    while (Video_Blit());
+    while (!quit_signal);
 
     work_thread_run = 0;
     SDL_WaitThread(thread, 0);
 
     fclose(audio_out);
-    fclose(vid_dump_file);
+    Video_Shutdown();
     FC1004_Destroy(&ym);
 
     SDL_Quit();

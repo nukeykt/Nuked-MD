@@ -45,6 +45,9 @@
     <ClCompile Include="..\vram.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\video.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\68k.h">
@@ -78,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\vram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\video.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
