@@ -44,6 +44,7 @@
     <ClInclude Include="..\z80.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Notes.md" />
     <None Include="..\Progress.md" />
     <None Include="..\README.md" />
     <None Include="packages.config" />

@@ -1008,7 +1008,7 @@ int main(int argc, char *argv[])
                 }
                 break;
             default:
-                printf("usage: %s [-t tmss.bin] [rom.bin]\n", argv[0]);
+                printf("usage: %s [-m3] [-t tmss.bin] [rom.bin]\n", argv[0]);
                 exit(EXIT_FAILURE);
                 break;
         }

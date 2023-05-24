@@ -18,3 +18,6 @@ Video:
 400x300 RGB (8 bits per channel)
 ```
   
+## SMS Mode
+
+Run the emulator with the `-m3` flag
