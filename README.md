@@ -22,9 +22,11 @@ Nuked MD currently targets NMOS 68k, NMOS Z80 and FC1004. No real mega drive use
 ![image](https://user-images.githubusercontent.com/15833655/236791566-057499e5-a9a3-4a38-8482-92959ceb63c2.png)
 
 ### Videos
-* https://www.youtube.com/watch?v=g2k-7QNpYew
-* https://www.youtube.com/watch?v=7k0au8n8DhA
-* https://www.youtube.com/watch?v=QaDBjkMXPw0
+
+|<a href='http://www.youtube.com/watch?feature=player_embedded&v=g2k-7QNpYew' target='_blank'><img src='http://img.youtube.com/vi/g2k-7QNpYew/0.jpg' width='425' height=344 /></a>|<a href='http://www.youtube.com/watch?feature=player_embedded&v=7k0au8n8DhA' target='_blank'><img src='http://img.youtube.com/vi/7k0au8n8DhA/0.jpg' width='425' height=344 /></a>|
+|---|---|
+|<a href='http://www.youtube.com/watch?feature=player_embedded&v=QaDBjkMXPw0' target='_blank'><img src='http://img.youtube.com/vi/QaDBjkMXPw0/0.jpg' width='425' height=344 /></a>|
+
 
 See [Progress.md](Progress.md)
 
