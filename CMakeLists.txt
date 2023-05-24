@@ -13,7 +13,8 @@ add_executable(Nuked-MD
 	md.c
 	tmss.c
 	vdp.c
-	z80.c)
+	z80.c
+	vram.c)
 
 if(TARGET SDL2::SDL2main)
 	target_link_libraries(Nuked-MD PRIVATE SDL2::SDL2main)

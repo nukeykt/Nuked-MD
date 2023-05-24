@@ -42,6 +42,9 @@
     <ClCompile Include="..\z80.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\vram.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\68k.h">
@@ -74,10 +77,16 @@
     <ClInclude Include="..\z80.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\vram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Progress.md" />
     <None Include="..\README.md" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\CMakeLists.txt" />
   </ItemGroup>
 </Project>

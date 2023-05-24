@@ -27,6 +27,7 @@
     <ClCompile Include="..\md.c" />
     <ClCompile Include="..\tmss.c" />
     <ClCompile Include="..\vdp.c" />
+    <ClCompile Include="..\vram.c" />
     <ClCompile Include="..\z80.c" />
   </ItemGroup>
   <ItemGroup>
@@ -39,12 +40,16 @@
     <ClInclude Include="..\iochip.h" />
     <ClInclude Include="..\tmss.h" />
     <ClInclude Include="..\vdp.h" />
+    <ClInclude Include="..\vram.h" />
     <ClInclude Include="..\z80.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Progress.md" />
     <None Include="..\README.md" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\CMakeLists.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
