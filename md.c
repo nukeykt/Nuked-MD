@@ -10,14 +10,14 @@
 #include "vram.h"
 #include "video.h"
 
-#define ROM_SIZE (2 * 1024 * 1024)
+#define ROM_SIZE (2 * 1024 * 1024)  // in words
 
 m68k_t m68k;
 z80_t z80;
 fc1004_t ym;
 
 unsigned char ram[0x10000];
-unsigned short rom[ROM_SIZE * 2];
+unsigned short rom[ROM_SIZE * sizeof(uint16_t)];
 unsigned char zram[8192];
 
 #define MCLK_NTSC 53693182
