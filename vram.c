@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "fc1004.h"
 #include "vram.h"
 
