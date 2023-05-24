@@ -82,7 +82,7 @@ void load_dummy_tmss()
 
 int load_tmss_rom(char *filename)
 {
-    int i;
+    int i, ret;
     FILE* tmss;
 
     tmss = fopen(filename, "rb");
@@ -98,7 +98,13 @@ int load_tmss_rom(char *filename)
         return 1;
     }
 
-    fread(tmss_rom, 1, TMSS_SIZE * 2, tmss);
+    ret = fread(tmss_rom, 1, TMSS_SIZE * 2, tmss);
+    if (ret < TMSS_SIZE * 2)
+    {
+        fclose(tmss);
+        return 1;
+    }
+
     for (i = 0; i < TMSS_SIZE; i++)
         tmss_rom[i] = short_swap(tmss_rom[i]);
     fclose(tmss);
@@ -107,7 +113,7 @@ int load_tmss_rom(char *filename)
 
 int load_game_rom(char *filename, int _m3)
 {
-    int i;
+    int i, ret;
     FILE* romfile;
 
     romfile = fopen(filename, "rb");
@@ -149,7 +155,12 @@ int load_game_rom(char *filename, int _m3)
     }
 
     memset(rom, 0, sizeof(rom));
-    fread(rom, 1, siz, romfile);
+    ret = fread(rom, 1, siz, romfile);
+    if (ret < siz)
+    {
+        fclose(romfile);
+        return 1;
+    }
     for (i = 0; i < ROM_SIZE * 2; i++)
         rom[i] = short_swap(rom[i]);
     fclose(romfile);
