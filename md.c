@@ -10,7 +10,7 @@
 #include "vram.h"
 #include "video.h"
 
-#define ROM_SIZE (2 * 1024 * 1024)  // in words
+#define ROM_SIZE (2 * 1024 * 1024)  // in words, to support sega mapper (up to 8mb games)
 
 m68k_t m68k;
 z80_t z80;
