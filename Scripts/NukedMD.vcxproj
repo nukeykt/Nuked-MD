@@ -27,6 +27,7 @@
     <ClCompile Include="..\md.c" />
     <ClCompile Include="..\tmss.c" />
     <ClCompile Include="..\vdp.c" />
+    <ClCompile Include="..\video.c" />
     <ClCompile Include="..\vram.c" />
     <ClCompile Include="..\z80.c" />
   </ItemGroup>
@@ -40,6 +41,7 @@
     <ClInclude Include="..\iochip.h" />
     <ClInclude Include="..\tmss.h" />
     <ClInclude Include="..\vdp.h" />
+    <ClInclude Include="..\video.h" />
     <ClInclude Include="..\vram.h" />
     <ClInclude Include="..\z80.h" />
   </ItemGroup>
