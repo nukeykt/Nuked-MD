@@ -85,6 +85,7 @@
     <None Include="..\Progress.md" />
     <None Include="..\README.md" />
     <None Include="packages.config" />
+    <None Include="..\Notes.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\CMakeLists.txt" />
