@@ -31,6 +31,7 @@ Nuked MD currently targets NMOS 68k, NMOS Z80 and FC1004. No real mega drive use
 See [Progress.md](Progress.md)
 
 ## References
+* https://github.com/emu-russia/SEGAChips (andkorzh, org, nukeykt)
 * https://www.grafik-feti.de/ftp/Die-Shots/Archiv/2D/Die-Shots/GamingConsoles/SEGA_Genesis_MegaDrive/MD1/VDP/ (Fritzchens Fritz)
 * https://siliconpr0n.org/map/yamaha/ym3438/ (John McMaster)
 * https://siliconpr0n.org/map/zilog/z0840008psc-z80cpu/ (Antoine Bercovici)
