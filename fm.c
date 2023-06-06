@@ -1286,6 +1286,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     int istantattack = 0;
     int eg_output;
     int ams = 0;
+    int csm_kon;
     static const int eg_stephi[4][4] = {
         { 0, 0, 0, 0 },
         { 1, 0, 0, 0 },
@@ -1340,11 +1341,10 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     chip->eg_level_latch[0] = level2;
 
-    kon2 = (chip->mode_kon[3][1] >> 5) & 1;
-    if (chip->fsm_ch3_sel)
-        kon2 |= chip->timer_csm_key_dlatch;
-
+    csm_kon = chip->fsm_ch3_sel && chip->timer_csm_key_dlatch;
+    kon2 = ((chip->mode_kon[3][1] >> 5) & 1) | csm_kon;
     chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
+    chip->eg_kon_csm[0] = (chip->eg_kon_csm[1] << 1) | csm_kon;
 
     kon = (chip->eg_kon_latch[1] >> 1) & 1;
     okon = (chip->eg_key[1] >> 23) & 1;
