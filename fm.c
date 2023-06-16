@@ -55,7 +55,7 @@ void FM_Prescaler(fm_prescaler_t *chip)
     {
         chip->ic_latch[0] = chip->ic_latch[1] << 1;
         chip->ic_latch[0] |= chip->input.ic;
-        
+
         const int ic_check = (chip->ic_latch[1] & 0x800) == 0 && chip->input.ic;
 
         chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
