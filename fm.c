@@ -56,7 +56,7 @@ void FM_Prescaler(fm_prescaler_t *chip)
         chip->ic_latch[0] = chip->ic_latch[1] << 1;
         chip->ic_latch[0] |= chip->input.ic;
         
-        const int ic_check = ((!((chip->ic_latch[1] & 0x800) & 1)) ^ chip->input.ic > 0);
+        const int ic_check = (chip->ic_latch[1] & 0x800) == 0 && chip->input.ic;
 
         chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
         chip->prescaler_latch[0] |= !ic_check && (chip->prescaler_latch[1] & 0x1f) == 0;
@@ -111,7 +111,7 @@ void FM_HandleIO(fm_t *chip)
 
 int FM_GetBus(fm_t *chip)
 {
-    if (!(chip->input.cs && chip->input.rd && !chip->input.ic) && !chip->input.ic)
+    if (!(chip->input.cs && chip->input.rd && !chip->input.ic) && !chip->input.ic && !chip->io_ic_latch[1])
         return chip->data_latch;
 
     return 0;
@@ -327,8 +327,6 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_clock_timers = 1;
                 chip->fsm_sel2 = 1;
                 chip->fsm_ch3_sel = 1;
-                break;
-            case 3:
                 chip->fsm_op4_sel = 1;
                 break;
             case 4:
@@ -343,8 +341,6 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_op4_sel = 1;
                 chip->fsm_dac_ch6 = 1;
                 break;
-            case 7:
-                break;
             case 8:
                 chip->fsm_op1_sel = 1;
                 chip->fsm_dac_ch6 = 1;
@@ -358,9 +354,6 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_ch3_sel = 1;
                 chip->fsm_dac_load = 1;
                 break;
-            case 11:
-                chip->fsm_op1_sel = 1;
-                break;
             case 12:
                 chip->fsm_op1_sel = 1;
                 break;
@@ -369,8 +362,6 @@ void FM_FSM2(fm_t *chip)
                 break;
             case 14:
                 chip->fsm_op1_sel = 1;
-                break;
-            case 15:
                 break;
             case 16:
                 chip->fsm_op3_sel = 1;
@@ -386,8 +377,6 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_op3_sel = 1;
                 chip->fsm_dac_out_sel = 1;
                 break;
-            case 19:
-                break;
             case 20:
                 chip->fsm_op3_sel = 1;
                 chip->fsm_dac_out_sel = 1;
@@ -400,8 +389,6 @@ void FM_FSM2(fm_t *chip)
             case 22:
                 chip->fsm_op3_sel = 1;
                 chip->fsm_dac_out_sel = 1;
-                break;
-            case 23:
                 break;
             case 24:
                 chip->fsm_op2_sel = 1;
@@ -416,8 +403,6 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_dac_load = 1;
                 chip->fsm_op2_sel = 1;
                 chip->fsm_dac_out_sel = 1;
-                break;
-            case 27:
                 break;
             case 28:
                 chip->fsm_op2_sel = 1;
@@ -610,6 +595,35 @@ void FM_FSM2(fm_t *chip)
                 break;
         }
 
+        /*
+        Original before lookup table implementation.
+        - Movrsi.
+        chip->fsm_out[0] = (cnt_comb & 30) == 30;
+        chip->fsm_out[1] = (cnt_comb & 28) == 0;
+        chip->fsm_out[2] = (cnt_comb & 30) == 4;
+        chip->fsm_out[3] = (cnt_comb & 30) == 22;
+        chip->fsm_out[4] = (cnt_comb & 28) == 24;
+        chip->fsm_out[5] = (cnt_comb & 30) == 28;
+        chip->fsm_out[6] = (cnt_comb & 30) == 14;
+        chip->fsm_out[7] = (cnt_comb & 28) == 16;
+        chip->fsm_out[8] = (cnt_comb & 30) == 20;
+        chip->fsm_out[9] = (cnt_comb & 30) == 6;
+        chip->fsm_out[10] = (cnt_comb & 28) == 8;
+        chip->fsm_out[11] = (cnt_comb & 30) == 12;
+        chip->fsm_out[12] = (cnt_comb & 30) == 30;
+        chip->fsm_out[13] = cnt_comb == 0;
+        chip->fsm_out[14] = cnt_comb == 1;
+        chip->fsm_out[15] = cnt_comb == 29;
+        chip->fsm_out[17] = (cnt_comb & 28) == 4;
+        chip->fsm_out[18] = cnt_comb == 8;
+        chip->fsm_out[19] = (cnt_comb & 15) == 14;
+        chip->fsm_out[20] = (cnt_comb & 15) == 4;
+        chip->fsm_out[21] = (cnt_comb & 15) == 9;
+        chip->fsm_out[22] = cnt_comb == 14;
+        chip->fsm_out[24] = (cnt_comb & 28) == 24;
+        chip->fsm_out[25] = (cnt_comb & 30) == 28;
+        */
+
         chip->fsm_out[16] = (cnt_comb & 7) == 1;
         chip->fsm_out[23] = (cnt_comb & 24) == 16;
 
@@ -687,13 +701,13 @@ void FM_DoShiftRegisters(fm_t *chip, int sel)
     chip->slot_tl[0][4][sel] = SLOT_ROTATE(chip->slot_tl[0][4][from]);
     chip->slot_tl[0][5][sel] = SLOT_ROTATE(chip->slot_tl[0][5][from]);
     chip->slot_tl[0][6][sel] = SLOT_ROTATE(chip->slot_tl[0][6][from]);
-    chip->slot_tl[1][0][sel] = SLOT_ROTATE(chip->slot_tl[i][0][from]);
-    chip->slot_tl[1][1][sel] = SLOT_ROTATE(chip->slot_tl[i][1][from]);
-    chip->slot_tl[1][2][sel] = SLOT_ROTATE(chip->slot_tl[i][2][from]);
-    chip->slot_tl[1][3][sel] = SLOT_ROTATE(chip->slot_tl[i][3][from]);
-    chip->slot_tl[1][4][sel] = SLOT_ROTATE(chip->slot_tl[i][4][from]);
-    chip->slot_tl[1][5][sel] = SLOT_ROTATE(chip->slot_tl[i][5][from]);
-    chip->slot_tl[1][6][sel] = SLOT_ROTATE(chip->slot_tl[i][6][from]);
+    chip->slot_tl[1][0][sel] = SLOT_ROTATE(chip->slot_tl[1][0][from]);
+    chip->slot_tl[1][1][sel] = SLOT_ROTATE(chip->slot_tl[1][1][from]);
+    chip->slot_tl[1][2][sel] = SLOT_ROTATE(chip->slot_tl[1][2][from]);
+    chip->slot_tl[1][3][sel] = SLOT_ROTATE(chip->slot_tl[1][3][from]);
+    chip->slot_tl[1][4][sel] = SLOT_ROTATE(chip->slot_tl[1][4][from]);
+    chip->slot_tl[1][5][sel] = SLOT_ROTATE(chip->slot_tl[1][5][from]);
+    chip->slot_tl[1][6][sel] = SLOT_ROTATE(chip->slot_tl[1][6][from]);
 
     // ar registers
     chip->slot_ar[0][0][sel] = SLOT_ROTATE(chip->slot_ar[0][0][from]);
@@ -1161,10 +1175,10 @@ void FM_FMRegisters1(fm_t *chip)
                 chip->slot_sl[bank][1][0] &= ~1;
                 chip->slot_sl[bank][2][0] &= ~1;
                 chip->slot_sl[bank][3][0] &= ~1;
-                chip->slot_sl[bank][j][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->slot_sl[bank][j][0] |= (chip->fm_data[1] >> 5) & 1;
-                chip->slot_sl[bank][j][0] |= (chip->fm_data[1] >> 6) & 1;
-                chip->slot_sl[bank][j][0] |= (chip->fm_data[1] >> 7) & 1;
+                chip->slot_sl[bank][0][0] |= (chip->fm_data[1] >> 4) & 1;
+                chip->slot_sl[bank][1][0] |= (chip->fm_data[1] >> 5) & 1;
+                chip->slot_sl[bank][2][0] |= (chip->fm_data[1] >> 6) & 1;
+                chip->slot_sl[bank][3][0] |= (chip->fm_data[1] >> 7) & 1;
                 break;
             case 0x90:
                 // ssg eg
@@ -1268,9 +1282,9 @@ void FM_FMRegisters1(fm_t *chip)
                 chip->chan_fb[0][0] &= ~1;
                 chip->chan_fb[1][0] &= ~1;
                 chip->chan_fb[2][0] &= ~1;
-                chip->chan_fb[j][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->chan_fb[j][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->chan_fb[j][0] |= (chip->fm_data[1] >> 5) & 1;
+                chip->chan_fb[0][0] |= (chip->fm_data[1] >> 3) & 1;
+                chip->chan_fb[1][0] |= (chip->fm_data[1] >> 4) & 1;
+                chip->chan_fb[2][0] |= (chip->fm_data[1] >> 5) & 1;
                 break;
             case 0xb4:
                 // pms
@@ -1721,7 +1735,6 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
     chip->eg_kon_csm[0] = (chip->eg_kon_csm[1] << 1) | csm_kon;
-    chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
 
     kon = (chip->eg_kon_latch[1] >> 1) & 1;
     okon = (chip->eg_key[1] >> 23) & 1;
