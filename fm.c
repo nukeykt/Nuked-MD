@@ -210,7 +210,6 @@ void FM_SetData(fm_t *chip, int data)
 
 void FM_FSM1(fm_t *chip)
 {
-    int i;
     int connect = 0;
     int reset = chip->input.i_fsm_reset;
     chip->fsm_cnt1[0] = chip->fsm_cnt1[1] + 1;
@@ -290,7 +289,7 @@ void FM_FSM1(fm_t *chip)
 
 void FM_FSM2(fm_t *chip)
 {
-    int i, connect = 0;
+    int connect = 0;
     int cnt_comb;
     chip->fsm_cnt1[1] = chip->fsm_cnt1[0] & 0x3;
     chip->fsm_cnt2[1] = chip->fsm_cnt2[0] & 0x7;
@@ -673,180 +672,194 @@ void FM_DoShiftRegisters(fm_t *chip, int sel)
 {
     const int from = sel ^ 1;
     const int rot = sel == 0 ? 1 : 0;
-#define SLOT_ROTATE(x) rot ? ((x << 1) | ((x >> 11) & 1)) : x
-#define CH_ROTATE(x) rot ? ((x << 1) | ((x >> 5) & 1)) : x
-    // multi registers
-    chip->slot_multi[0][0][sel] = SLOT_ROTATE(chip->slot_multi[0][0][from]);
-    chip->slot_multi[0][1][sel] = SLOT_ROTATE(chip->slot_multi[0][1][from]);
-    chip->slot_multi[0][2][sel] = SLOT_ROTATE(chip->slot_multi[0][2][from]);
-    chip->slot_multi[0][3][sel] = SLOT_ROTATE(chip->slot_multi[0][3][from]);
-    chip->slot_multi[1][0][sel] = SLOT_ROTATE(chip->slot_multi[1][0][from]);
-    chip->slot_multi[1][1][sel] = SLOT_ROTATE(chip->slot_multi[1][1][from]);
-    chip->slot_multi[1][2][sel] = SLOT_ROTATE(chip->slot_multi[1][2][from]);
-    chip->slot_multi[1][3][sel] = SLOT_ROTATE(chip->slot_multi[1][3][from]);
+#define SLOT_ROTATE(x) ((x << 1) | ((x >> 11) & 1))
+#define CH_ROTATE(x) ((x << 1) | ((x >> 5) & 1))
+#define PASSTHROUGH(x) x
 
-    // dt registers
-    chip->slot_dt[0][0][sel] = SLOT_ROTATE(chip->slot_dt[0][0][from]);
-    chip->slot_dt[0][1][sel] = SLOT_ROTATE(chip->slot_dt[0][1][from]);
-    chip->slot_dt[0][2][sel] = SLOT_ROTATE(chip->slot_dt[0][2][from]);
-    chip->slot_dt[1][0][sel] = SLOT_ROTATE(chip->slot_dt[1][0][from]);
-    chip->slot_dt[1][1][sel] = SLOT_ROTATE(chip->slot_dt[1][1][from]);
-    chip->slot_dt[1][2][sel] = SLOT_ROTATE(chip->slot_dt[1][2][from]);
+#define SR_OP(sl_op, ch_op) { \
+    /* multi registers */                                                \
+    chip->slot_multi[0][0][sel] = sl_op(chip->slot_multi[0][0][from]);   \
+    chip->slot_multi[0][1][sel] = sl_op(chip->slot_multi[0][1][from]);   \
+    chip->slot_multi[0][2][sel] = sl_op(chip->slot_multi[0][2][from]);   \
+    chip->slot_multi[0][3][sel] = sl_op(chip->slot_multi[0][3][from]);   \
+    chip->slot_multi[1][0][sel] = sl_op(chip->slot_multi[1][0][from]);   \
+    chip->slot_multi[1][1][sel] = sl_op(chip->slot_multi[1][1][from]);   \
+    chip->slot_multi[1][2][sel] = sl_op(chip->slot_multi[1][2][from]);   \
+    chip->slot_multi[1][3][sel] = sl_op(chip->slot_multi[1][3][from]);   \
+                                                                         \
+    /* dt registers */                                                   \
+    chip->slot_dt[0][0][sel] = sl_op(chip->slot_dt[0][0][from]);         \
+    chip->slot_dt[0][1][sel] = sl_op(chip->slot_dt[0][1][from]);         \
+    chip->slot_dt[0][2][sel] = sl_op(chip->slot_dt[0][2][from]);         \
+    chip->slot_dt[1][0][sel] = sl_op(chip->slot_dt[1][0][from]);         \
+    chip->slot_dt[1][1][sel] = sl_op(chip->slot_dt[1][1][from]);         \
+    chip->slot_dt[1][2][sel] = sl_op(chip->slot_dt[1][2][from]);         \
+                                                                         \
+    /* tl registers */                                                   \
+    chip->slot_tl[0][0][sel] = sl_op(chip->slot_tl[0][0][from]);         \
+    chip->slot_tl[0][1][sel] = sl_op(chip->slot_tl[0][1][from]);         \
+    chip->slot_tl[0][2][sel] = sl_op(chip->slot_tl[0][2][from]);         \
+    chip->slot_tl[0][3][sel] = sl_op(chip->slot_tl[0][3][from]);         \
+    chip->slot_tl[0][4][sel] = sl_op(chip->slot_tl[0][4][from]);         \
+    chip->slot_tl[0][5][sel] = sl_op(chip->slot_tl[0][5][from]);         \
+    chip->slot_tl[0][6][sel] = sl_op(chip->slot_tl[0][6][from]);         \
+    chip->slot_tl[1][0][sel] = sl_op(chip->slot_tl[1][0][from]);         \
+    chip->slot_tl[1][1][sel] = sl_op(chip->slot_tl[1][1][from]);         \
+    chip->slot_tl[1][2][sel] = sl_op(chip->slot_tl[1][2][from]);         \
+    chip->slot_tl[1][3][sel] = sl_op(chip->slot_tl[1][3][from]);         \
+    chip->slot_tl[1][4][sel] = sl_op(chip->slot_tl[1][4][from]);         \
+    chip->slot_tl[1][5][sel] = sl_op(chip->slot_tl[1][5][from]);         \
+    chip->slot_tl[1][6][sel] = sl_op(chip->slot_tl[1][6][from]);         \
+                                                                         \
+    /* ar registers */                                                   \
+    chip->slot_ar[0][0][sel] = sl_op(chip->slot_ar[0][0][from]);         \
+    chip->slot_ar[0][1][sel] = sl_op(chip->slot_ar[0][1][from]);         \
+    chip->slot_ar[0][2][sel] = sl_op(chip->slot_ar[0][2][from]);         \
+    chip->slot_ar[0][3][sel] = sl_op(chip->slot_ar[0][3][from]);         \
+    chip->slot_ar[0][4][sel] = sl_op(chip->slot_ar[0][4][from]);         \
+    chip->slot_ar[1][0][sel] = sl_op(chip->slot_ar[1][0][from]);         \
+    chip->slot_ar[1][1][sel] = sl_op(chip->slot_ar[1][1][from]);         \
+    chip->slot_ar[1][2][sel] = sl_op(chip->slot_ar[1][2][from]);         \
+    chip->slot_ar[1][3][sel] = sl_op(chip->slot_ar[1][3][from]);         \
+    chip->slot_ar[1][4][sel] = sl_op(chip->slot_ar[1][4][from]);         \
+                                                                         \
+    /* ks registers */                                                   \
+    chip->slot_ks[0][0][sel] = sl_op(chip->slot_ks[0][0][from]);         \
+    chip->slot_ks[0][1][sel] = sl_op(chip->slot_ks[0][1][from]);         \
+    chip->slot_ks[1][0][sel] = sl_op(chip->slot_ks[1][0][from]);         \
+    chip->slot_ks[1][1][sel] = sl_op(chip->slot_ks[1][1][from]);         \
+                                                                         \
+    /* dr registers */                                                   \
+    chip->slot_dr[0][0][sel] = sl_op(chip->slot_dr[0][0][from]);         \
+    chip->slot_dr[0][1][sel] = sl_op(chip->slot_dr[0][1][from]);         \
+    chip->slot_dr[0][2][sel] = sl_op(chip->slot_dr[0][2][from]);         \
+    chip->slot_dr[0][3][sel] = sl_op(chip->slot_dr[0][3][from]);         \
+    chip->slot_dr[0][4][sel] = sl_op(chip->slot_dr[0][4][from]);         \
+    chip->slot_dr[1][0][sel] = sl_op(chip->slot_dr[1][0][from]);         \
+    chip->slot_dr[1][1][sel] = sl_op(chip->slot_dr[1][1][from]);         \
+    chip->slot_dr[1][2][sel] = sl_op(chip->slot_dr[1][2][from]);         \
+    chip->slot_dr[1][3][sel] = sl_op(chip->slot_dr[1][3][from]);         \
+    chip->slot_dr[1][4][sel] = sl_op(chip->slot_dr[1][4][from]);         \
+                                                                         \
+    /* am registers */                                                   \
+    chip->slot_am[0][0][sel] = sl_op(chip->slot_am[0][0][from]);         \
+    chip->slot_am[1][0][sel] = sl_op(chip->slot_am[1][0][from]);         \
+                                                                         \
+    /* sr registers */                                                   \
+    chip->slot_sr[0][0][sel] = sl_op(chip->slot_sr[0][0][from]);         \
+    chip->slot_sr[0][1][sel] = sl_op(chip->slot_sr[0][1][from]);         \
+    chip->slot_sr[0][2][sel] = sl_op(chip->slot_sr[0][2][from]);         \
+    chip->slot_sr[0][3][sel] = sl_op(chip->slot_sr[0][3][from]);         \
+    chip->slot_sr[0][4][sel] = sl_op(chip->slot_sr[0][4][from]);         \
+    chip->slot_sr[1][0][sel] = sl_op(chip->slot_sr[1][0][from]);         \
+    chip->slot_sr[1][1][sel] = sl_op(chip->slot_sr[1][1][from]);         \
+    chip->slot_sr[1][2][sel] = sl_op(chip->slot_sr[1][2][from]);         \
+    chip->slot_sr[1][3][sel] = sl_op(chip->slot_sr[1][3][from]);         \
+    chip->slot_sr[1][4][sel] = sl_op(chip->slot_sr[1][4][from]);         \
+                                                                         \
+    /* rr registers */                                                   \
+    chip->slot_rr[0][0][sel] = sl_op(chip->slot_rr[0][0][from]);         \
+    chip->slot_rr[0][1][sel] = sl_op(chip->slot_rr[0][1][from]);         \
+    chip->slot_rr[0][2][sel] = sl_op(chip->slot_rr[0][2][from]);         \
+    chip->slot_rr[0][3][sel] = sl_op(chip->slot_rr[0][3][from]);         \
+    chip->slot_rr[1][0][sel] = sl_op(chip->slot_rr[1][0][from]);         \
+    chip->slot_rr[1][1][sel] = sl_op(chip->slot_rr[1][1][from]);         \
+    chip->slot_rr[1][2][sel] = sl_op(chip->slot_rr[1][2][from]);         \
+    chip->slot_rr[1][3][sel] = sl_op(chip->slot_rr[1][3][from]);         \
+                                                                         \
+    /* sl registers */                                                   \
+    chip->slot_sl[0][0][sel] = sl_op(chip->slot_sl[0][0][from]);         \
+    chip->slot_sl[0][1][sel] = sl_op(chip->slot_sl[0][1][from]);         \
+    chip->slot_sl[0][2][sel] = sl_op(chip->slot_sl[0][2][from]);         \
+    chip->slot_sl[0][3][sel] = sl_op(chip->slot_sl[0][3][from]);         \
+    chip->slot_sl[1][0][sel] = sl_op(chip->slot_sl[1][0][from]);         \
+    chip->slot_sl[1][1][sel] = sl_op(chip->slot_sl[1][1][from]);         \
+    chip->slot_sl[1][2][sel] = sl_op(chip->slot_sl[1][2][from]);         \
+    chip->slot_sl[1][3][sel] = sl_op(chip->slot_sl[1][3][from]);         \
+                                                                         \
+    /* ssg eg registers */                                               \
+    chip->slot_ssg_eg[0][0][sel] = sl_op(chip->slot_ssg_eg[0][0][from]); \
+    chip->slot_ssg_eg[0][1][sel] = sl_op(chip->slot_ssg_eg[0][1][from]); \
+    chip->slot_ssg_eg[0][2][sel] = sl_op(chip->slot_ssg_eg[0][2][from]); \
+    chip->slot_ssg_eg[0][3][sel] = sl_op(chip->slot_ssg_eg[0][3][from]); \
+    chip->slot_ssg_eg[1][0][sel] = sl_op(chip->slot_ssg_eg[1][0][from]); \
+    chip->slot_ssg_eg[1][1][sel] = sl_op(chip->slot_ssg_eg[1][1][from]); \
+    chip->slot_ssg_eg[1][2][sel] = sl_op(chip->slot_ssg_eg[1][2][from]); \
+    chip->slot_ssg_eg[1][3][sel] = sl_op(chip->slot_ssg_eg[1][3][from]); \
+                                                                         \
+    /* fm channel registers */                                           \
+    chip->chan_fnum[0][sel] = ch_op(chip->chan_fnum[0][from]);           \
+    chip->chan_fnum[1][sel] = ch_op(chip->chan_fnum[1][from]);           \
+    chip->chan_fnum[2][sel] = ch_op(chip->chan_fnum[2][from]);           \
+    chip->chan_fnum[3][sel] = ch_op(chip->chan_fnum[3][from]);           \
+    chip->chan_fnum[4][sel] = ch_op(chip->chan_fnum[4][from]);           \
+    chip->chan_fnum[5][sel] = ch_op(chip->chan_fnum[5][from]);           \
+    chip->chan_fnum[6][sel] = ch_op(chip->chan_fnum[6][from]);           \
+    chip->chan_fnum[7][sel] = ch_op(chip->chan_fnum[7][from]);           \
+    chip->chan_fnum[8][sel] = ch_op(chip->chan_fnum[8][from]);           \
+    chip->chan_fnum[9][sel] = ch_op(chip->chan_fnum[9][from]);           \
+    chip->chan_fnum[10][sel] = ch_op(chip->chan_fnum[10][from]);         \
+                                                                         \
+    /* fm ch3 registers */                                               \
+    chip->chan_fnum_ch3[0][sel] = ch_op(chip->chan_fnum_ch3[0][from]);   \
+    chip->chan_fnum_ch3[1][sel] = ch_op(chip->chan_fnum_ch3[1][from]);   \
+    chip->chan_fnum_ch3[2][sel] = ch_op(chip->chan_fnum_ch3[2][from]);   \
+    chip->chan_fnum_ch3[3][sel] = ch_op(chip->chan_fnum_ch3[3][from]);   \
+    chip->chan_fnum_ch3[4][sel] = ch_op(chip->chan_fnum_ch3[4][from]);   \
+    chip->chan_fnum_ch3[5][sel] = ch_op(chip->chan_fnum_ch3[5][from]);   \
+    chip->chan_fnum_ch3[6][sel] = ch_op(chip->chan_fnum_ch3[6][from]);   \
+    chip->chan_fnum_ch3[7][sel] = ch_op(chip->chan_fnum_ch3[7][from]);   \
+    chip->chan_fnum_ch3[8][sel] = ch_op(chip->chan_fnum_ch3[8][from]);   \
+    chip->chan_fnum_ch3[9][sel] = ch_op(chip->chan_fnum_ch3[9][from]);   \
+    chip->chan_fnum_ch3[10][sel] = ch_op(chip->chan_fnum_ch3[10][from]); \
+                                                                         \
+                                                                         \
+    /* block channel registers */                                        \
+    chip->chan_block[0][sel] = ch_op(chip->chan_block[0][from]);         \
+    chip->chan_block[1][sel] = ch_op(chip->chan_block[1][from]);         \
+    chip->chan_block[2][sel] = ch_op(chip->chan_block[2][from]);         \
+                                                                         \
+    /* block ch3 registers */                                            \
+    chip->chan_block_ch3[0][sel] = ch_op(chip->chan_block_ch3[0][from]); \
+    chip->chan_block_ch3[1][sel] = ch_op(chip->chan_block_ch3[1][from]); \
+    chip->chan_block_ch3[2][sel] = ch_op(chip->chan_block_ch3[2][from]); \
+                                                                         \
+    /* connect channel registers */                                      \
+    chip->chan_connect[0][sel] = ch_op(chip->chan_connect[0][from]);     \
+    chip->chan_connect[1][sel] = ch_op(chip->chan_connect[1][from]);     \
+    chip->chan_connect[2][sel] = ch_op(chip->chan_connect[2][from]);     \
+                                                                         \
+    /* fb channel registers */                                           \
+    chip->chan_fb[0][sel] = ch_op(chip->chan_fb[0][from]);               \
+    chip->chan_fb[1][sel] = ch_op(chip->chan_fb[1][from]);               \
+    chip->chan_fb[2][sel] = ch_op(chip->chan_fb[2][from]);               \
+                                                                         \
+    /* pms channel registers */                                          \
+    chip->chan_pms[0][sel] = ch_op(chip->chan_pms[0][from]);             \
+    chip->chan_pms[1][sel] = ch_op(chip->chan_pms[1][from]);             \
+    chip->chan_pms[2][sel] = ch_op(chip->chan_pms[2][from]);             \
+                                                                         \
+    /* ams channel registers */                                          \
+    chip->chan_ams[0][sel] = ch_op(chip->chan_ams[0][from]);             \
+    chip->chan_ams[1][sel] = ch_op(chip->chan_ams[1][from]);             \
+                                                                         \
+    /* pan channel registers */                                          \
+    chip->chan_pan[0][sel] = ch_op(chip->chan_pan[0][from]);             \
+    chip->chan_pan[1][sel] = ch_op(chip->chan_pan[1][from]);             \
+    };
 
-    // tl registers
-    chip->slot_tl[0][0][sel] = SLOT_ROTATE(chip->slot_tl[0][0][from]);
-    chip->slot_tl[0][1][sel] = SLOT_ROTATE(chip->slot_tl[0][1][from]);
-    chip->slot_tl[0][2][sel] = SLOT_ROTATE(chip->slot_tl[0][2][from]);
-    chip->slot_tl[0][3][sel] = SLOT_ROTATE(chip->slot_tl[0][3][from]);
-    chip->slot_tl[0][4][sel] = SLOT_ROTATE(chip->slot_tl[0][4][from]);
-    chip->slot_tl[0][5][sel] = SLOT_ROTATE(chip->slot_tl[0][5][from]);
-    chip->slot_tl[0][6][sel] = SLOT_ROTATE(chip->slot_tl[0][6][from]);
-    chip->slot_tl[1][0][sel] = SLOT_ROTATE(chip->slot_tl[1][0][from]);
-    chip->slot_tl[1][1][sel] = SLOT_ROTATE(chip->slot_tl[1][1][from]);
-    chip->slot_tl[1][2][sel] = SLOT_ROTATE(chip->slot_tl[1][2][from]);
-    chip->slot_tl[1][3][sel] = SLOT_ROTATE(chip->slot_tl[1][3][from]);
-    chip->slot_tl[1][4][sel] = SLOT_ROTATE(chip->slot_tl[1][4][from]);
-    chip->slot_tl[1][5][sel] = SLOT_ROTATE(chip->slot_tl[1][5][from]);
-    chip->slot_tl[1][6][sel] = SLOT_ROTATE(chip->slot_tl[1][6][from]);
-
-    // ar registers
-    chip->slot_ar[0][0][sel] = SLOT_ROTATE(chip->slot_ar[0][0][from]);
-    chip->slot_ar[0][1][sel] = SLOT_ROTATE(chip->slot_ar[0][1][from]);
-    chip->slot_ar[0][2][sel] = SLOT_ROTATE(chip->slot_ar[0][2][from]);
-    chip->slot_ar[0][3][sel] = SLOT_ROTATE(chip->slot_ar[0][3][from]);
-    chip->slot_ar[0][4][sel] = SLOT_ROTATE(chip->slot_ar[0][4][from]);
-    chip->slot_ar[1][0][sel] = SLOT_ROTATE(chip->slot_ar[1][0][from]);
-    chip->slot_ar[1][1][sel] = SLOT_ROTATE(chip->slot_ar[1][1][from]);
-    chip->slot_ar[1][2][sel] = SLOT_ROTATE(chip->slot_ar[1][2][from]);
-    chip->slot_ar[1][3][sel] = SLOT_ROTATE(chip->slot_ar[1][3][from]);
-    chip->slot_ar[1][4][sel] = SLOT_ROTATE(chip->slot_ar[1][4][from]);
-
-    // ks registers
-    chip->slot_ks[0][0][sel] = SLOT_ROTATE(chip->slot_ks[0][0][from]);
-    chip->slot_ks[0][1][sel] = SLOT_ROTATE(chip->slot_ks[0][1][from]);
-    chip->slot_ks[1][0][sel] = SLOT_ROTATE(chip->slot_ks[1][0][from]);
-    chip->slot_ks[1][1][sel] = SLOT_ROTATE(chip->slot_ks[1][1][from]);
-
-    // dr registers
-    chip->slot_dr[0][0][sel] = SLOT_ROTATE(chip->slot_dr[0][0][from]);
-    chip->slot_dr[0][1][sel] = SLOT_ROTATE(chip->slot_dr[0][1][from]);
-    chip->slot_dr[0][2][sel] = SLOT_ROTATE(chip->slot_dr[0][2][from]);
-    chip->slot_dr[0][3][sel] = SLOT_ROTATE(chip->slot_dr[0][3][from]);
-    chip->slot_dr[0][4][sel] = SLOT_ROTATE(chip->slot_dr[0][4][from]);
-    chip->slot_dr[1][0][sel] = SLOT_ROTATE(chip->slot_dr[1][0][from]);
-    chip->slot_dr[1][1][sel] = SLOT_ROTATE(chip->slot_dr[1][1][from]);
-    chip->slot_dr[1][2][sel] = SLOT_ROTATE(chip->slot_dr[1][2][from]);
-    chip->slot_dr[1][3][sel] = SLOT_ROTATE(chip->slot_dr[1][3][from]);
-    chip->slot_dr[1][4][sel] = SLOT_ROTATE(chip->slot_dr[1][4][from]);
-    
-    // am registers
-    chip->slot_am[0][0][sel] = SLOT_ROTATE(chip->slot_am[0][0][from]);
-    chip->slot_am[1][0][sel] = SLOT_ROTATE(chip->slot_am[1][0][from]);
-
-    // sr registers
-    chip->slot_sr[0][0][sel] = SLOT_ROTATE(chip->slot_sr[0][0][from]);
-    chip->slot_sr[0][1][sel] = SLOT_ROTATE(chip->slot_sr[0][1][from]);
-    chip->slot_sr[0][2][sel] = SLOT_ROTATE(chip->slot_sr[0][2][from]);
-    chip->slot_sr[0][3][sel] = SLOT_ROTATE(chip->slot_sr[0][3][from]);
-    chip->slot_sr[0][4][sel] = SLOT_ROTATE(chip->slot_sr[0][4][from]);
-    chip->slot_sr[1][0][sel] = SLOT_ROTATE(chip->slot_sr[1][0][from]);
-    chip->slot_sr[1][1][sel] = SLOT_ROTATE(chip->slot_sr[1][1][from]);
-    chip->slot_sr[1][2][sel] = SLOT_ROTATE(chip->slot_sr[1][2][from]);
-    chip->slot_sr[1][3][sel] = SLOT_ROTATE(chip->slot_sr[1][3][from]);
-    chip->slot_sr[1][4][sel] = SLOT_ROTATE(chip->slot_sr[1][4][from]);
-
-    // rr registers
-    chip->slot_rr[0][0][sel] = SLOT_ROTATE(chip->slot_rr[0][0][from]);
-    chip->slot_rr[0][1][sel] = SLOT_ROTATE(chip->slot_rr[0][1][from]);
-    chip->slot_rr[0][2][sel] = SLOT_ROTATE(chip->slot_rr[0][2][from]);
-    chip->slot_rr[0][3][sel] = SLOT_ROTATE(chip->slot_rr[0][3][from]);
-    chip->slot_rr[1][0][sel] = SLOT_ROTATE(chip->slot_rr[1][0][from]);
-    chip->slot_rr[1][1][sel] = SLOT_ROTATE(chip->slot_rr[1][1][from]);
-    chip->slot_rr[1][2][sel] = SLOT_ROTATE(chip->slot_rr[1][2][from]);
-    chip->slot_rr[1][3][sel] = SLOT_ROTATE(chip->slot_rr[1][3][from]);
-
-    // sl registers
-    chip->slot_sl[0][0][sel] = SLOT_ROTATE(chip->slot_sl[0][0][from]);
-    chip->slot_sl[0][1][sel] = SLOT_ROTATE(chip->slot_sl[0][1][from]);
-    chip->slot_sl[0][2][sel] = SLOT_ROTATE(chip->slot_sl[0][2][from]);
-    chip->slot_sl[0][3][sel] = SLOT_ROTATE(chip->slot_sl[0][3][from]);
-    chip->slot_sl[1][0][sel] = SLOT_ROTATE(chip->slot_sl[1][0][from]);
-    chip->slot_sl[1][1][sel] = SLOT_ROTATE(chip->slot_sl[1][1][from]);
-    chip->slot_sl[1][2][sel] = SLOT_ROTATE(chip->slot_sl[1][2][from]);
-    chip->slot_sl[1][3][sel] = SLOT_ROTATE(chip->slot_sl[1][3][from]);
-
-    // ssg eg registers
-    chip->slot_ssg_eg[0][0][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][0][from]);
-    chip->slot_ssg_eg[0][1][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][1][from]);
-    chip->slot_ssg_eg[0][2][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][2][from]);
-    chip->slot_ssg_eg[0][3][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][3][from]);
-    chip->slot_ssg_eg[1][0][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][0][from]);
-    chip->slot_ssg_eg[1][1][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][1][from]);
-    chip->slot_ssg_eg[1][2][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][2][from]);
-    chip->slot_ssg_eg[1][3][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][3][from]);
-
-    // fm channel registers
-    chip->chan_fnum[0][sel] = CH_ROTATE(chip->chan_fnum[0][from]);
-    chip->chan_fnum[1][sel] = CH_ROTATE(chip->chan_fnum[1][from]);
-    chip->chan_fnum[2][sel] = CH_ROTATE(chip->chan_fnum[2][from]);
-    chip->chan_fnum[3][sel] = CH_ROTATE(chip->chan_fnum[3][from]);
-    chip->chan_fnum[4][sel] = CH_ROTATE(chip->chan_fnum[4][from]);
-    chip->chan_fnum[5][sel] = CH_ROTATE(chip->chan_fnum[5][from]);
-    chip->chan_fnum[6][sel] = CH_ROTATE(chip->chan_fnum[6][from]);
-    chip->chan_fnum[7][sel] = CH_ROTATE(chip->chan_fnum[7][from]);
-    chip->chan_fnum[8][sel] = CH_ROTATE(chip->chan_fnum[8][from]);
-    chip->chan_fnum[9][sel] = CH_ROTATE(chip->chan_fnum[9][from]);
-    chip->chan_fnum[10][sel] = CH_ROTATE(chip->chan_fnum[10][from]);
-
-    // fm ch3 registers
-    chip->chan_fnum_ch3[0][sel] = CH_ROTATE(chip->chan_fnum_ch3[0][from]);
-    chip->chan_fnum_ch3[1][sel] = CH_ROTATE(chip->chan_fnum_ch3[1][from]);
-    chip->chan_fnum_ch3[2][sel] = CH_ROTATE(chip->chan_fnum_ch3[2][from]);
-    chip->chan_fnum_ch3[3][sel] = CH_ROTATE(chip->chan_fnum_ch3[3][from]);
-    chip->chan_fnum_ch3[4][sel] = CH_ROTATE(chip->chan_fnum_ch3[4][from]);
-    chip->chan_fnum_ch3[5][sel] = CH_ROTATE(chip->chan_fnum_ch3[5][from]);
-    chip->chan_fnum_ch3[6][sel] = CH_ROTATE(chip->chan_fnum_ch3[6][from]);
-    chip->chan_fnum_ch3[7][sel] = CH_ROTATE(chip->chan_fnum_ch3[7][from]);
-    chip->chan_fnum_ch3[8][sel] = CH_ROTATE(chip->chan_fnum_ch3[8][from]);
-    chip->chan_fnum_ch3[9][sel] = CH_ROTATE(chip->chan_fnum_ch3[9][from]);
-    chip->chan_fnum_ch3[10][sel] = CH_ROTATE(chip->chan_fnum_ch3[10][from]);
-
-
-    // block channel registers
-    chip->chan_block[0][sel] = CH_ROTATE(chip->chan_block[0][from]);
-    chip->chan_block[1][sel] = CH_ROTATE(chip->chan_block[1][from]);
-    chip->chan_block[2][sel] = CH_ROTATE(chip->chan_block[2][from]);
-
-    // block ch3 registers
-    chip->chan_block_ch3[0][sel] = CH_ROTATE(chip->chan_block_ch3[0][from]);
-    chip->chan_block_ch3[1][sel] = CH_ROTATE(chip->chan_block_ch3[1][from]);
-    chip->chan_block_ch3[2][sel] = CH_ROTATE(chip->chan_block_ch3[2][from]);
-
-    // connect channel registers
-    chip->chan_connect[0][sel] = CH_ROTATE(chip->chan_connect[0][from]);
-    chip->chan_connect[1][sel] = CH_ROTATE(chip->chan_connect[1][from]);
-    chip->chan_connect[2][sel] = CH_ROTATE(chip->chan_connect[2][from]);
-
-    // fb channel registers
-    chip->chan_fb[0][sel] = CH_ROTATE(chip->chan_fb[0][from]);
-    chip->chan_fb[1][sel] = CH_ROTATE(chip->chan_fb[1][from]);
-    chip->chan_fb[2][sel] = CH_ROTATE(chip->chan_fb[2][from]);
-
-    // pms channel registers
-    chip->chan_pms[0][sel] = CH_ROTATE(chip->chan_pms[0][from]);
-    chip->chan_pms[1][sel] = CH_ROTATE(chip->chan_pms[1][from]);
-    chip->chan_pms[2][sel] = CH_ROTATE(chip->chan_pms[2][from]);
-
-    // ams channel registers
-    chip->chan_ams[0][sel] = CH_ROTATE(chip->chan_ams[0][from]);
-    chip->chan_ams[1][sel] = CH_ROTATE(chip->chan_ams[1][from]);
-
-    // pan channel registers
-    chip->chan_pan[0][sel] = CH_ROTATE(chip->chan_pan[0][from]);
-    chip->chan_pan[1][sel] = CH_ROTATE(chip->chan_pan[1][from]);
+    if (rot)
+    {
+        SR_OP(SLOT_ROTATE, CH_ROTATE);
+    }
+    else
+    {
+        SR_OP(PASSTHROUGH, PASSTHROUGH);
+    }
 
 #undef SLOT_ROTATE
 #undef CH_ROTATE
+#undef PASSTHROUGH
 }
 
 void FM_FMRegisters1(fm_t *chip)
