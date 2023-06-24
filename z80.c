@@ -72,7 +72,7 @@ void Z80_StateLogic(z80_t* chip, int clk)
     chip->w132 = !clk && chip->l36;
     if (clk)
         chip->w59 = chip->w58;
-    if (clk)
+    if (!clk)
         chip->w63 = chip->l23;
     chip->w65 = !(!chip->l24 || clk || !chip->w59);
     chip->w67 = !clk && !chip->w59;
