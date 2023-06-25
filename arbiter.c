@@ -73,11 +73,6 @@ void ARB_UpdateDelays(arbiter_t *chip, uint64_t cycles)
     chip->input.d8_out = DELAY_Update(&chip->d8, cycles, chip->input.ext_m3);
 }
 
-/* 
-   In theory these routines could be inlined to speed up ARB_Clock however i will leave this decision to the project
-   maintainter.
-*/
-
 void ARB_ClockZToV(arbiter_t *chip)
 {
     chip->w143 = !chip->input.ext_m3 || chip->w220 || !chip->za15_in; // 68k bank access
@@ -558,7 +553,7 @@ void ARB_Clock(arbiter_t *chip)
     chip->w194 = chip->input.ext_as_in || chip->input.ext_lds_in || chip->input.ext_uds_in || (chip->input.ext_vaddress_in & 0x7fff80) != 0x50a000; // TMSS
     chip->w310 = !((chip->input.ext_vaddress_in & 0x7fff80) == 0x600000 && !chip->input.ext_as_in); // VDP range (goes to VSYNC pin)
 
-    if (!chip->input.ext_m3)
+    if (chip->input.ext_m3)
     {
         chip->w119 = (chip->input.ext_vaddress_in & 0x7f8000) != 0x500000; // z80 ram
         chip->w128 = (chip->input.ext_vaddress_in & 0x7fff80) != 0x508000; // IO chip
@@ -570,6 +565,19 @@ void ARB_Clock(arbiter_t *chip)
         chip->w136 = !((chip->input.ext_zaddress_in & 0xc000) == 0 && !chip->w220); // Z80 RAM
         chip->w140 = !((chip->input.ext_zaddress_in & 0xe000) == 0x4000 && !chip->w220); // YM3438
         chip->w150 = !((chip->input.ext_zaddress_in & 0xff00) == 0x6000 && !chip->input.ext_zwr_in && !chip->w220); // z80 bank
+    }
+    else
+    {
+        chip->w119 = 1; // z80 ram
+        chip->w128 = 1; // IO chip
+        chip->w122 = 1; // Z80 ctrl
+        chip->w129 = 1; // FDC
+        chip->w124 = 1; // TIME
+        chip->ext_ia14 = 1; // IA14
+        chip->w86 = 1; // VDP
+        chip->w136 = 1; // Z80 RAM
+        chip->w140 = 1; // YM3438
+        chip->w150 = 1; // z80 bank
     }
 
     ARB_ClockZToV(chip);
