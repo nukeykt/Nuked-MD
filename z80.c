@@ -417,7 +417,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
             chip->w92 = !chip->l43;
     }
     if (chip->w55)
-        chip->w100 = 1;
+        chip->w100 = 0;
     else if (!clk)
     {
         if (!chip->w98 && chip->w103)
