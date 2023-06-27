@@ -1954,12 +1954,12 @@ void Z80_AluLogic2(z80_t *chip, int clk)
         if (chip->w480)
         {
             chip->w498 &= 0xf0;
-            chip->w498 ^= (chip->w499 & 15) ^ 15;
+            chip->w498 |= (chip->w499 & 15) ^ 15;
         }
     }
     chip->w502 = !((chip->w498 & 8) != 0 && ((chip->w498 & 4) != 0 || (chip->w498 & 2) != 0));
     chip->w501 = !((chip->w498 & 128) != 0 && ((chip->w498 & 64) != 0 || (chip->w498 & 32) != 0
-        || ((chip->w498 & 16) != 0) && !chip->w502));
+        || ((chip->w498 & 16) != 0 && !chip->w502)));
     chip->w443 = !(chip->pla[21] && chip->l83 && chip->w501);
     chip->w444 = !(chip->pla[21] && chip->l84 && chip->w502);
     if (chip->w446)
