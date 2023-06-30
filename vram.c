@@ -25,20 +25,13 @@
 
 extern fc1004_t ym;
 
-vram_input_t vram_input, vram_input_o;
+static vram_bank_t bank0, bank1;
+static int vram_flat[128 * 1024];
 
-static int vram[64 * 1024];
-static int vram_flat[64 * 1024];
-static int vram_page[256];
-static int vram_addr;
-static int vram_dt;
-static int vram_addr_ser;
-static int vram_ser;
-static int vram_addr_o;
-
-void update_vram()
+void update_vram_bank(vram_bank_t *bank, int id)
 {
     int cas, wr, rd, owr, ord;
+    int oaddr;
     int odata;
     int ocas;
     // o_vram_ras
@@ -47,87 +40,110 @@ void update_vram()
     // o_vram_oe1
     // o_vram_sc
     // o_vram_se0
-    vram_input.ras = ym.vdp.o_vram_ras;
-    vram_input.cas = ym.vdp.o_vram_cas;
-    vram_input.we0 = ym.vdp.o_vram_we0;
-    vram_input.oe1 = ym.vdp.o_vram_oe1;
-    vram_input.sc = ym.vdp.o_vram_sc;
-    vram_input.se0 = ym.vdp.o_vram_se0;
-    vram_input.ad = ym.vdp.o_vram_ad;
-    if (!memcmp(&vram_input, &vram_input_o, sizeof(vram_input)))
-        return;
-    cas = !vram_input.ras && !vram_input.cas;
-    wr = !vram_input.ras && !vram_input.cas && !vram_input.we0;
-    rd = !vram_input.ras && !vram_input.cas && !vram_input.oe1 && !vram_dt;
-
-    odata = vram_input.ad;
-    if (vram_dt)
+    if (id == 0)
     {
-        if (!vram_input_o.oe1 && vram_input.oe1)
+        bank->vram_input.ras = ym.vdp.o_vram_ras;
+        bank->vram_input.cas = ym.vdp.o_vram_cas;
+        bank->vram_input.we0 = ym.vdp.o_vram_we0;
+        bank->vram_input.oe1 = ym.vdp.o_vram_oe1;
+        bank->vram_input.sc = ym.vdp.o_vram_sc;
+        bank->vram_input.se0 = ym.vdp.o_vram_se0;
+        bank->vram_input.ad = ym.vdp.o_vram_ad;
+        bank->vram_input.rd= ym.vdp.o_vram_ad;
+    }
+    else
+    {
+        bank->vram_input.ras = ym.vdp.o_vram_ras;
+        bank->vram_input.cas = ym.vdp.o_vram_cas;
+        bank->vram_input.we0 = ym.vdp.o_vram_we1;
+        bank->vram_input.oe1 = ym.vdp.o_vram_oe1;
+        bank->vram_input.sc = ym.vdp.o_vram_sc;
+        bank->vram_input.se0 = ym.vdp.o_vram_se1;
+        bank->vram_input.ad = ym.vdp.o_vram_ad;
+        bank->vram_input.rd = ym.vdp.o_vram_rd;
+    }
+    if (!memcmp(&bank->vram_input, &bank->vram_input_o, sizeof(vram_input_t)))
+        return;
+    cas = !bank->vram_input.ras && !bank->vram_input.cas;
+    wr = !bank->vram_input.ras && !bank->vram_input.cas && !bank->vram_input.we0;
+    rd = !bank->vram_input.ras && !bank->vram_input.cas && !bank->vram_input.oe1 && !bank->vram_dt;
+
+    oaddr = bank->vram_input.ad;
+    odata = bank->vram_input.rd;
+    if (bank->vram_dt)
+    {
+        if (!bank->vram_input_o.oe1 && bank->vram_input.oe1)
         {
-            int unscramble = 0;
-            vram_addr_ser = vram_addr;
-            unscramble |= vram_addr & 3;
-            unscramble |= (vram_addr >> 6) & 0x3fc;
-            unscramble |= (vram_addr & 0xfc) << 8;
-            memcpy(vram_page, &vram[vram_addr & 0xff00], sizeof(vram_page));
-            //vram_ser = vram_page[vram_addr_ser & 0xff];
-            //if (ym.vdp.l106[1] > 320)
-            //    printf("dt %x\n", unscramble);
+            bank->vram_addr_ser = bank->vram_addr;
+            memcpy(bank->vram_page, &bank->vram[bank->vram_addr & 0xff00], sizeof(bank->vram_page));
         }
     }
 
-    if (vram_input_o.ras && !vram_input.ras)
+    if (bank->vram_input_o.ras && !bank->vram_input.ras)
     {
-        vram_dt = !vram_input.oe1;
-        vram_addr &= ~0xff00;
-        vram_addr |= (odata & 255) << 8;
+        bank->vram_dt = !bank->vram_input.oe1;
+        bank->vram_addr &= ~0xff00;
+        bank->vram_addr |= (oaddr & 255) << 8;
     }
-    ocas = !vram_input_o.ras && !vram_input_o.cas;
+    ocas = !bank->vram_input_o.ras && !bank->vram_input_o.cas;
     if (!ocas && cas)
     {
-        vram_addr &= ~0xff;
-        vram_addr |= odata & 255;
+        bank->vram_addr &= ~0xff;
+        bank->vram_addr |= oaddr & 255;
     }
-    owr = !vram_input_o.ras && !vram_input_o.cas && !vram_input_o.we0;
+    owr = !bank->vram_input_o.ras && !bank->vram_input_o.cas && !bank->vram_input_o.we0;
     if (!owr && wr)
     {
         int unscramble = 0;
-        vram[vram_addr] = odata;
-        unscramble |= vram_addr & 3;
-        unscramble |= (vram_addr >> 6) & 0x3fc;
-        unscramble |= (vram_addr & 0xfc) << 8;
-        vram_flat[unscramble] = odata;
-        if (unscramble == 0xc20 && odata != 0)
-            unscramble += 0;
+        bank->vram[bank->vram_addr] = odata;
+        if (ym.vdp.reg_81_b7)
+        {
+            unscramble |= bank->vram_addr & 1;
+            unscramble |= (bank->vram_addr >> 7) & 0x1fe;
+            unscramble |= (bank->vram_addr & 0xfe) << 8;
+            vram_flat[unscramble * 2 + id] = odata;
+        }
+        else
+        {
+            unscramble |= bank->vram_addr & 3;
+            unscramble |= (bank->vram_addr >> 6) & 0x3fc;
+            unscramble |= (bank->vram_addr & 0xfc) << 8;
+            vram_flat[unscramble] = odata;
+        }
     }
-    ord = !vram_input_o.ras && !vram_input_o.cas && !vram_input_o.oe1 && !vram_dt;
+    ord = !bank->vram_input_o.ras && !bank->vram_input_o.cas && !bank->vram_input_o.oe1 && !bank->vram_dt;
     if (!ord && rd)
     {
-        ym.vdp.input.i_vram_ad = vram[vram_addr & 0xffff];
+        if (id == 0)
+            ym.vdp.input.i_vram_ad = bank->vram[bank->vram_addr & 0xffff];
+        else
+            ym.vdp.input.i_vram_rd = bank->vram[bank->vram_addr & 0xffff];
     }
-    if (!vram_input_o.sc && vram_input.sc && !vram_input.se0)
+    if (!bank->vram_input_o.sc && bank->vram_input.sc/* && !bank->vram_input.se0*/)
     {
         int low, high;
         int unscramble = 0;
-        unscramble |= vram_addr_ser & 3;
-        unscramble |= (vram_addr_ser >> 6) & 0x3fc;
-        unscramble |= (vram_addr_ser & 0xfc) << 8;
-        vram_ser = vram_page[vram_addr_ser & 0xff];
-        if (unscramble >= 0x3800 && (unscramble & 3) == 1)
-        {
-            vram_ser ^= 0;
-        }
-        low = vram_addr_ser & 255;
-        high = vram_addr_ser & 0xff00;
+        unscramble |= bank->vram_addr_ser & 3;
+        unscramble |= (bank->vram_addr_ser >> 6) & 0x3fc;
+        unscramble |= (bank->vram_addr_ser & 0xfc) << 8;
+        bank->vram_ser = bank->vram_page[bank->vram_addr_ser & 0xff];
+        low = bank->vram_addr_ser & 255;
+        high = bank->vram_addr_ser & 0xff00;
         low++;
         low &= 255;
-        vram_addr_ser = high | low;
+        bank->vram_addr_ser = high | low;
     }
-    if (!vram_input.se0)
+    if (!bank->vram_input.se0)
     {
-        ym.vdp.input.i_vram_sd = vram_ser;
+        ym.vdp.input.i_vram_sd = bank->vram_ser;
     }
 
-    vram_input_o = vram_input;
+    bank->vram_input_o = bank->vram_input;
+}
+
+
+void update_vram()
+{
+    update_vram_bank(&bank0, 0);
+    update_vram_bank(&bank1, 1);
 }

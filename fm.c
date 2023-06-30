@@ -1769,7 +1769,6 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     csm_kon = chip->fsm_ch3_sel && chip->timer_csm_key_dlatch;
     kon2 = ((chip->mode_kon[3][1] >> 5) & 1) | csm_kon;
-
     chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
     chip->eg_kon_csm[0] = (chip->eg_kon_csm[1] << 1) | csm_kon;
 

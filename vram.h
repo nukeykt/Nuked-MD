@@ -27,6 +27,18 @@ typedef struct {
     int sc;
     int se0;
     int ad;
+    int rd;
 } vram_input_t;
+
+typedef struct {
+    vram_input_t vram_input, vram_input_o;
+    int vram[64 * 1024];
+    int vram_page[256];
+    int vram_addr;
+    int vram_dt;
+    int vram_addr_ser;
+    int vram_ser;
+    int vram_addr_o;
+} vram_bank_t;
 
 void update_vram();
