@@ -73,7 +73,7 @@ void ARB_UpdateDelays(arbiter_t *chip, uint64_t cycles)
     chip->input.d8_out = DELAY_Update(&chip->d8, cycles, chip->input.ext_m3);
 }
 
-static inline void ARB_ClockZToV(arbiter_t *chip)
+static void ARB_ClockZToV(arbiter_t *chip)
 {
     chip->w143 = !chip->input.ext_m3 || chip->w220 || !chip->za15_in; // 68k bank access
     chip->w185 = chip->w86 || chip->w220; // z80 VDP access
@@ -157,7 +157,7 @@ void ARB_ClockEDCLK(arbiter_edclk_t *chip)
     SDFFS_Update(&chip->dff8, chip->w2, chip->w5, sres);
 }
 
-static inline void ARB_ClockM3(arbiter_t *chip)
+static void ARB_ClockM3(arbiter_t *chip)
 {
     // VDP mreq
     chip->w163 = chip->vd8 || chip->mreq_in || chip->va22_in || chip->input.ext_m3; // FIXME
@@ -190,7 +190,7 @@ static inline void ARB_ClockM3(arbiter_t *chip)
     chip->w328 = !(!chip->dff58.l2 || chip->w334);
 }
 
-static inline void ARB_ClockZ80(arbiter_t *chip)
+static void ARB_ClockZ80(arbiter_t *chip)
 {
     chip->w113 = chip->input.ext_iorq || chip->input.ext_m3 || !chip->input.ext_m1;
 
@@ -214,7 +214,7 @@ static inline void ARB_ClockZ80(arbiter_t *chip)
     chip->ext_ref = !chip->w318;
 }
 
-static inline void ARB_ClockVToZ(arbiter_t *chip)
+static void ARB_ClockVToZ(arbiter_t *chip)
 {
     // ts1
     chip->w63 = !(chip->w99 && !chip->w122 && !chip->input.ext_uds_in);
@@ -262,14 +262,14 @@ static inline void ARB_ClockVToZ(arbiter_t *chip)
     SDFF_Update(&chip->dff70, !chip->input.ext_vclk, chip->w339);
 }
 
-static inline void ARB_ClockInterrupt(arbiter_t *chip)
+static void ARB_ClockInterrupt(arbiter_t *chip)
 {
     chip->w249 = !(chip->ztov && chip->fc11);
     chip->ext_intak = chip->w249;
     chip->ext_vpa = chip->input.ext_as_in || chip->w249;
 }
 
-static inline void ARB_ClockCart(arbiter_t *chip)
+static void ARB_ClockCart(arbiter_t *chip)
 {
     chip->w73 = chip->sres_syncv.l2 && chip->input.ext_m3;
 
@@ -361,7 +361,7 @@ static inline void ARB_ClockCart(arbiter_t *chip)
     chip->w70 = chip->w27 && chip->w71; // refresh???
 }
 
-static inline void ARB_ClockVCLKDivider(arbiter_t *chip)
+static void ARB_ClockVCLKDivider(arbiter_t *chip)
 {
     chip->w286 = !(chip->w287 || !chip->sres_syncv.l2);
     chip->w289 = chip->w286;
@@ -393,7 +393,7 @@ static inline void ARB_ClockVCLKDivider(arbiter_t *chip)
     SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.nq, chip->dff33.nq);
 }
 
-static inline void ARB_ClockRAMOE(arbiter_t *chip)
+static void ARB_ClockRAMOE(arbiter_t *chip)
 {
     chip->w279 = !chip->input.ext_bgack_in;
     chip->w302 = !(chip->w9 && (!chip->dff50.l2 || chip->dff62.l2));
@@ -433,13 +433,15 @@ void ARB_Clock(arbiter_t *chip)
     chip->mreq_in = chip->input.ext_mreq_in; // z80 mreq?
     chip->w95 = !(chip->input.ext_uds_in || chip->input.ext_rw_in);
 
-    chip->w96 = 1;
-    chip->w97 = 1;
 
-    if (chip->w95 && chip->w122)
+    if (chip->w95 && !chip->w122)
     {
         chip->w96 = !chip->w90;
         chip->w97 = !chip->w91;
+    }
+    else
+    {
+        chip->w96 = chip->w97 = 1;
     }
 
 
