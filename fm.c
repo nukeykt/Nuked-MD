@@ -335,8 +335,19 @@ void FM_FSM2(fm_t *chip)
         chip->fsm_dac_ch6 = 0;
         chip->fsm_clock_timers = 0;
         chip->fsm_clock_timers1 = 0;
-
-        switch (cnt_comb) {
+#if 0
+        chip->fsm_op4_sel = cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6;
+        chip->fsm_op1_sel = cnt_comb == 8 || cnt_comb == 9 || cnt_comb == 10 || cnt_comb == 12 || cnt_comb == 13 || cnt_comb == 14;
+        chip->fsm_op3_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22;
+        chip->fsm_op2_sel = cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
+        chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
+        chip->fsm_dac_load = cnt_comb == 0 || cnt_comb == 5 || cnt_comb == 10 || cnt_comb == 16 || cnt_comb == 21 || cnt_comb == 26;
+        chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
+            cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
+        chip->fsm_dac_ch6 = cnt_comb == 5 || cnt_comb == 6 || cnt_comb == 8 || cnt_comb == 9;
+#else
+        switch (cnt_comb)
+        {
             case 0:
                 chip->fsm_clock_eg = 1;
                 chip->fsm_op4_sel = 1;
@@ -441,15 +452,7 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_dac_out_sel = 1;
                 break;
         }
-      //  chip->fsm_op4_sel = cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6;
-        //chip->fsm_op1_sel = cnt_comb == 8 || cnt_comb == 9 || cnt_comb == 10 || cnt_comb == 12 || cnt_comb == 13 || cnt_comb == 14;
-       // chip->fsm_op3_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22;
-       // chip->fsm_op2_sel = cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
-       // chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
-      //  chip->fsm_dac_load = cnt_comb == 0 || cnt_comb == 5 || cnt_comb == 10 || cnt_comb == 16 || cnt_comb == 21 || cnt_comb == 26;
-       // chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
-         //   cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
-       // chip->fsm_dac_ch6 = cnt_comb == 5 || cnt_comb == 6 || cnt_comb == 8 || cnt_comb == 9;
+#endif
 
         connect |= ((chip->chan_connect[0][1] >> 5) & 1);
         connect |= ((chip->chan_connect[1][1] >> 5) & 1) << 1;
@@ -513,34 +516,38 @@ void FM_FSM2(fm_t *chip)
         chip->fsm_clock_timers = chip->fsm_clock_timers_l;
         chip->fsm_clock_timers1 = chip->fsm_clock_timers1_l;
 
-        chip->fsm_out[0] = 0;
-        chip->fsm_out[1] = 0;
-        chip->fsm_out[2] = 0;
-        chip->fsm_out[3] = 0;
-        chip->fsm_out[4] = 0;
-        chip->fsm_out[5] = 0;
-        chip->fsm_out[6] = 0;
-        chip->fsm_out[7] = 0;
-        chip->fsm_out[8] = 0;
-        chip->fsm_out[9] = 0;
-        chip->fsm_out[10] = 0;
-        chip->fsm_out[11] = 0;
-        chip->fsm_out[12] = 0;
-        chip->fsm_out[13] = 0;
-        chip->fsm_out[14] = 0;
-        chip->fsm_out[15] = 0;
-        chip->fsm_out[16] = 0;
-        chip->fsm_out[17] = 0;
-        chip->fsm_out[18] = 0;
-        chip->fsm_out[19] = 0;
-        chip->fsm_out[20] = 0;
-        chip->fsm_out[21] = 0;
-        chip->fsm_out[22] = 0;
-        chip->fsm_out[23] = 0;
-        chip->fsm_out[24] = 0;
-        chip->fsm_out[25] = 0;
+#if 0
+        chip->fsm_out[0] = (cnt_comb & 30) == 30;
+        chip->fsm_out[1] = (cnt_comb & 28) == 0;
+        chip->fsm_out[2] = (cnt_comb & 30) == 4;
+        chip->fsm_out[3] = (cnt_comb & 30) == 22;
+        chip->fsm_out[4] = (cnt_comb & 28) == 24;
+        chip->fsm_out[5] = (cnt_comb & 30) == 28;
+        chip->fsm_out[6] = (cnt_comb & 30) == 14;
+        chip->fsm_out[7] = (cnt_comb & 28) == 16;
+        chip->fsm_out[8] = (cnt_comb & 30) == 20;
+        chip->fsm_out[9] = (cnt_comb & 30) == 6;
+        chip->fsm_out[10] = (cnt_comb & 28) == 8;
+        chip->fsm_out[11] = (cnt_comb & 30) == 12;
+        chip->fsm_out[12] = (cnt_comb & 30) == 30;
+        chip->fsm_out[13] = cnt_comb == 0;
+        chip->fsm_out[14] = cnt_comb == 1;
+        chip->fsm_out[15] = cnt_comb == 29;
+        chip->fsm_out[16] = (cnt_comb & 7) == 1;
+        chip->fsm_out[17] = (cnt_comb & 28) == 4;
+        chip->fsm_out[18] = cnt_comb == 8;
+        chip->fsm_out[19] = (cnt_comb & 15) == 14;
+        chip->fsm_out[20] = (cnt_comb & 15) == 4;
+        chip->fsm_out[21] = (cnt_comb & 15) == 9;
+        chip->fsm_out[22] = cnt_comb == 14;
+        chip->fsm_out[23] = (cnt_comb & 24) == 16;
+        chip->fsm_out[24] = (cnt_comb & 28) == 24;
+        chip->fsm_out[25] = (cnt_comb & 30) == 28;
+#else
+        memset(chip->fsm_out, 0, sizeof(chip->fsm_out));
 
-        switch (cnt_comb & 15) {
+        switch (cnt_comb & 15)
+        {
             case 4:
                 chip->fsm_out[20] = 1;
                 break;
@@ -552,7 +559,8 @@ void FM_FSM2(fm_t *chip)
                 break;
         }
 
-        switch (cnt_comb & 28) {
+        switch (cnt_comb & 28)
+        {
             case 0:
                 chip->fsm_out[1] = 1;
                 break;
@@ -571,7 +579,8 @@ void FM_FSM2(fm_t *chip)
                 break;
         }
 
-        switch (cnt_comb & 30) {
+        switch (cnt_comb & 30)
+        {
             case 4:
                 chip->fsm_out[2] = 1;
                 break;
@@ -600,7 +609,8 @@ void FM_FSM2(fm_t *chip)
                 break;
         }
 
-        switch (cnt_comb) {
+        switch (cnt_comb)
+        {
             case 0:
                 chip->fsm_out[13] = 1;
                 break;
@@ -617,35 +627,7 @@ void FM_FSM2(fm_t *chip)
                 chip->fsm_out[15] = 1;
                 break;
         }
-
-        /*
-        Original before lookup table implementation.
-        - Movrsi.
-        chip->fsm_out[0] = (cnt_comb & 30) == 30;
-        chip->fsm_out[1] = (cnt_comb & 28) == 0;
-        chip->fsm_out[2] = (cnt_comb & 30) == 4;
-        chip->fsm_out[3] = (cnt_comb & 30) == 22;
-        chip->fsm_out[4] = (cnt_comb & 28) == 24;
-        chip->fsm_out[5] = (cnt_comb & 30) == 28;
-        chip->fsm_out[6] = (cnt_comb & 30) == 14;
-        chip->fsm_out[7] = (cnt_comb & 28) == 16;
-        chip->fsm_out[8] = (cnt_comb & 30) == 20;
-        chip->fsm_out[9] = (cnt_comb & 30) == 6;
-        chip->fsm_out[10] = (cnt_comb & 28) == 8;
-        chip->fsm_out[11] = (cnt_comb & 30) == 12;
-        chip->fsm_out[12] = (cnt_comb & 30) == 30;
-        chip->fsm_out[13] = cnt_comb == 0;
-        chip->fsm_out[14] = cnt_comb == 1;
-        chip->fsm_out[15] = cnt_comb == 29;
-        chip->fsm_out[17] = (cnt_comb & 28) == 4;
-        chip->fsm_out[18] = cnt_comb == 8;
-        chip->fsm_out[19] = (cnt_comb & 15) == 14;
-        chip->fsm_out[20] = (cnt_comb & 15) == 4;
-        chip->fsm_out[21] = (cnt_comb & 15) == 9;
-        chip->fsm_out[22] = cnt_comb == 14;
-        chip->fsm_out[24] = (cnt_comb & 28) == 24;
-        chip->fsm_out[25] = (cnt_comb & 30) == 28;
-        */
+#endif
 
         chip->fsm_out[16] = (cnt_comb & 7) == 1;
         chip->fsm_out[23] = (cnt_comb & 24) == 16;
@@ -884,6 +866,7 @@ void FM_DoShiftRegisters(fm_t *chip, int sel)
 #undef SLOT_ROTATE
 #undef CH_ROTATE
 #undef PASSTHROUGH
+#undef SR_OP
 }
 
 void FM_FMRegisters1(fm_t *chip)
