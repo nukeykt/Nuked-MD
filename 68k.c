@@ -2348,7 +2348,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w337 = !(chip->w333 || chip->w522[15] || !chip->w522[16]);
 
     if (chip->c2)
-        chip->w338 = !chip->w334;
+        chip->w338 = !chip->w337;
     else if (clk1)
         chip->w338 = chip->w339;
 
@@ -2731,7 +2731,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     {
         chip->w465[4] = 0;
     }
-    if (chip->w462[9])
+    if (chip->w462[10])
     {
         chip->w465[3] = 0;
     }
