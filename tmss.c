@@ -51,6 +51,7 @@ void TMSS_Clock(tmss_t *chip)
 
 
     //SDFFR_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
+    // TODO tmss.c:55: warning: passing argument 1 of ‘SDFFS_Update’ from incompatible pointer type [-Wincompatible-pointer-types]
     SDFFS_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
 
     chip->w31 = chip->input.ext_cart || !chip->input.ext_m3;

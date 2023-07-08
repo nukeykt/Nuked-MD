@@ -25,16 +25,17 @@
 #include <string.h>
 #include <string.h>
 #define SDL_MAIN_HANDLED
-#include "SDL.h"
 #include "common.h"
 #include "68k.h"
 #include "z80.h"
 #include "fc1004.h"
+#include "input.h"
 #include "vram.h"
 #include "video.h"
 
 #define ROM_SIZE (2 * 1024 * 1024)  // in words
 
+input_t input;
 m68k_t m68k;
 z80_t z80;
 fc1004_t ym;
@@ -58,8 +59,6 @@ int ntsc;
 int cart;
 int wres;
 int disk;
-int port_a;
-int port_b;
 int port_c;
 int jap;
 int as;
@@ -192,63 +191,13 @@ int load_game_rom(char *filename, int _m3)
 
 void init_chips(void)
 {
+    memset(&input, 0, sizeof(input_t));
     memset(&m68k, 0, sizeof(m68k));
     memset(&z80, 0, sizeof(z80));
     memset(&ym, 0, sizeof(ym));
 }
 
 uint64_t mcycles;
-
-#define CTRL_BUTTON_UP 1
-#define CTRL_BUTTON_DOWN 2
-#define CTRL_BUTTON_LEFT 4
-#define CTRL_BUTTON_RIGHT 8
-#define CTRL_BUTTON_A 16
-#define CTRL_BUTTON_B 32
-#define CTRL_BUTTON_C 64
-#define CTRL_BUTTON_START 128
-#define CTRL_BUTTON_X 256
-#define CTRL_BUTTON_Y 512
-#define CTRL_BUTTON_Z 1024
-#define CTRL_BUTTON_MODE 4096
-
-int controller_buttons_state_1;
-int controller_buttons_state_2;
-
-int controller_handle_3button(int sel, int state)
-{
-    int value = 63;
-    if (sel) // 40
-    {
-        if (state & CTRL_BUTTON_UP)
-            value &= ~1;
-        if (state & CTRL_BUTTON_DOWN)
-            value &= ~2;
-        if (state & CTRL_BUTTON_LEFT)
-            value &= ~4;
-        if (state & CTRL_BUTTON_RIGHT)
-            value &= ~8;
-        if (state & CTRL_BUTTON_B)
-            value &= ~16;
-        if (state & CTRL_BUTTON_C)
-            value &= ~32;
-    }
-    else
-    {
-        if (state & CTRL_BUTTON_UP)
-            value &= ~1;
-        if (state & CTRL_BUTTON_DOWN)
-            value &= ~2;
-        value &= ~12;
-        if (state & CTRL_BUTTON_A)
-            value &= ~16;
-        if (state & CTRL_BUTTON_START)
-            value &= ~32;
-    }
-    return value;
-}
-
-
 int ovclk;
 int odclk;
 
@@ -326,11 +275,10 @@ int SDLCALL work_thread(void *data)
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
 
-            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0,
-                controller_buttons_state_1);
-            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0,
-                controller_buttons_state_2);
-            
+            controller_handle_3button(&input, (ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0,
+                                      input.input_state_a, PORT_A);
+            controller_handle_3button(&input, (ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0,
+                                      input.input_state_b, PORT_B);
             // 68k
             m68k.input.i_vpa = ym.arb.ext_vpa;
             m68k.input.i_br = ym.o_br == state_z ? 1 : 0;
@@ -405,8 +353,8 @@ int SDLCALL work_thread(void *data)
             ym.arb.input.ext_fc1 = m68k.o_fc1;
             ym.arb.input.ext_zbak = !z80.o_busak;
             ym.arb.input.ext_wait_in = ym.o_wait == state_z ? 1 : 0;
-            ym.ioc.input.port_a = port_a;
-            ym.ioc.input.port_b = port_b;
+            ym.ioc.input.port_a = input.port_a_state;
+            ym.ioc.input.port_b = input.port_b_state;
             ym.ioc.input.port_c = port_c;
             ym.i_zaddress = zaddress;
             ym.i_zdata = zdata;
@@ -892,8 +840,8 @@ int main(int argc, char *argv[])
     ym.i_jap = jap;
     ym.i_sel1 = 0;
 
-    port_a = 127;
-    port_b = 127;
+    input.port_a_state = 127;
+    input.port_b_state = 127;
     port_c = 127;
 
     zram[0] = 0xc3; // hack to get overdrive 2 running
@@ -909,8 +857,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    int quit_signal = 0;
-
     do
     {
         SDL_Delay(30);
@@ -922,72 +868,15 @@ int main(int argc, char *argv[])
         }
 
         // Handle events
-
         SDL_Event sdl_event;
         while (SDL_PollEvent(&sdl_event))
         {
-            switch (sdl_event.type)
-            {
-                case SDL_QUIT:
-                    quit_signal = 1;
-                    break;
-                case SDL_KEYDOWN:
-                case SDL_KEYUP:
-                {
-                    int pressed = sdl_event.type == SDL_KEYDOWN;
-                    int button1 = 0;
-                    int button2 = 0;
-                    switch (sdl_event.key.keysym.scancode)
-                    {
-                    case SDL_SCANCODE_UP:
-                        button1 = CTRL_BUTTON_UP;
-                        break;
-                    case SDL_SCANCODE_DOWN:
-                        button1 = CTRL_BUTTON_DOWN;
-                        break;
-                    case SDL_SCANCODE_LEFT:
-                        button1 = CTRL_BUTTON_LEFT;
-                        break;
-                    case SDL_SCANCODE_RIGHT:
-                        button1 = CTRL_BUTTON_RIGHT;
-                        break;
-                    case SDL_SCANCODE_Z:
-                        button1 = CTRL_BUTTON_A;
-                        break;
-                    case SDL_SCANCODE_X:
-                        button1 = CTRL_BUTTON_B;
-                        break;
-                    case SDL_SCANCODE_C:
-                        button1 = CTRL_BUTTON_C;
-                        break;
-                    case SDL_SCANCODE_RETURN:
-                        button1 = CTRL_BUTTON_START;
-                        break;
-                    }
-                    if (button1)
-                    {
-                        if (pressed)
-                            controller_buttons_state_1 |= button1;
-                        else
-                            controller_buttons_state_1 &= ~button1;
-
-                    }
-                    if (button2)
-                    {
-                        if (pressed)
-                            controller_buttons_state_2 |= button1;
-                        else
-                            controller_buttons_state_2 &= ~button1;
-                    }
-                }
-                default:
-                    break;
-                }
+            handle_input(&input, sdl_event.type, sdl_event.key.keysym.scancode);
         }
 
         Video_Blit();
     }
-    while (!quit_signal);
+    while (!input.signal_quit);
 
     work_thread_run = 0;
     SDL_WaitThread(thread, 0);
