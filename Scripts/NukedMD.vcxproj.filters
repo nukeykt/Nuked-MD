@@ -21,6 +21,9 @@
     <ClCompile Include="..\arbiter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\cartridge.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\controller.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\arbiter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cartridge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common.h">
