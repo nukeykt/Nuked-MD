@@ -5274,10 +5274,6 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     {
         chip->w591 &= ~0xff00;
     }
-    if (chip->ird_pla2[0])
-    {
-        chip->w591 &= ~0xff00;
-    }
     if (chip->ird_pla2[2])
     {
         chip->w591 &= ~15;
@@ -5432,7 +5428,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w607 = 1;
     if (chip->w597[11])
     {
-        chip->alu_io &= ~16384;
+        chip->alu_io &= ~8192;
         chip->alu_io |= chip->w607 << 13;
     }
 
