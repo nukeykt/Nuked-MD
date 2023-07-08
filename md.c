@@ -32,6 +32,7 @@
 #include "fc1004.h"
 #include "vram.h"
 #include "video.h"
+#include "controller.h"
 
 #define ROM_SIZE (2 * 1024 * 1024)  // in words
 
@@ -199,55 +200,6 @@ void init_chips(void)
 
 uint64_t mcycles;
 
-#define CTRL_BUTTON_UP 1
-#define CTRL_BUTTON_DOWN 2
-#define CTRL_BUTTON_LEFT 4
-#define CTRL_BUTTON_RIGHT 8
-#define CTRL_BUTTON_A 16
-#define CTRL_BUTTON_B 32
-#define CTRL_BUTTON_C 64
-#define CTRL_BUTTON_START 128
-#define CTRL_BUTTON_X 256
-#define CTRL_BUTTON_Y 512
-#define CTRL_BUTTON_Z 1024
-#define CTRL_BUTTON_MODE 4096
-
-int controller_buttons_state_1;
-int controller_buttons_state_2;
-
-int controller_handle_3button(int sel, int state)
-{
-    int value = 63;
-    if (sel) // 40
-    {
-        if (state & CTRL_BUTTON_UP)
-            value &= ~1;
-        if (state & CTRL_BUTTON_DOWN)
-            value &= ~2;
-        if (state & CTRL_BUTTON_LEFT)
-            value &= ~4;
-        if (state & CTRL_BUTTON_RIGHT)
-            value &= ~8;
-        if (state & CTRL_BUTTON_B)
-            value &= ~16;
-        if (state & CTRL_BUTTON_C)
-            value &= ~32;
-    }
-    else
-    {
-        if (state & CTRL_BUTTON_UP)
-            value &= ~1;
-        if (state & CTRL_BUTTON_DOWN)
-            value &= ~2;
-        value &= ~12;
-        if (state & CTRL_BUTTON_A)
-            value &= ~16;
-        if (state & CTRL_BUTTON_START)
-            value &= ~32;
-    }
-    return value;
-}
-
 
 int ovclk;
 int odclk;
@@ -326,10 +278,8 @@ int SDLCALL work_thread(void *data)
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
 
-            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0,
-                controller_buttons_state_1);
-            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0,
-                controller_buttons_state_2);
+            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0, 0);
+            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0, 1);
             
             // 68k
             m68k.input.i_vpa = ym.arb.ext_vpa;
@@ -933,53 +883,8 @@ int main(int argc, char *argv[])
                     break;
                 case SDL_KEYDOWN:
                 case SDL_KEYUP:
-                {
-                    int pressed = sdl_event.type == SDL_KEYDOWN;
-                    int button1 = 0;
-                    int button2 = 0;
-                    switch (sdl_event.key.keysym.scancode)
-                    {
-                    case SDL_SCANCODE_UP:
-                        button1 = CTRL_BUTTON_UP;
-                        break;
-                    case SDL_SCANCODE_DOWN:
-                        button1 = CTRL_BUTTON_DOWN;
-                        break;
-                    case SDL_SCANCODE_LEFT:
-                        button1 = CTRL_BUTTON_LEFT;
-                        break;
-                    case SDL_SCANCODE_RIGHT:
-                        button1 = CTRL_BUTTON_RIGHT;
-                        break;
-                    case SDL_SCANCODE_Z:
-                        button1 = CTRL_BUTTON_A;
-                        break;
-                    case SDL_SCANCODE_X:
-                        button1 = CTRL_BUTTON_B;
-                        break;
-                    case SDL_SCANCODE_C:
-                        button1 = CTRL_BUTTON_C;
-                        break;
-                    case SDL_SCANCODE_RETURN:
-                        button1 = CTRL_BUTTON_START;
-                        break;
-                    }
-                    if (button1)
-                    {
-                        if (pressed)
-                            controller_buttons_state_1 |= button1;
-                        else
-                            controller_buttons_state_1 &= ~button1;
-
-                    }
-                    if (button2)
-                    {
-                        if (pressed)
-                            controller_buttons_state_2 |= button1;
-                        else
-                            controller_buttons_state_2 &= ~button1;
-                    }
-                }
+                    controller_sdl_event(sdl_event.key.keysym.scancode, sdl_event.type == SDL_KEYDOWN);
+                    break;
                 default:
                     break;
                 }
