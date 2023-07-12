@@ -2297,7 +2297,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
         chip->w446 = chip->l166[1];
         if (chip->l168[1])
-            chip->w446 = 0;
+            chip->w446 = 1;
 
         chip->w457 = !chip->l170[1];
     }
