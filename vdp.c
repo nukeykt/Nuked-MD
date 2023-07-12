@@ -381,7 +381,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (clk2)
     {
         chip->l9[1] = chip->l9[0];
-        chip->l11 = chip->l10;
+        chip->l11 = !chip->l10;
     }
 
     int w49 = chip->reset_comb || (chip->l11 && chip->l10);
