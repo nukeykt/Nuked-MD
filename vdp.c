@@ -3355,7 +3355,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     if (chip->l330[1])
     {
-        chip->vram_data &= 0x7ff;
+        chip->vram_data &= ~0x7ff;
         chip->vram_data |= chip->l324;
     }
 
