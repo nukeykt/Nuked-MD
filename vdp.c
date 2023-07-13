@@ -2916,13 +2916,13 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 
     if (chip->w223)
     {
-        chip->reg_whp = chip->reg_data.l2 & 63;
+        chip->reg_whp = chip->reg_data.l2 & 31;
         chip->reg_rigt = (chip->reg_data.l2 >> 7) & 1;
     }
 
     if (chip->w222)
     {
-        chip->reg_wvp = chip->reg_data.l2 & 63;
+        chip->reg_wvp = chip->reg_data.l2 & 31;
         chip->reg_down = (chip->reg_data.l2 >> 7) & 1;
     }
 
