@@ -2923,7 +2923,7 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     if (chip->w222)
     {
         chip->reg_wvp = chip->reg_data.l2 & 63;
-        chip->reg_rigt = (chip->reg_data.l2 >> 7) & 1;
+        chip->reg_down = (chip->reg_data.l2 >> 7) & 1;
     }
 
     int w542 = (chip->reg_test1 & 128) != 0 || chip->l115[1];
