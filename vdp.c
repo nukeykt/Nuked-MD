@@ -1511,7 +1511,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     }
 
     if (w336)
-        chip->l90 = chip->w355 & 255; // v counter
+        chip->l90 = (chip->w355 & 254) | w123; // v counter
 
     if (w337)
         chip->l91 = (chip->l106[1] >> 1) & 255; // h counter
@@ -4056,7 +4056,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l342 = chip->vram_serial;
 
     if (chip->l334 && clk2)
-        chip->l343 = chip->reg_m5 ? chip->l346 : (chip->vram_serial ^ 1023);
+        chip->l343 = chip->reg_m5 ? chip->l346 : ((chip->vram_serial ^ 255) | 768);
 
     if (w684)
     {
