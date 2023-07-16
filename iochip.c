@@ -92,7 +92,7 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
         || (port->tx_fsm2.nq && port->tx_fsm1.nq && port->tx_fsm3.q && port->tx_fsm4.nq)
         || (port->tx_fsm4.q && port->tx_fsm1.q)
         || (port->tx_fsm4.q && port->tx_fsm2.q);
-    i5 = !(port->tx_fsm1.nq && port->tx_fsm2.nq && port->tx_fsm3.nq && port->tx_fsm3.q);
+    i5 = !(port->tx_fsm1.nq && port->tx_fsm2.nq && port->tx_fsm3.nq && port->tx_fsm4.q);
 
     SDFFR_Update(&port->tx_fsm1, port->uart_clk2, i1, chip->reset);
     SDFFR_Update(&port->tx_fsm2, port->uart_clk2, i2, chip->reset);
