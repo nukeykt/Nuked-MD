@@ -159,34 +159,33 @@ void ARB_ClockEDCLK(arbiter_edclk_t *chip)
 
 static void ARB_ClockM3(arbiter_t *chip)
 {
+
     // VDP mreq
     chip->w163 = chip->vd8 || chip->mreq_in || chip->va22_in || chip->input.ext_m3; // FIXME
     chip->w68 = !(chip->vd8 || chip->w163);
     chip->ext_vdpm = !chip->w68;
+
     chip->w16 = !(chip->dff33.nq || chip->w346);
-
     SDFFR_Update(&chip->dff60, !chip->w16, chip->dff69.l2, chip->sres_syncv_2);
+    chip->w334 = !(chip->dff60.l2 || !chip->dff69.l2);
 
-    chip->w334 = !(!chip->dff60.l2 || !chip->dff69.l2);
     chip->w337 = !chip->input.ext_wres;
 
     SDFFR_Update(&chip->dff68, !chip->w16, !chip->dff68.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff71, !chip->dff68.l2, !chip->dff71.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff72, !chip->dff71.l2, !chip->dff72.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff76, !chip->dff72.l2, !chip->dff76.l2, chip->sres_syncv.l2);
-
     chip->w362 = chip->w363 || chip->dff76.l2;
-
     SDFFR_Update(&chip->dff63, !chip->w362, !chip->dff63.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff52, !chip->dff63.l2, !chip->dff52.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff65, !chip->dff52.l2, !chip->dff65.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff67, !chip->dff65.l2, !chip->dff67.l2, chip->sres_syncv.l2);
     SDFFR_Update(&chip->dff74, !chip->dff67.l2, !chip->dff74.l2, chip->sres_syncv_2);
+
     SDFFS_Update(&chip->nmi, chip->dff74.l2, chip->va23_in, chip->w332);
     SDFFR_Update(&chip->dff57, chip->dff74.l2, chip->sres_syncv_2, chip->sres_syncv_2);
     SDFFR_Update(&chip->dff58, chip->dff74.l2, chip->dff57.l2, chip->sres_syncv_2);
     SDFFR_Update(&chip->dff69, chip->dff74.l2, chip->w337, chip->sres_syncv_2);
-
     chip->w328 = !(!chip->dff58.l2 || chip->w334);
 }
 
