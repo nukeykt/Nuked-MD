@@ -153,7 +153,7 @@ void ARB_ClockM3(arbiter_t *chip)
 
     chip->w16 = !(chip->dff33.nq || chip->w346);
     SDFFR_Update(&chip->dff60, !chip->w16, chip->dff69.l2, chip->sres_syncv_2);
-    chip->w334 = !(!chip->dff60.l2 || !chip->dff69.l2);
+    chip->w334 = !(chip->dff60.l2 || !chip->dff69.l2);
 
     chip->w337 = !chip->input.ext_wres;
 
