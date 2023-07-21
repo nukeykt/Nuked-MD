@@ -50,8 +50,8 @@ void TMSS_Clock(tmss_t *chip)
     chip->w41 = !(chip->input.ext_rw_in && chip->w15);
 
 
-    SDFFR_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
-    //SDFFS_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
+    //SDFFR_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
+    SDFFS_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
 
     chip->w31 = chip->input.ext_cart || !chip->input.ext_m3;
     chip->w28 = chip->dff3.l2 || chip->w31 || chip->input.ext_ce0_arb;
