@@ -1389,7 +1389,6 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         if (okon2)
         {
             ssg_dir = (chip->eg_ssg_dir[1] >> 23) & 1;
-            ssg_inv = ssg_dir ^ ((ssg_eg >> 2) & 1);
             if (level2 & 512)
             {
                 if ((ssg_eg & 3) == 2)
@@ -1408,6 +1407,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
                 ssg_pgrepeat = 1;
         }
     }
+    ssg_inv = okon2 & (((chip->eg_ssg_dir[1] >> 23) & 1) ^ ((ssg_eg >> 2) & 1));
     chip->eg_ssg_dir[0] = (chip->eg_ssg_dir[1] << 1) | ssg_dir;
     chip->eg_ssg_inv[0] = ssg_inv;
     chip->eg_ssg_holdup[0] = (chip->eg_ssg_holdup[1] << 1) | ssg_holdup;
