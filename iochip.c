@@ -352,7 +352,7 @@ void IOC_Clock(iochip_t *chip)
             break;
     }
 
-    chip->vread = chip->input.ext_cas0 && chip->input.ext_io;
+    chip->vread = chip->input.ext_cas0 || chip->input.ext_io;
     chip->vwrite = chip->input.ext_lwr || chip->input.ext_io;
     chip->vsel = !(chip->input.ext_m3 && (chip->address & 0xf0) == 0);
     chip->vread_high = !chip->vsel && (chip->address & 8) != 0 && !chip->vread;
