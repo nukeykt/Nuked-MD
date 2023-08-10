@@ -1295,6 +1295,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     int pg_reset;
     int kon_event;
     int ssg_eg = 0;
+    int ssg_inv_e = 0;
     int ssg_dir = 0;
     int ssg_inv = 0;
     int ssg_holdup = 0;
@@ -1384,6 +1385,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     for (i = 0; i < 4; i++)
         ssg_eg |= ((chip->slot_ssg_eg[bank][i][1] >> 11) & 1) << i;
     ssg_enable = (ssg_eg & 8) != 0;
+    ssg_inv_e = ssg_enable && (ssg_eg & 4) != 0;
     if (ssg_enable)
     {
         if (okon2)
@@ -1407,7 +1409,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
                 ssg_pgrepeat = 1;
         }
     }
-    ssg_inv = okon2 & (((chip->eg_ssg_dir[1] >> 23) & 1) ^ ((ssg_eg >> 2) & 1));
+    ssg_inv = okon2 & (((chip->eg_ssg_dir[1] >> 23) & 1) ^ ssg_inv_e);
     chip->eg_ssg_dir[0] = (chip->eg_ssg_dir[1] << 1) | ssg_dir;
     chip->eg_ssg_inv[0] = ssg_inv;
     chip->eg_ssg_holdup[0] = (chip->eg_ssg_holdup[1] << 1) | ssg_holdup;
