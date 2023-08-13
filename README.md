@@ -1,4 +1,9 @@
 # Nuked MD
+
+![nukedmd_logo](nukedmd_logo.png)
+
+by @nukeykt, @ogamespec and @andkorzh, special thanks to @HardWrMan
+
 Cycle accurate Mega Drive core.
 The goal of this project is to emulate Sega Mega Drive chipset accurately as possible using decapped chips photos.
 
@@ -34,6 +39,7 @@ See [Progress.md](Progress.md)
 * https://github.com/emu-russia/SEGAChips (andkorzh, org, nukeykt)
 * https://www.grafik-feti.de/ftp/Die-Shots/Archiv/2D/Die-Shots/GamingConsoles/SEGA_Genesis_MegaDrive/MD1/VDP/ (Fritzchens Fritz)
 * https://siliconpr0n.org/map/yamaha/ym3438/ (John McMaster)
+* https://drive.google.com/drive/u/0/folders/1iGhgXmMr0sfgTFouGCQVkUOGQLudszAP (org)
 * http://gendev.spritesmind.net/forum/viewtopic.php?p=14976&sid=d3409eec616d569e2240c09d60bbff03#p14976 (HardWareMan)
 * https://siliconpr0n.org/map/zilog/z0840008psc-z80cpu/ (Antoine Bercovici)
 * https://siliconpr0n.org/map/motorola/mc68000p8-a72e/ (John McMaster)
