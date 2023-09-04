@@ -3471,6 +3471,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     if (chip->c5)
     {
+        chip->w522[0] = 0;
         chip->w522[15] = 0;
         chip->w522[16] = 0;
     }
