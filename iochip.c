@@ -1,3 +1,27 @@
+/*
+ * Copyright (C) 2023 nukeykt
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  YM6046(FC1004) emulator.
+ *  Thanks:
+ *      org (ogamespec):
+ *          FC1004 decap and die shot.
+ *      andkorzh, HardWareMan (emu-russia):
+ *          help & support.
+ *
+ */
+
 // FC1004 IO chip
 #include <string.h>
 #include "iochip.h"
@@ -68,7 +92,7 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
         || (port->tx_fsm2.nq && port->tx_fsm1.nq && port->tx_fsm3.q && port->tx_fsm4.nq)
         || (port->tx_fsm4.q && port->tx_fsm1.q)
         || (port->tx_fsm4.q && port->tx_fsm2.q);
-    i5 = !(port->tx_fsm1.nq && port->tx_fsm2.nq && port->tx_fsm3.nq && port->tx_fsm3.q);
+    i5 = !(port->tx_fsm1.nq && port->tx_fsm2.nq && port->tx_fsm3.nq && port->tx_fsm4.q);
 
     SDFFR_Update(&port->tx_fsm1, port->uart_clk2, i1, chip->reset);
     SDFFR_Update(&port->tx_fsm2, port->uart_clk2, i2, chip->reset);
@@ -328,7 +352,7 @@ void IOC_Clock(iochip_t *chip)
             break;
     }
 
-    chip->vread = chip->input.ext_cas0 && chip->input.ext_io;
+    chip->vread = chip->input.ext_cas0 || chip->input.ext_io;
     chip->vwrite = chip->input.ext_lwr || chip->input.ext_io;
     chip->vsel = !(chip->input.ext_m3 && (chip->address & 0xf0) == 0);
     chip->vread_high = !chip->vsel && (chip->address & 8) != 0 && !chip->vread;

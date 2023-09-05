@@ -1,3 +1,29 @@
+/*
+ * Copyright (C) 2022-2023 nukeykt
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  68000 emulator.
+ *  Thanks:
+ *      John McMaster (siliconpr0n.org):
+ *          68000 decap and die shot.
+ *      Olivier Galibert:
+ *          68000 schematics.
+ *      org, andkorzh, HardWareMan (emu-russia):
+ *          help & support.
+ *
+ */
+
 // 68k(NMOS)
 #include <stdio.h>
 #include <string.h>
@@ -2209,7 +2235,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     else if (chip->c5 && chip->w340)
         chip->w292 = 0;
 
-    chip->w988 = !(chip->w276 && chip->w438);
+    chip->w988 = !(chip->w276[2] && chip->w438);
 
     chip->w293 = chip->w988 && chip->w294[1] && chip->w325 && chip->w351;
 
@@ -2322,7 +2348,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->w337 = !(chip->w333 || chip->w522[15] || !chip->w522[16]);
 
     if (chip->c2)
-        chip->w338 = !chip->w334;
+        chip->w338 = !chip->w337;
     else if (clk1)
         chip->w338 = chip->w339;
 
@@ -2705,7 +2731,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     {
         chip->w465[4] = 0;
     }
-    if (chip->w462[9])
+    if (chip->w462[10])
     {
         chip->w465[3] = 0;
     }
@@ -3415,6 +3441,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 
     if (chip->c5)
     {
+        chip->w522[0] = 0;
         chip->w522[15] = 0;
         chip->w522[16] = 0;
     }
@@ -4049,7 +4076,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     chip->a2_pla[43] = (chip->w530 & 0xf100) == 0x7100;
     chip->a2_pla[44] = (chip->w530 & 0xf038) == 0x8008 && !chip->a2_pla[45];
     chip->a2_pla[45] = (chip->w530 & 0x01c0) == 0x0100;
-    chip->a2_pla[46] = (chip->w530 & 0x81be) == 0x813a;
+    chip->a2_pla[46] = (chip->w530 & 0x81be) == 0x813a && !chip->a2_pla[51];
     chip->a2_pla[47] = (chip->w530 & 0x817e) == 0x813a && !chip->a2_pla[51];
     chip->a2_pla[48] = (chip->w530 & 0x81bc) == 0x813c && !chip->a2_pla[51];
     chip->a2_pla[49] = (chip->w530 & 0x817c) == 0x813c && !chip->a2_pla[51];
@@ -5248,10 +5275,6 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
     {
         chip->w591 &= ~0xff00;
     }
-    if (chip->ird_pla2[0])
-    {
-        chip->w591 &= ~0xff00;
-    }
     if (chip->ird_pla2[2])
     {
         chip->w591 &= ~15;
@@ -5406,7 +5429,7 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->w607 = 1;
     if (chip->w597[11])
     {
-        chip->alu_io &= ~16384;
+        chip->alu_io &= ~8192;
         chip->alu_io |= chip->w607 << 13;
     }
 

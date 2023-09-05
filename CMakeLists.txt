@@ -7,6 +7,8 @@ find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 add_executable(Nuked-MD
 	68k.c
 	arbiter.c
+	cartridge.c
+	controller.c
 	fc1004.c
 	fm.c
 	iochip.c

@@ -1,3 +1,31 @@
+/*
+ * Copyright (C) 2023 nukeykt
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  YM7101 emulator
+ *  Thanks:
+ *      Fritzchens Fritz:
+ *          YM7101 decap and die shot.
+ *      andkorzh:
+ *          YM7101 deroute.
+ *      org (ogamespec):
+ *          early YM7101 decap and die shot.
+ *      HardWareMan:
+ *          help & support.
+ *
+ */
+
 // YM7101 core
 #include <string.h>
 #include "vdp.h"
@@ -353,7 +381,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     if (clk2)
     {
         chip->l9[1] = chip->l9[0];
-        chip->l11 = chip->l10;
+        chip->l11 = !chip->l10;
     }
 
     int w49 = chip->reset_comb || (chip->l11 && chip->l10);
@@ -1483,7 +1511,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     }
 
     if (w336)
-        chip->l90 = chip->w355 & 255; // v counter
+        chip->l90 = (chip->w355 & 254) | w123; // v counter
 
     if (w337)
         chip->l91 = (chip->l106[1] >> 1) & 255; // h counter
@@ -2269,7 +2297,7 @@ void VDP_ClockHVCounters(vdp_t* chip)
 
         chip->w446 = chip->l166[1];
         if (chip->l168[1])
-            chip->w446 = 0;
+            chip->w446 = 1;
 
         chip->w457 = !chip->l170[1];
     }
@@ -2888,14 +2916,14 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 
     if (chip->w223)
     {
-        chip->reg_whp = chip->reg_data.l2 & 63;
+        chip->reg_whp = chip->reg_data.l2 & 31;
         chip->reg_rigt = (chip->reg_data.l2 >> 7) & 1;
     }
 
     if (chip->w222)
     {
-        chip->reg_wvp = chip->reg_data.l2 & 63;
-        chip->reg_rigt = (chip->reg_data.l2 >> 7) & 1;
+        chip->reg_wvp = chip->reg_data.l2 & 31;
+        chip->reg_down = (chip->reg_data.l2 >> 7) & 1;
     }
 
     int w542 = (chip->reg_test1 & 128) != 0 || chip->l115[1];
@@ -3327,7 +3355,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 
     if (chip->l330[1])
     {
-        chip->vram_data &= 0x7ff;
+        chip->vram_data &= ~0x7ff;
         chip->vram_data |= chip->l324;
     }
 
@@ -4028,7 +4056,7 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
         chip->l342 = chip->vram_serial;
 
     if (chip->l334 && clk2)
-        chip->l343 = chip->reg_m5 ? chip->l346 : (chip->vram_serial ^ 1023);
+        chip->l343 = chip->reg_m5 ? chip->l346 : ((chip->vram_serial ^ 255) | 768);
 
     if (w684)
     {

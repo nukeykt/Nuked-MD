@@ -1,3 +1,26 @@
+/*
+ * Copyright (C) 2023 nukeykt
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  Mega Drive board.
+ *  Thanks:
+ *      org, andkorzh, HardWareMan (emu-russia):
+ *          help & support.
+ *      ctr001:
+ *          dummy TMSS rom
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <string.h>
@@ -9,15 +32,14 @@
 #include "fc1004.h"
 #include "vram.h"
 #include "video.h"
-
-#define ROM_SIZE (2 * 1024 * 1024)  // in words
+#include "controller.h"
+#include "cartridge.h"
 
 m68k_t m68k;
 z80_t z80;
 fc1004_t ym;
 
 unsigned char ram[0x10000];
-unsigned short rom[ROM_SIZE * 2];   // *2 to support sega mapper (up to 8mb games)
 unsigned char zram[8192];
 
 #define MCLK_NTSC 53693182
@@ -49,21 +71,6 @@ int iorq;
 int mreq;
 int wr;
 int rd;
-
-int mapper_enable;
-int mapper_pages[8];
-
-int m3_mapper_enable;
-int m3_mapper_data;
-int m3_mapper_page[3];
-unsigned char m3_mapper_ram[0x4000];
-
-static inline unsigned short short_swap(unsigned short v)
-{
-    unsigned short b1 = v & 255;
-    unsigned short b2 = (v >> 8) & 255;
-    return (b1 << 8) | b2;
-}
 
 void load_dummy_tmss()
 {
@@ -111,62 +118,6 @@ int load_tmss_rom(char *filename)
     return 0;
 }
 
-int load_game_rom(char *filename, int _m3)
-{
-    int i, ret;
-    FILE* romfile;
-
-    romfile = fopen(filename, "rb");
-    if (!romfile)
-        return 1;
-
-    fseek(romfile, 0, SEEK_END);
-    size_t siz = ftell(romfile);
-    rewind(romfile);
-
-    if (!_m3)
-    {
-        if (siz > ROM_SIZE * 2)
-        {
-            mapper_enable = 1;
-            if (siz > ROM_SIZE * 4)
-                siz = ROM_SIZE * 4;
-            for (i = 0; i < 8; i++)
-                mapper_pages[i] = i;
-        }
-        else
-        {
-            mapper_enable = 0;
-        }
-    }
-    else
-    {
-        if (siz > 0x8000)
-        {
-            m3_mapper_enable = 1;
-            m3_mapper_page[0] = 0;
-            m3_mapper_page[1] = 1 << 14;
-            m3_mapper_page[2] = 2 << 14;
-        }
-        else
-        {
-            m3_mapper_enable = 0;
-        }
-    }
-
-    memset(rom, 0, sizeof(rom));
-    ret = fread(rom, 1, siz, romfile);
-    if (ret < siz)
-    {
-        fclose(romfile);
-        return 1;
-    }
-    for (i = 0; i < ROM_SIZE * 2; i++)
-        rom[i] = short_swap(rom[i]);
-    fclose(romfile);
-    return 0;
-}
-
 void init_chips(void)
 {
     memset(&m68k, 0, sizeof(m68k));
@@ -175,55 +126,6 @@ void init_chips(void)
 }
 
 uint64_t mcycles;
-
-#define CTRL_BUTTON_UP 1
-#define CTRL_BUTTON_DOWN 2
-#define CTRL_BUTTON_LEFT 4
-#define CTRL_BUTTON_RIGHT 8
-#define CTRL_BUTTON_A 16
-#define CTRL_BUTTON_B 32
-#define CTRL_BUTTON_C 64
-#define CTRL_BUTTON_START 128
-#define CTRL_BUTTON_X 256
-#define CTRL_BUTTON_Y 512
-#define CTRL_BUTTON_Z 1024
-#define CTRL_BUTTON_MODE 4096
-
-int controller_buttons_state_1;
-int controller_buttons_state_2;
-
-int controller_handle_3button(int sel, int state)
-{
-    int value = 63;
-    if (sel) // 40
-    {
-        if (state & CTRL_BUTTON_UP)
-            value &= ~1;
-        if (state & CTRL_BUTTON_DOWN)
-            value &= ~2;
-        if (state & CTRL_BUTTON_LEFT)
-            value &= ~4;
-        if (state & CTRL_BUTTON_RIGHT)
-            value &= ~8;
-        if (state & CTRL_BUTTON_B)
-            value &= ~16;
-        if (state & CTRL_BUTTON_C)
-            value &= ~32;
-    }
-    else
-    {
-        if (state & CTRL_BUTTON_UP)
-            value &= ~1;
-        if (state & CTRL_BUTTON_DOWN)
-            value &= ~2;
-        value &= ~12;
-        if (state & CTRL_BUTTON_A)
-            value &= ~16;
-        if (state & CTRL_BUTTON_START)
-            value &= ~32;
-    }
-    return value;
-}
 
 
 int ovclk;
@@ -303,10 +205,8 @@ int SDLCALL work_thread(void *data)
             if (z80.o_rd != state_z)
                 rd = !z80.o_rd;
 
-            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0,
-                controller_buttons_state_1);
-            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0,
-                controller_buttons_state_2);
+            port_a = controller_handle_3button((ym.ioc.port_a_o & 64) != 0 || (ym.ioc.port_a_d & 64) != 0, 0);
+            port_b = controller_handle_3button((ym.ioc.port_b_o & 64) != 0 || (ym.ioc.port_b_d & 64) != 0, 1);
             
             // 68k
             m68k.input.i_vpa = ym.arb.ext_vpa;
@@ -492,136 +392,9 @@ int SDLCALL work_thread(void *data)
 
             // cart
             if (m3)
-            {
-                // MD
-                if (!ym.o_ce0)
-                {
-                    if (!ym.o_cas0)
-                    {
-                        if (mapper_enable)
-                        {
-                            int address = vaddress & 0x3ffff;
-                            int page = (vaddress >> 18) & 7;
-                            int mapped_address = address | (mapper_pages[page] << 18);
-                            mapped_address &= 0x3fffff;
-                            vdata = rom[mapped_address];
-                        }
-                        else
-                            vdata = rom[vaddress & 0x1fffff];
-                    }
-                }
-                // mapper
-                if (mapper_enable)
-                {
-                    if (!ym.arb.ext_time && !ym.o_lwr)
-                    {
-                        switch (vaddress & 0x7f)
-                        {
-                            case 0x79:
-                                mapper_pages[1] = vdata & 255;
-                                break;
-                            case 0x7a:
-                                mapper_pages[2] = vdata & 255;
-                                break;
-                            case 0x7b:
-                                mapper_pages[3] = vdata & 255;
-                                break;
-                            case 0x7c:
-                                mapper_pages[4] = vdata & 255;
-                                break;
-                            case 0x7d:
-                                mapper_pages[5] = vdata & 255;
-                                break;
-                            case 0x7e:
-                                mapper_pages[6] = vdata & 255;
-                                break;
-                            case 0x7f:
-                                mapper_pages[7] = vdata & 255;
-                                break;
-                        }
-                    }
-                }
-            }
+                cart_handle_md();
             else
-            {
-                // M3
-                vaddress &= ~0x700000;
-                vaddress |= 0x500000;
-                if (!(vaddress & 0x20000)) // cart chip enable
-                {
-                    if (!ym.o_cas0)
-                    {
-                        int address;
-                        int enable = 0;
-                        if (!m3_mapper_enable)
-                        {
-                            address = vaddress & 0x7fff;
-                            enable = !ym.o_ce0;
-                        }
-                        else
-                        {
-                            address = vaddress & 0x3fff;
-                            if (!ym.o_ce0)
-                            {
-                                address |= m3_mapper_page[(vaddress >> 14) & 1];
-                                enable = 1;
-                            }
-                            else if (!ym.arb.ext_cas2)
-                            {
-                                if (m3_mapper_data & 8)
-                                {
-                                    vdata &= ~0xff;
-                                    vdata |= m3_mapper_ram[address];
-                                }
-                                else
-                                {
-                                    address |= m3_mapper_page[2];
-                                    enable = 1;
-                                }
-                            }
-                            address &= 0x3fffff;
-                        }
-                        if (enable)
-                        {
-                            vdata &= ~0xff;
-                            if (address & 1)
-                                vdata |= rom[address >> 1] & 255;
-                            else
-                                vdata |= (rom[address >> 1] >> 8) & 255;
-                        }
-                    }
-                    if (!ym.o_lwr)
-                    {
-                        if (m3_mapper_enable)
-                        {
-                            if (!ym.arb.ext_cas2)
-                            {
-                                if (m3_mapper_data & 8)
-                                {
-                                    m3_mapper_ram[vaddress & 0x3fff] = vdata & 0xff;
-                                }
-                            }
-                            if ((vaddress & 0xffff) >= 0xfffc)
-                            {
-                                int page;
-
-                                // GPGX
-                                page = vdata & 15;
-                                if (m3_mapper_data & 3)
-                                    page = (page + ((4 - (m3_mapper_data & 3)) << 3)) & 15;
-                                if ((vaddress & 3) == 0)
-                                    m3_mapper_data = vdata & 0xff;
-                                if ((vaddress & 3) == 1)
-                                    m3_mapper_page[0] = page << 14;
-                                if ((vaddress & 3) == 2)
-                                    m3_mapper_page[1] = page << 14;
-                                if ((vaddress & 3) == 3)
-                                    m3_mapper_page[2] = page << 14;
-                            }
-                        }
-                    }
-                }
-            }
+                cart_handle_m3();
         }
 
 #if 0
@@ -832,7 +605,7 @@ int main(int argc, char *argv[])
         printf("%s not found\n", tmss_filename);
         load_dummy_tmss();
     }
-    if (load_game_rom(rom_filename, _m3))
+    if (cart_load_game_rom(rom_filename, _m3))
     {
         printf("%s not found\n", rom_filename);
         exit(EXIT_FAILURE);
@@ -910,53 +683,8 @@ int main(int argc, char *argv[])
                     break;
                 case SDL_KEYDOWN:
                 case SDL_KEYUP:
-                {
-                    int pressed = sdl_event.type == SDL_KEYDOWN;
-                    int button1 = 0;
-                    int button2 = 0;
-                    switch (sdl_event.key.keysym.scancode)
-                    {
-                    case SDL_SCANCODE_UP:
-                        button1 = CTRL_BUTTON_UP;
-                        break;
-                    case SDL_SCANCODE_DOWN:
-                        button1 = CTRL_BUTTON_DOWN;
-                        break;
-                    case SDL_SCANCODE_LEFT:
-                        button1 = CTRL_BUTTON_LEFT;
-                        break;
-                    case SDL_SCANCODE_RIGHT:
-                        button1 = CTRL_BUTTON_RIGHT;
-                        break;
-                    case SDL_SCANCODE_Z:
-                        button1 = CTRL_BUTTON_A;
-                        break;
-                    case SDL_SCANCODE_X:
-                        button1 = CTRL_BUTTON_B;
-                        break;
-                    case SDL_SCANCODE_C:
-                        button1 = CTRL_BUTTON_C;
-                        break;
-                    case SDL_SCANCODE_RETURN:
-                        button1 = CTRL_BUTTON_START;
-                        break;
-                    }
-                    if (button1)
-                    {
-                        if (pressed)
-                            controller_buttons_state_1 |= button1;
-                        else
-                            controller_buttons_state_1 &= ~button1;
-
-                    }
-                    if (button2)
-                    {
-                        if (pressed)
-                            controller_buttons_state_2 |= button1;
-                        else
-                            controller_buttons_state_2 &= ~button1;
-                    }
-                }
+                    controller_sdl_event(sdl_event.key.keysym.scancode, sdl_event.type == SDL_KEYDOWN);
+                    break;
                 default:
                     break;
                 }

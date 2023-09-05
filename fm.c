@@ -1,3 +1,27 @@
+/*
+ * Copyright (C) 2022-2023 nukeykt
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  YM3438 emulator.
+ *  Thanks:
+ *      John McMaster (siliconpr0n.org):
+ *          Yamaha YM3438 & YM2610 decap and die shot.
+ *      org, andkorzh, HardWareMan (emu-russia):
+ *          help & support, YM2612 decap.
+ *
+ */
+
 // YM3438/YM2612 core
 
 #include <stdio.h>
@@ -53,10 +77,12 @@ void FM_Prescaler(fm_prescaler_t *chip)
 {
     if (!chip->input.phi)
     {
+        int ic_check;
+
         chip->ic_latch[0] = chip->ic_latch[1] << 1;
         chip->ic_latch[0] |= chip->input.ic;
 
-        const int ic_check = (chip->ic_latch[1] & 0x800) == 0 && chip->input.ic;
+        ic_check = (chip->ic_latch[1] & 0x800) == 0 && chip->input.ic;
 
         chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
         chip->prescaler_latch[0] |= !ic_check && (chip->prescaler_latch[1] & 0x1f) == 0;
@@ -111,10 +137,14 @@ void FM_HandleIO(fm_t *chip)
 
 int FM_GetBus(fm_t *chip)
 {
-    if (!(chip->input.cs && chip->input.rd && !chip->input.ic) && !chip->input.ic && !chip->io_ic_latch[1])
-        return chip->data_latch;
-
-    return 0;
+    int data = 0;
+    int io_dir = chip->input.cs && chip->input.rd && !chip->input.ic;
+    int data_enable = !io_dir && !chip->input.ic;
+    if (data_enable)
+        data = chip->data_latch;
+    if (chip->io_ic_latch[1])
+        data = 0;
+    return data;
 }
 
 void FM_SetTest(fm_t *chip, int test)
@@ -238,9 +268,8 @@ void FM_FSM1(fm_t *chip)
         chip->fsm_op3_sel_l = chip->fsm_out[6] || chip->fsm_out[7] || chip->fsm_out[8];
         chip->fsm_op1_sel_l = chip->fsm_out[9] || chip->fsm_out[10] || chip->fsm_out[11];
 
-        connect |= ((chip->chan_connect[0][1] >> 4) & 1);
-        connect |= ((chip->chan_connect[1][1] >> 4) & 1) << 1;
-        connect |= ((chip->chan_connect[2][1] >> 4) & 1) << 2;
+        for (i = 0; i < 3; i++)
+            connect |= ((chip->chan_connect[i][1] >> 4) & 1) << i;
 
         chip->alg_mod_op1_0_l = 0;
         chip->alg_mod_op1_1_l = 0;
@@ -299,138 +328,23 @@ void FM_FSM2(fm_t *chip)
 
     if (!(chip->flags & fm_flags_ym2612)) // YM3438
     {
-        chip->fsm_clock_eg = 0;
-        chip->fsm_op4_sel = 0;
-        chip->fsm_op1_sel = 0;
-        chip->fsm_op3_sel = 0;
-        chip->fsm_op2_sel = 0;
-        chip->fsm_sel2 = 0;
-        chip->fsm_sel23 = 0;
-        chip->fsm_ch3_sel = 0;
-        chip->fsm_dac_load = 0;
-        chip->fsm_dac_out_sel = 0;
-        chip->fsm_dac_ch6 = 0;
-        chip->fsm_clock_timers = 0;
-        chip->fsm_clock_timers1 = 0;
+        chip->fsm_clock_eg = cnt_comb == 0;
+        chip->fsm_op4_sel = cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6;
+        chip->fsm_op1_sel = cnt_comb == 8 || cnt_comb == 9 || cnt_comb == 10 || cnt_comb == 12 || cnt_comb == 13 || cnt_comb == 14;
+        chip->fsm_op3_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22;
+        chip->fsm_op2_sel = cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
+        chip->fsm_sel2 = cnt_comb == 2;
+        chip->fsm_sel23 = cnt_comb == 30;
+        chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
+        chip->fsm_dac_load = cnt_comb == 0 || cnt_comb == 5 || cnt_comb == 10 || cnt_comb == 16 || cnt_comb == 21 || cnt_comb == 26;
+        chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
+            cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
+        chip->fsm_dac_ch6 = cnt_comb == 5 || cnt_comb == 6 || cnt_comb == 8 || cnt_comb == 9;
+        chip->fsm_clock_timers = cnt_comb == 2;
+        chip->fsm_clock_timers1 = cnt_comb == 1;
 
-        switch (cnt_comb) {
-            case 0:
-                chip->fsm_clock_eg = 1;
-                chip->fsm_op4_sel = 1;
-                chip->fsm_dac_load = 1;
-                break;
-            case 1:
-                chip->fsm_clock_timers1 = 1;
-                chip->fsm_op4_sel = 1;
-                break;
-            case 2:
-                chip->fsm_clock_timers = 1;
-                chip->fsm_sel2 = 1;
-                chip->fsm_ch3_sel = 1;
-                chip->fsm_op4_sel = 1;
-                break;
-            case 4:
-                chip->fsm_op4_sel = 1;
-                break;
-            case 5:
-                chip->fsm_op4_sel = 1;
-                chip->fsm_dac_ch6 = 1;
-                chip->fsm_dac_load = 1;
-                break;
-            case 6:
-                chip->fsm_op4_sel = 1;
-                chip->fsm_dac_ch6 = 1;
-                break;
-            case 8:
-                chip->fsm_op1_sel = 1;
-                chip->fsm_dac_ch6 = 1;
-                break;
-            case 9:
-                chip->fsm_op1_sel = 1;
-                chip->fsm_dac_ch6 = 1;
-                break;
-            case 10:
-                chip->fsm_op1_sel = 1;
-                chip->fsm_ch3_sel = 1;
-                chip->fsm_dac_load = 1;
-                break;
-            case 12:
-                chip->fsm_op1_sel = 1;
-                break;
-            case 13:
-                chip->fsm_op1_sel = 1;
-                break;
-            case 14:
-                chip->fsm_op1_sel = 1;
-                break;
-            case 16:
-                chip->fsm_op3_sel = 1;
-                chip->fsm_dac_load = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 17:
-                chip->fsm_op3_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 18:
-                chip->fsm_ch3_sel = 1;
-                chip->fsm_op3_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 20:
-                chip->fsm_op3_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 21:
-                chip->fsm_dac_load = 1;
-                chip->fsm_op3_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 22:
-                chip->fsm_op3_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 24:
-                chip->fsm_op2_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 25:
-                chip->fsm_op2_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 26:
-                chip->fsm_ch3_sel = 1;
-                chip->fsm_dac_load = 1;
-                chip->fsm_op2_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 28:
-                chip->fsm_op2_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 29:
-                chip->fsm_op2_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-            case 30:
-                chip->fsm_sel23 = 1;
-                chip->fsm_op2_sel = 1;
-                chip->fsm_dac_out_sel = 1;
-                break;
-        }
-      //  chip->fsm_op4_sel = cnt_comb == 0 || cnt_comb == 1 || cnt_comb == 2 || cnt_comb == 4 || cnt_comb == 5 || cnt_comb == 6;
-        //chip->fsm_op1_sel = cnt_comb == 8 || cnt_comb == 9 || cnt_comb == 10 || cnt_comb == 12 || cnt_comb == 13 || cnt_comb == 14;
-       // chip->fsm_op3_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22;
-       // chip->fsm_op2_sel = cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
-       // chip->fsm_ch3_sel = cnt_comb == 2 || cnt_comb == 10 || cnt_comb == 18 || cnt_comb == 26;
-      //  chip->fsm_dac_load = cnt_comb == 0 || cnt_comb == 5 || cnt_comb == 10 || cnt_comb == 16 || cnt_comb == 21 || cnt_comb == 26;
-       // chip->fsm_dac_out_sel = cnt_comb == 16 || cnt_comb == 17 || cnt_comb == 18 || cnt_comb == 20 || cnt_comb == 21 || cnt_comb == 22 ||
-         //   cnt_comb == 24 || cnt_comb == 25 || cnt_comb == 26 || cnt_comb == 28 || cnt_comb == 29 || cnt_comb == 30;
-       // chip->fsm_dac_ch6 = cnt_comb == 5 || cnt_comb == 6 || cnt_comb == 8 || cnt_comb == 9;
-
-        connect |= ((chip->chan_connect[0][1] >> 5) & 1);
-        connect |= ((chip->chan_connect[1][1] >> 5) & 1) << 1;
-        connect |= ((chip->chan_connect[2][1] >> 5) & 1) << 2;
+        for (i = 0; i < 3; i++)
+            connect |= ((chip->chan_connect[i][1] >> 5) & 1) << i;
 
         chip->alg_mod_op1_0 = 0;
         chip->alg_mod_op1_1 = 0;
@@ -490,114 +404,8 @@ void FM_FSM2(fm_t *chip)
         chip->fsm_clock_timers = chip->fsm_clock_timers_l;
         chip->fsm_clock_timers1 = chip->fsm_clock_timers1_l;
 
-        chip->fsm_out[0] = 0;
-        chip->fsm_out[1] = 0;
-        chip->fsm_out[2] = 0;
-        chip->fsm_out[3] = 0;
-        chip->fsm_out[4] = 0;
-        chip->fsm_out[5] = 0;
-        chip->fsm_out[6] = 0;
-        chip->fsm_out[7] = 0;
-        chip->fsm_out[8] = 0;
-        chip->fsm_out[9] = 0;
-        chip->fsm_out[10] = 0;
-        chip->fsm_out[11] = 0;
-        chip->fsm_out[12] = 0;
-        chip->fsm_out[13] = 0;
-        chip->fsm_out[14] = 0;
-        chip->fsm_out[15] = 0;
-        chip->fsm_out[16] = 0;
-        chip->fsm_out[17] = 0;
-        chip->fsm_out[18] = 0;
-        chip->fsm_out[19] = 0;
-        chip->fsm_out[20] = 0;
-        chip->fsm_out[21] = 0;
-        chip->fsm_out[22] = 0;
-        chip->fsm_out[23] = 0;
-        chip->fsm_out[24] = 0;
-        chip->fsm_out[25] = 0;
 
-        switch (cnt_comb & 15) {
-            case 4:
-                chip->fsm_out[20] = 1;
-                break;
-            case 9:
-                chip->fsm_out[21] = 1;
-                break;
-            case 14:
-                chip->fsm_out[19] = 1;
-                break;
-        }
 
-        switch (cnt_comb & 28) {
-            case 0:
-                chip->fsm_out[1] = 1;
-                break;
-            case 4:
-                chip->fsm_out[17] = 1;
-                break;
-            case 8:
-                chip->fsm_out[10] = 1;
-                break;
-            case 16:
-                chip->fsm_out[7] = 1;
-                break;
-            case 24:
-                chip->fsm_out[4] = 1;
-                chip->fsm_out[24] = 1;
-                break;
-        }
-
-        switch (cnt_comb & 30) {
-            case 4:
-                chip->fsm_out[2] = 1;
-                break;
-            case 6:
-                chip->fsm_out[9] = 1;
-                break;
-            case 12:
-                chip->fsm_out[11] = 1;
-                break;
-            case 14:
-                chip->fsm_out[6] = 1;
-                break;
-            case 20:
-                chip->fsm_out[8] = 1;
-                break;
-            case 22:
-                chip->fsm_out[3] = 1;
-                break;
-            case 28:
-                chip->fsm_out[5] = 1;
-                chip->fsm_out[25] = 1;
-                break;
-            case 30:
-                chip->fsm_out[0] = 1;
-                chip->fsm_out[12] = 1;
-                break;
-        }
-
-        switch (cnt_comb) {
-            case 0:
-                chip->fsm_out[13] = 1;
-                break;
-            case 1:
-                chip->fsm_out[14] = 1;
-                break;
-            case 8:
-                chip->fsm_out[18] = 1;
-                break;
-            case 14:
-                chip->fsm_out[22] = 1;
-                break;
-            case 29:
-                chip->fsm_out[15] = 1;
-                break;
-        }
-
-        /*
-        Original before lookup table implementation.
-        - Movrsi.
         chip->fsm_out[0] = (cnt_comb & 30) == 30;
         chip->fsm_out[1] = (cnt_comb & 28) == 0;
         chip->fsm_out[2] = (cnt_comb & 30) == 4;
@@ -614,18 +422,16 @@ void FM_FSM2(fm_t *chip)
         chip->fsm_out[13] = cnt_comb == 0;
         chip->fsm_out[14] = cnt_comb == 1;
         chip->fsm_out[15] = cnt_comb == 29;
+        chip->fsm_out[16] = (cnt_comb & 7) == 1;
         chip->fsm_out[17] = (cnt_comb & 28) == 4;
         chip->fsm_out[18] = cnt_comb == 8;
         chip->fsm_out[19] = (cnt_comb & 15) == 14;
         chip->fsm_out[20] = (cnt_comb & 15) == 4;
         chip->fsm_out[21] = (cnt_comb & 15) == 9;
         chip->fsm_out[22] = cnt_comb == 14;
+        chip->fsm_out[23] = (cnt_comb & 24) == 16;
         chip->fsm_out[24] = (cnt_comb & 28) == 24;
         chip->fsm_out[25] = (cnt_comb & 30) == 28;
-        */
-
-        chip->fsm_out[16] = (cnt_comb & 7) == 1;
-        chip->fsm_out[23] = (cnt_comb & 24) == 16;
 
         chip->alg_mod_op1_0 = chip->alg_mod_op1_0_l;
         chip->alg_mod_op1_1 = chip->alg_mod_op1_1_l;
@@ -671,180 +477,78 @@ void FM_HandleIO2(fm_t *chip)
 
 void FM_DoShiftRegisters(fm_t *chip, int sel)
 {
-    const int from = sel ^ 1;
-    const int rot = sel == 0 ? 1 : 0;
+    int i, j;
+    int to = sel;
+    int from = sel ^ 1;
+    int rot = sel == 0 ? 1 : 0;
 #define SLOT_ROTATE(x) rot ? ((x << 1) | ((x >> 11) & 1)) : x
 #define CH_ROTATE(x) rot ? ((x << 1) | ((x >> 5) & 1)) : x
-    // multi registers
-    chip->slot_multi[0][0][sel] = SLOT_ROTATE(chip->slot_multi[0][0][from]);
-    chip->slot_multi[0][1][sel] = SLOT_ROTATE(chip->slot_multi[0][1][from]);
-    chip->slot_multi[0][2][sel] = SLOT_ROTATE(chip->slot_multi[0][2][from]);
-    chip->slot_multi[0][3][sel] = SLOT_ROTATE(chip->slot_multi[0][3][from]);
-    chip->slot_multi[1][0][sel] = SLOT_ROTATE(chip->slot_multi[1][0][from]);
-    chip->slot_multi[1][1][sel] = SLOT_ROTATE(chip->slot_multi[1][1][from]);
-    chip->slot_multi[1][2][sel] = SLOT_ROTATE(chip->slot_multi[1][2][from]);
-    chip->slot_multi[1][3][sel] = SLOT_ROTATE(chip->slot_multi[1][3][from]);
+    // slot registers
+    for (i = 0; i < 2; i++)
+    {
+        // multi
+        for (j = 0; j < 4; j++)
+            chip->slot_multi[i][j][to] = SLOT_ROTATE(chip->slot_multi[i][j][from]);
+        // dt
+        for (j = 0; j < 3; j++)
+            chip->slot_dt[i][j][to] = SLOT_ROTATE(chip->slot_dt[i][j][from]);
+        // tl
+        for (j = 0; j < 7; j++)
+            chip->slot_tl[i][j][to] = SLOT_ROTATE(chip->slot_tl[i][j][from]);
+        // ar
+        for (j = 0; j < 5; j++)
+            chip->slot_ar[i][j][to] = SLOT_ROTATE(chip->slot_ar[i][j][from]);
+        // ks
+        for (j = 0; j < 2; j++)
+            chip->slot_ks[i][j][to] = SLOT_ROTATE(chip->slot_ks[i][j][from]);
+        // dr
+        for (j = 0; j < 5; j++)
+            chip->slot_dr[i][j][to] = SLOT_ROTATE(chip->slot_dr[i][j][from]);
+        // am
+        for (j = 0; j < 1; j++)
+            chip->slot_am[i][j][to] = SLOT_ROTATE(chip->slot_am[i][j][from]);
+        // sr
+        for (j = 0; j < 5; j++)
+            chip->slot_sr[i][j][to] = SLOT_ROTATE(chip->slot_sr[i][j][from]);
+        // rr
+        for (j = 0; j < 4; j++)
+            chip->slot_rr[i][j][to] = SLOT_ROTATE(chip->slot_rr[i][j][from]);
+        // sl
+        for (j = 0; j < 4; j++)
+            chip->slot_sl[i][j][to] = SLOT_ROTATE(chip->slot_sl[i][j][from]);
+        // ssg eg
+        for (j = 0; j < 4; j++)
+            chip->slot_ssg_eg[i][j][to] = SLOT_ROTATE(chip->slot_ssg_eg[i][j][from]);
+    }
+    // channel registers
 
-    // dt registers
-    chip->slot_dt[0][0][sel] = SLOT_ROTATE(chip->slot_dt[0][0][from]);
-    chip->slot_dt[0][1][sel] = SLOT_ROTATE(chip->slot_dt[0][1][from]);
-    chip->slot_dt[0][2][sel] = SLOT_ROTATE(chip->slot_dt[0][2][from]);
-    chip->slot_dt[1][0][sel] = SLOT_ROTATE(chip->slot_dt[1][0][from]);
-    chip->slot_dt[1][1][sel] = SLOT_ROTATE(chip->slot_dt[1][1][from]);
-    chip->slot_dt[1][2][sel] = SLOT_ROTATE(chip->slot_dt[1][2][from]);
-
-    // tl registers
-    chip->slot_tl[0][0][sel] = SLOT_ROTATE(chip->slot_tl[0][0][from]);
-    chip->slot_tl[0][1][sel] = SLOT_ROTATE(chip->slot_tl[0][1][from]);
-    chip->slot_tl[0][2][sel] = SLOT_ROTATE(chip->slot_tl[0][2][from]);
-    chip->slot_tl[0][3][sel] = SLOT_ROTATE(chip->slot_tl[0][3][from]);
-    chip->slot_tl[0][4][sel] = SLOT_ROTATE(chip->slot_tl[0][4][from]);
-    chip->slot_tl[0][5][sel] = SLOT_ROTATE(chip->slot_tl[0][5][from]);
-    chip->slot_tl[0][6][sel] = SLOT_ROTATE(chip->slot_tl[0][6][from]);
-    chip->slot_tl[1][0][sel] = SLOT_ROTATE(chip->slot_tl[1][0][from]);
-    chip->slot_tl[1][1][sel] = SLOT_ROTATE(chip->slot_tl[1][1][from]);
-    chip->slot_tl[1][2][sel] = SLOT_ROTATE(chip->slot_tl[1][2][from]);
-    chip->slot_tl[1][3][sel] = SLOT_ROTATE(chip->slot_tl[1][3][from]);
-    chip->slot_tl[1][4][sel] = SLOT_ROTATE(chip->slot_tl[1][4][from]);
-    chip->slot_tl[1][5][sel] = SLOT_ROTATE(chip->slot_tl[1][5][from]);
-    chip->slot_tl[1][6][sel] = SLOT_ROTATE(chip->slot_tl[1][6][from]);
-
-    // ar registers
-    chip->slot_ar[0][0][sel] = SLOT_ROTATE(chip->slot_ar[0][0][from]);
-    chip->slot_ar[0][1][sel] = SLOT_ROTATE(chip->slot_ar[0][1][from]);
-    chip->slot_ar[0][2][sel] = SLOT_ROTATE(chip->slot_ar[0][2][from]);
-    chip->slot_ar[0][3][sel] = SLOT_ROTATE(chip->slot_ar[0][3][from]);
-    chip->slot_ar[0][4][sel] = SLOT_ROTATE(chip->slot_ar[0][4][from]);
-    chip->slot_ar[1][0][sel] = SLOT_ROTATE(chip->slot_ar[1][0][from]);
-    chip->slot_ar[1][1][sel] = SLOT_ROTATE(chip->slot_ar[1][1][from]);
-    chip->slot_ar[1][2][sel] = SLOT_ROTATE(chip->slot_ar[1][2][from]);
-    chip->slot_ar[1][3][sel] = SLOT_ROTATE(chip->slot_ar[1][3][from]);
-    chip->slot_ar[1][4][sel] = SLOT_ROTATE(chip->slot_ar[1][4][from]);
-
-    // ks registers
-    chip->slot_ks[0][0][sel] = SLOT_ROTATE(chip->slot_ks[0][0][from]);
-    chip->slot_ks[0][1][sel] = SLOT_ROTATE(chip->slot_ks[0][1][from]);
-    chip->slot_ks[1][0][sel] = SLOT_ROTATE(chip->slot_ks[1][0][from]);
-    chip->slot_ks[1][1][sel] = SLOT_ROTATE(chip->slot_ks[1][1][from]);
-
-    // dr registers
-    chip->slot_dr[0][0][sel] = SLOT_ROTATE(chip->slot_dr[0][0][from]);
-    chip->slot_dr[0][1][sel] = SLOT_ROTATE(chip->slot_dr[0][1][from]);
-    chip->slot_dr[0][2][sel] = SLOT_ROTATE(chip->slot_dr[0][2][from]);
-    chip->slot_dr[0][3][sel] = SLOT_ROTATE(chip->slot_dr[0][3][from]);
-    chip->slot_dr[0][4][sel] = SLOT_ROTATE(chip->slot_dr[0][4][from]);
-    chip->slot_dr[1][0][sel] = SLOT_ROTATE(chip->slot_dr[1][0][from]);
-    chip->slot_dr[1][1][sel] = SLOT_ROTATE(chip->slot_dr[1][1][from]);
-    chip->slot_dr[1][2][sel] = SLOT_ROTATE(chip->slot_dr[1][2][from]);
-    chip->slot_dr[1][3][sel] = SLOT_ROTATE(chip->slot_dr[1][3][from]);
-    chip->slot_dr[1][4][sel] = SLOT_ROTATE(chip->slot_dr[1][4][from]);
-    
-    // am registers
-    chip->slot_am[0][0][sel] = SLOT_ROTATE(chip->slot_am[0][0][from]);
-    chip->slot_am[1][0][sel] = SLOT_ROTATE(chip->slot_am[1][0][from]);
-
-    // sr registers
-    chip->slot_sr[0][0][sel] = SLOT_ROTATE(chip->slot_sr[0][0][from]);
-    chip->slot_sr[0][1][sel] = SLOT_ROTATE(chip->slot_sr[0][1][from]);
-    chip->slot_sr[0][2][sel] = SLOT_ROTATE(chip->slot_sr[0][2][from]);
-    chip->slot_sr[0][3][sel] = SLOT_ROTATE(chip->slot_sr[0][3][from]);
-    chip->slot_sr[0][4][sel] = SLOT_ROTATE(chip->slot_sr[0][4][from]);
-    chip->slot_sr[1][0][sel] = SLOT_ROTATE(chip->slot_sr[1][0][from]);
-    chip->slot_sr[1][1][sel] = SLOT_ROTATE(chip->slot_sr[1][1][from]);
-    chip->slot_sr[1][2][sel] = SLOT_ROTATE(chip->slot_sr[1][2][from]);
-    chip->slot_sr[1][3][sel] = SLOT_ROTATE(chip->slot_sr[1][3][from]);
-    chip->slot_sr[1][4][sel] = SLOT_ROTATE(chip->slot_sr[1][4][from]);
-
-    // rr registers
-    chip->slot_rr[0][0][sel] = SLOT_ROTATE(chip->slot_rr[0][0][from]);
-    chip->slot_rr[0][1][sel] = SLOT_ROTATE(chip->slot_rr[0][1][from]);
-    chip->slot_rr[0][2][sel] = SLOT_ROTATE(chip->slot_rr[0][2][from]);
-    chip->slot_rr[0][3][sel] = SLOT_ROTATE(chip->slot_rr[0][3][from]);
-    chip->slot_rr[1][0][sel] = SLOT_ROTATE(chip->slot_rr[1][0][from]);
-    chip->slot_rr[1][1][sel] = SLOT_ROTATE(chip->slot_rr[1][1][from]);
-    chip->slot_rr[1][2][sel] = SLOT_ROTATE(chip->slot_rr[1][2][from]);
-    chip->slot_rr[1][3][sel] = SLOT_ROTATE(chip->slot_rr[1][3][from]);
-
-    // sl registers
-    chip->slot_sl[0][0][sel] = SLOT_ROTATE(chip->slot_sl[0][0][from]);
-    chip->slot_sl[0][1][sel] = SLOT_ROTATE(chip->slot_sl[0][1][from]);
-    chip->slot_sl[0][2][sel] = SLOT_ROTATE(chip->slot_sl[0][2][from]);
-    chip->slot_sl[0][3][sel] = SLOT_ROTATE(chip->slot_sl[0][3][from]);
-    chip->slot_sl[1][0][sel] = SLOT_ROTATE(chip->slot_sl[1][0][from]);
-    chip->slot_sl[1][1][sel] = SLOT_ROTATE(chip->slot_sl[1][1][from]);
-    chip->slot_sl[1][2][sel] = SLOT_ROTATE(chip->slot_sl[1][2][from]);
-    chip->slot_sl[1][3][sel] = SLOT_ROTATE(chip->slot_sl[1][3][from]);
-
-    // ssg eg registers
-    chip->slot_ssg_eg[0][0][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][0][from]);
-    chip->slot_ssg_eg[0][1][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][1][from]);
-    chip->slot_ssg_eg[0][2][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][2][from]);
-    chip->slot_ssg_eg[0][3][sel] = SLOT_ROTATE(chip->slot_ssg_eg[0][3][from]);
-    chip->slot_ssg_eg[1][0][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][0][from]);
-    chip->slot_ssg_eg[1][1][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][1][from]);
-    chip->slot_ssg_eg[1][2][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][2][from]);
-    chip->slot_ssg_eg[1][3][sel] = SLOT_ROTATE(chip->slot_ssg_eg[1][3][from]);
-
-    // fm channel registers
-    chip->chan_fnum[0][sel] = CH_ROTATE(chip->chan_fnum[0][from]);
-    chip->chan_fnum[1][sel] = CH_ROTATE(chip->chan_fnum[1][from]);
-    chip->chan_fnum[2][sel] = CH_ROTATE(chip->chan_fnum[2][from]);
-    chip->chan_fnum[3][sel] = CH_ROTATE(chip->chan_fnum[3][from]);
-    chip->chan_fnum[4][sel] = CH_ROTATE(chip->chan_fnum[4][from]);
-    chip->chan_fnum[5][sel] = CH_ROTATE(chip->chan_fnum[5][from]);
-    chip->chan_fnum[6][sel] = CH_ROTATE(chip->chan_fnum[6][from]);
-    chip->chan_fnum[7][sel] = CH_ROTATE(chip->chan_fnum[7][from]);
-    chip->chan_fnum[8][sel] = CH_ROTATE(chip->chan_fnum[8][from]);
-    chip->chan_fnum[9][sel] = CH_ROTATE(chip->chan_fnum[9][from]);
-    chip->chan_fnum[10][sel] = CH_ROTATE(chip->chan_fnum[10][from]);
-
-    // fm ch3 registers
-    chip->chan_fnum_ch3[0][sel] = CH_ROTATE(chip->chan_fnum_ch3[0][from]);
-    chip->chan_fnum_ch3[1][sel] = CH_ROTATE(chip->chan_fnum_ch3[1][from]);
-    chip->chan_fnum_ch3[2][sel] = CH_ROTATE(chip->chan_fnum_ch3[2][from]);
-    chip->chan_fnum_ch3[3][sel] = CH_ROTATE(chip->chan_fnum_ch3[3][from]);
-    chip->chan_fnum_ch3[4][sel] = CH_ROTATE(chip->chan_fnum_ch3[4][from]);
-    chip->chan_fnum_ch3[5][sel] = CH_ROTATE(chip->chan_fnum_ch3[5][from]);
-    chip->chan_fnum_ch3[6][sel] = CH_ROTATE(chip->chan_fnum_ch3[6][from]);
-    chip->chan_fnum_ch3[7][sel] = CH_ROTATE(chip->chan_fnum_ch3[7][from]);
-    chip->chan_fnum_ch3[8][sel] = CH_ROTATE(chip->chan_fnum_ch3[8][from]);
-    chip->chan_fnum_ch3[9][sel] = CH_ROTATE(chip->chan_fnum_ch3[9][from]);
-    chip->chan_fnum_ch3[10][sel] = CH_ROTATE(chip->chan_fnum_ch3[10][from]);
-
-
-    // block channel registers
-    chip->chan_block[0][sel] = CH_ROTATE(chip->chan_block[0][from]);
-    chip->chan_block[1][sel] = CH_ROTATE(chip->chan_block[1][from]);
-    chip->chan_block[2][sel] = CH_ROTATE(chip->chan_block[2][from]);
-
-    // block ch3 registers
-    chip->chan_block_ch3[0][sel] = CH_ROTATE(chip->chan_block_ch3[0][from]);
-    chip->chan_block_ch3[1][sel] = CH_ROTATE(chip->chan_block_ch3[1][from]);
-    chip->chan_block_ch3[2][sel] = CH_ROTATE(chip->chan_block_ch3[2][from]);
-
-    // connect channel registers
-    chip->chan_connect[0][sel] = CH_ROTATE(chip->chan_connect[0][from]);
-    chip->chan_connect[1][sel] = CH_ROTATE(chip->chan_connect[1][from]);
-    chip->chan_connect[2][sel] = CH_ROTATE(chip->chan_connect[2][from]);
-
-    // fb channel registers
-    chip->chan_fb[0][sel] = CH_ROTATE(chip->chan_fb[0][from]);
-    chip->chan_fb[1][sel] = CH_ROTATE(chip->chan_fb[1][from]);
-    chip->chan_fb[2][sel] = CH_ROTATE(chip->chan_fb[2][from]);
-
-    // pms channel registers
-    chip->chan_pms[0][sel] = CH_ROTATE(chip->chan_pms[0][from]);
-    chip->chan_pms[1][sel] = CH_ROTATE(chip->chan_pms[1][from]);
-    chip->chan_pms[2][sel] = CH_ROTATE(chip->chan_pms[2][from]);
-
-    // ams channel registers
-    chip->chan_ams[0][sel] = CH_ROTATE(chip->chan_ams[0][from]);
-    chip->chan_ams[1][sel] = CH_ROTATE(chip->chan_ams[1][from]);
-
-    // pan channel registers
-    chip->chan_pan[0][sel] = CH_ROTATE(chip->chan_pan[0][from]);
-    chip->chan_pan[1][sel] = CH_ROTATE(chip->chan_pan[1][from]);
-
+    // fnum
+    for (j = 0; j < 11; j++)
+        chip->chan_fnum[j][to] = CH_ROTATE(chip->chan_fnum[j][from]);
+    // fnum ch3
+    for (j = 0; j < 11; j++)
+        chip->chan_fnum_ch3[j][to] = CH_ROTATE(chip->chan_fnum_ch3[j][from]);
+    // block
+    for (j = 0; j < 3; j++)
+        chip->chan_block[j][to] = CH_ROTATE(chip->chan_block[j][from]);
+    // block ch3
+    for (j = 0; j < 3; j++)
+        chip->chan_block_ch3[j][to] = CH_ROTATE(chip->chan_block_ch3[j][from]);
+    // connect
+    for (j = 0; j < 3; j++)
+        chip->chan_connect[j][to] = CH_ROTATE(chip->chan_connect[j][from]);
+    // fb
+    for (j = 0; j < 3; j++)
+        chip->chan_fb[j][to] = CH_ROTATE(chip->chan_fb[j][from]);
+    // pms
+    for (j = 0; j < 3; j++)
+        chip->chan_pms[j][to] = CH_ROTATE(chip->chan_pms[j][from]);
+    // ams
+    for (j = 0; j < 2; j++)
+        chip->chan_ams[j][to] = CH_ROTATE(chip->chan_ams[j][from]);
+    // pan
+    for (j = 0; j < 2; j++)
+        chip->chan_pan[j][to] = CH_ROTATE(chip->chan_pan[j][from]);
 #undef SLOT_ROTATE
 #undef CH_ROTATE
 }
@@ -852,11 +556,11 @@ void FM_DoShiftRegisters(fm_t *chip, int sel)
 void FM_FMRegisters1(fm_t *chip)
 {
     int i, j;
-    const int write_data_en = !chip->write_data_sr[1] && chip->write_data_dlatch;
-    const int write_addr_en = !chip->write_addr_sr[1] && chip->write_addr_dlatch;
-    const int bus = FM_GetBus(chip);
-    const int address = bus | (chip->bank_latch << 8);
-    const int fm_write = (bus & 0xf0) != 0;
+    int write_data_en = !chip->write_data_sr[1] && chip->write_data_dlatch;
+    int write_addr_en = !chip->write_addr_sr[1] && chip->write_addr_dlatch;
+    int bus = FM_GetBus(chip);
+    int address = bus | (chip->bank_latch << 8);
+    int fm_write = (bus & 0xf0) != 0;
 
 
     if (write_addr_en)
@@ -1071,125 +775,88 @@ void FM_FMRegisters1(fm_t *chip)
     if (chip->write_fm_data[1] && (chip->fm_address[1]&3) == chip->reg_cnt1[1]
         && ((chip->fm_address[1]>>2)&1) == ((chip->reg_cnt2[1]>>1)&1) && ((chip->fm_address[1]>>8)&1) == (chip->reg_cnt2[1]&1))
     {
-        const int bank = (chip->fm_address[1]>>3)&1;
+        int bank = (chip->fm_address[1]>>3)&1;
         switch (chip->fm_address[1] & 0xf0)
         {
             case 0x30:
                 // multi
-                chip->slot_multi[bank][0][0] &= ~1;
-                chip->slot_multi[bank][1][0] &= ~1;
-                chip->slot_multi[bank][2][0] &= ~1;
-                chip->slot_multi[bank][3][0] &= ~1;
-                chip->slot_multi[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_multi[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_multi[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_multi[bank][2][0] |= (chip->fm_data[1] >> 3) & 1;
-
+                for (j = 0; j < 4; j++)
+                {
+                    chip->slot_multi[bank][j][0] &= ~1;
+                    chip->slot_multi[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 // dt
-                chip->slot_dt[bank][0][0] &= ~1;
-                chip->slot_dt[bank][1][0] &= ~1;
-                chip->slot_dt[bank][2][0] &= ~1;
-                chip->slot_dt[bank][0][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->slot_dt[bank][1][0] |= (chip->fm_data[1] >> 5) & 1;
-                chip->slot_dt[bank][2][0] |= (chip->fm_data[1] >> 6) & 1;
+                for (j = 0; j < 3; j++)
+                {
+                    chip->slot_dt[bank][j][0] &= ~1;
+                    chip->slot_dt[bank][j][0] |= (chip->fm_data[1] >> (j + 4)) & 1;
+                }
                 break;
             case 0x40:
                 // tl
-                chip->slot_tl[bank][0][0] &= ~1;
-                chip->slot_tl[bank][1][0] &= ~1;
-                chip->slot_tl[bank][2][0] &= ~1;
-                chip->slot_tl[bank][3][0] &= ~1;
-                chip->slot_tl[bank][4][0] &= ~1;
-                chip->slot_tl[bank][5][0] &= ~1;
-                chip->slot_tl[bank][6][0] &= ~1;
-                chip->slot_tl[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_tl[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_tl[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_tl[bank][3][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->slot_tl[bank][4][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->slot_tl[bank][5][0] |= (chip->fm_data[1] >> 5) & 1;
-                chip->slot_tl[bank][6][0] |= (chip->fm_data[1] >> 6) & 1;
+                for (j = 0; j < 7; j++)
+                {
+                    chip->slot_tl[bank][j][0] &= ~1;
+                    chip->slot_tl[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 break;
             case 0x50:
                 // ar
-                chip->slot_ar[bank][0][0] &= ~1;
-                chip->slot_ar[bank][1][0] &= ~1;
-                chip->slot_ar[bank][2][0] &= ~1;
-                chip->slot_ar[bank][3][0] &= ~1;
-                chip->slot_ar[bank][4][0] &= ~1;
-                chip->slot_ar[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_ar[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_ar[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_ar[bank][3][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->slot_ar[bank][4][0] |= (chip->fm_data[1] >> 4) & 1;
-
+                for (j = 0; j < 5; j++)
+                {
+                    chip->slot_ar[bank][j][0] &= ~1;
+                    chip->slot_ar[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 // ks
-                chip->slot_ks[bank][0][0] &= ~1;
-                chip->slot_ks[bank][1][0] &= ~1;
-                chip->slot_ks[bank][0][0] |= (chip->fm_data[1] >> 6) & 1;
-                chip->slot_ks[bank][1][0] |= (chip->fm_data[1] >> 7) & 1;
+                for (j = 0; j < 2; j++)
+                {
+                    chip->slot_ks[bank][j][0] &= ~1;
+                    chip->slot_ks[bank][j][0] |= (chip->fm_data[1] >> (j + 6)) & 1;
+                }
                 break;
             case 0x60:
                 // dr
-                chip->slot_dr[bank][0][0] &= ~1;
-                chip->slot_dr[bank][1][0] &= ~1;
-                chip->slot_dr[bank][2][0] &= ~1;
-                chip->slot_dr[bank][3][0] &= ~1;
-                chip->slot_dr[bank][4][0] &= ~1;
-                chip->slot_dr[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_dr[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_dr[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_dr[bank][3][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->slot_dr[bank][4][0] |= (chip->fm_data[1] >> 4) & 1;
-
+                for (j = 0; j < 5; j++)
+                {
+                    chip->slot_dr[bank][j][0] &= ~1;
+                    chip->slot_dr[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 // am
-                chip->slot_am[bank][0][0] &= ~1;
-                chip->slot_am[bank][0][0] |= (chip->fm_data[1] >> 7) & 1;
+                for (j = 0; j < 1; j++)
+                {
+                    chip->slot_am[bank][j][0] &= ~1;
+                    chip->slot_am[bank][j][0] |= (chip->fm_data[1] >> (j + 7)) & 1;
+                }
                 break;
             case 0x70:
                 // sr
-                chip->slot_sr[bank][0][0] &= ~1;
-                chip->slot_sr[bank][1][0] &= ~1;
-                chip->slot_sr[bank][2][0] &= ~1;
-                chip->slot_sr[bank][3][0] &= ~1;
-                chip->slot_sr[bank][4][0] &= ~1;
-                chip->slot_sr[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_sr[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_sr[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_sr[bank][3][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->slot_sr[bank][4][0] |= (chip->fm_data[1] >> 4) & 1;
+                for (j = 0; j < 5; j++)
+                {
+                    chip->slot_sr[bank][j][0] &= ~1;
+                    chip->slot_sr[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 break;
             case 0x80:
                 // rr
-                chip->slot_rr[bank][0][0] &= ~1;
-                chip->slot_rr[bank][1][0] &= ~1;
-                chip->slot_rr[bank][2][0] &= ~1;
-                chip->slot_rr[bank][3][0] &= ~1;
-                chip->slot_rr[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_rr[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_rr[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_rr[bank][3][0] |= (chip->fm_data[1] >> 3) & 1;
-
+                for (j = 0; j < 4; j++)
+                {
+                    chip->slot_rr[bank][j][0] &= ~1;
+                    chip->slot_rr[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 // sl
-                chip->slot_sl[bank][0][0] &= ~1;
-                chip->slot_sl[bank][1][0] &= ~1;
-                chip->slot_sl[bank][2][0] &= ~1;
-                chip->slot_sl[bank][3][0] &= ~1;
-                chip->slot_sl[bank][0][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->slot_sl[bank][1][0] |= (chip->fm_data[1] >> 5) & 1;
-                chip->slot_sl[bank][2][0] |= (chip->fm_data[1] >> 6) & 1;
-                chip->slot_sl[bank][3][0] |= (chip->fm_data[1] >> 7) & 1;
+                for (j = 0; j < 4; j++)
+                {
+                    chip->slot_sl[bank][j][0] &= ~1;
+                    chip->slot_sl[bank][j][0] |= (chip->fm_data[1] >> (j + 4)) & 1;
+                }
                 break;
             case 0x90:
                 // ssg eg
-                chip->slot_ssg_eg[bank][0][0] &= ~1;
-                chip->slot_ssg_eg[bank][1][0] &= ~1;
-                chip->slot_ssg_eg[bank][2][0] &= ~1;
-                chip->slot_ssg_eg[bank][3][0] &= ~1;
-                chip->slot_ssg_eg[bank][0][0] |= (chip->fm_data[1]) & 1;
-                chip->slot_ssg_eg[bank][1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->slot_ssg_eg[bank][2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->slot_ssg_eg[bank][3][0] |= (chip->fm_data[1] >> 3) & 1;
+                for (j = 0; j < 4; j++)
+                {
+                    chip->slot_ssg_eg[bank][j][0] &= ~1;
+                    chip->slot_ssg_eg[bank][j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 break;
         }
     }
@@ -1199,113 +866,81 @@ void FM_FMRegisters1(fm_t *chip)
         {
             case 0xa0:
                 // fnum
-                chip->chan_fnum[0][0] &= ~1;
-                chip->chan_fnum[1][0] &= ~1;
-                chip->chan_fnum[2][0] &= ~1;
-                chip->chan_fnum[3][0] &= ~1;
-                chip->chan_fnum[4][0] &= ~1;
-                chip->chan_fnum[5][0] &= ~1;
-                chip->chan_fnum[6][0] &= ~1;
-                chip->chan_fnum[7][0] &= ~1;
-                chip->chan_fnum[8][0] &= ~1;
-                chip->chan_fnum[9][0] &= ~1;
-                chip->chan_fnum[10][0] &= ~1;
-                chip->chan_fnum[0][0] |= (chip->fm_data[1]) & 1;
-                chip->chan_fnum[1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->chan_fnum[2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->chan_fnum[3][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->chan_fnum[4][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->chan_fnum[5][0] |= (chip->fm_data[1] >> 5) & 1;
-                chip->chan_fnum[6][0] |= (chip->fm_data[1] >> 6) & 1;
-                chip->chan_fnum[7][0] |= (chip->fm_data[1] >> 7) & 1;
-                chip->chan_fnum[8][0] |= (chip->chan_a4[1]) & 1;
-                chip->chan_fnum[9][0] |= (chip->chan_a4[1] >> 1) & 1;
-                chip->chan_fnum[10][0] |= (chip->chan_a4[1] >> 2) & 1;
-
+                for (j = 0; j < 8; j++)
+                {
+                    chip->chan_fnum[j][0] &= ~1;
+                    chip->chan_fnum[j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_fnum[8+j][0] &= ~1;
+                    chip->chan_fnum[8+j][0] |= (chip->chan_a4[1] >> (j + 0)) & 1;
+                }
                 // block
-                chip->chan_block[0][0] &= ~1;
-                chip->chan_block[1][0] &= ~1;
-                chip->chan_block[2][0] &= ~1;
-                chip->chan_block[0][0] |= (chip->chan_a4[1] >> 3) & 1;
-                chip->chan_block[1][0] |= (chip->chan_a4[1] >> 4) & 1;
-                chip->chan_block[2][0] |= (chip->chan_a4[1] >> 5) & 1;
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_block[j][0] &= ~1;
+                    chip->chan_block[j][0] |= (chip->chan_a4[1] >> (j + 3)) & 1;
+                }
                 break;
             case 0xa4:
                 chip->chan_a4[0] = chip->fm_data[1] & 0x3f;
                 break;
             case 0xa8:
                 // fnum
-                chip->chan_fnum_ch3[0][0] &= ~1;
-                chip->chan_fnum_ch3[1][0] &= ~1;
-                chip->chan_fnum_ch3[2][0] &= ~1;
-                chip->chan_fnum_ch3[3][0] &= ~1;
-                chip->chan_fnum_ch3[4][0] &= ~1;
-                chip->chan_fnum_ch3[5][0] &= ~1;
-                chip->chan_fnum_ch3[6][0] &= ~1;
-                chip->chan_fnum_ch3[7][0] &= ~1;
-                chip->chan_fnum_ch3[8][0] &= ~1;
-                chip->chan_fnum_ch3[9][0] &= ~1;
-                chip->chan_fnum_ch3[10][0] &= ~1;
-                chip->chan_fnum_ch3[0][0] |= (chip->fm_data[1]) & 1;
-                chip->chan_fnum_ch3[1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->chan_fnum_ch3[2][0] |= (chip->fm_data[1] >> 2) & 1;
-                chip->chan_fnum_ch3[3][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->chan_fnum_ch3[4][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->chan_fnum_ch3[5][0] |= (chip->fm_data[1] >> 5) & 1;
-                chip->chan_fnum_ch3[6][0] |= (chip->fm_data[1] >> 6) & 1;
-                chip->chan_fnum_ch3[7][0] |= (chip->fm_data[1] >> 7) & 1;
-                chip->chan_fnum_ch3[8][0] |= (chip->chan_ac[1]) & 1;
-                chip->chan_fnum_ch3[9][0] |= (chip->chan_ac[1] >> 1) & 1;
-                chip->chan_fnum_ch3[10][0] |= (chip->chan_ac[1] >> 2) & 1;
-
+                for (j = 0; j < 8; j++)
+                {
+                    chip->chan_fnum_ch3[j][0] &= ~1;
+                    chip->chan_fnum_ch3[j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_fnum_ch3[8+j][0] &= ~1;
+                    chip->chan_fnum_ch3[8+j][0] |= (chip->chan_ac[1] >> (j + 0)) & 1;
+                }
                 // block
-                chip->chan_block_ch3[0][0] &= ~1;
-                chip->chan_block_ch3[1][0] &= ~1;
-                chip->chan_block_ch3[2][0] &= ~1;
-                chip->chan_block_ch3[0][0] |= (chip->chan_ac[1] >> 3) & 1;
-                chip->chan_block_ch3[1][0] |= (chip->chan_ac[1] >> 4) & 1;
-                chip->chan_block_ch3[2][0] |= (chip->chan_ac[1] >> 5) & 1;
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_block_ch3[j][0] &= ~1;
+                    chip->chan_block_ch3[j][0] |= (chip->chan_ac[1] >> (j + 3)) & 1;
+                }
                 break;
             case 0xac:
                 chip->chan_ac[0] = chip->fm_data[1] & 0x3f;
                 break;
             case 0xb0:
                 // connect
-                chip->chan_connect[0][0] &= ~1;
-                chip->chan_connect[1][0] &= ~1;
-                chip->chan_connect[2][0] &= ~1;
-                chip->chan_connect[0][0] |= (chip->fm_data[1]) & 1;
-                chip->chan_connect[1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->chan_connect[2][0] |= (chip->fm_data[1] >> 2) & 1;
-
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_connect[j][0] &= ~1;
+                    chip->chan_connect[j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 // fb
-                chip->chan_fb[0][0] &= ~1;
-                chip->chan_fb[1][0] &= ~1;
-                chip->chan_fb[2][0] &= ~1;
-                chip->chan_fb[0][0] |= (chip->fm_data[1] >> 3) & 1;
-                chip->chan_fb[1][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->chan_fb[2][0] |= (chip->fm_data[1] >> 5) & 1;
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_fb[j][0] &= ~1;
+                    chip->chan_fb[j][0] |= (chip->fm_data[1] >> (j + 3)) & 1;
+                }
                 break;
             case 0xb4:
                 // pms
-                chip->chan_pms[0][0] &= ~1;
-                chip->chan_pms[1][0] &= ~1;
-                chip->chan_pms[2][0] &= ~1;
-                chip->chan_pms[0][0] |= (chip->fm_data[1]) & 1;
-                chip->chan_pms[1][0] |= (chip->fm_data[1] >> 1) & 1;
-                chip->chan_pms[2][0] |= (chip->fm_data[1] >> 2) & 1;
-
+                for (j = 0; j < 3; j++)
+                {
+                    chip->chan_pms[j][0] &= ~1;
+                    chip->chan_pms[j][0] |= (chip->fm_data[1] >> (j + 0)) & 1;
+                }
                 // ams
-                chip->chan_ams[0][0] &= ~1;
-                chip->chan_ams[1][0] &= ~1;
-                chip->chan_ams[0][0] |= (chip->fm_data[1] >> 4) & 1;
-                chip->chan_ams[1][0] |= (chip->fm_data[1] >> 5) & 1;
-
+                for (j = 0; j < 2; j++)
+                {
+                    chip->chan_ams[j][0] &= ~1;
+                    chip->chan_ams[j][0] |= (chip->fm_data[1] >> (j + 4)) & 1;
+                }
                 // pan
-                chip->chan_pan[0][0] &= ~1;
-                chip->chan_pan[1][0] &= ~1;
-                chip->chan_pan[0][0] |= !((chip->fm_data[1] >> 6) & 1);
-                chip->chan_pan[1][0] |= !((chip->fm_data[1] >> 7) & 1);
+                for (j = 0; j < 2; j++)
+                {
+                    chip->chan_pan[j][0] &= ~1;
+                    chip->chan_pan[j][0] |= !((chip->fm_data[1] >> (j + 6)) & 1);
+                }
                 break;
         }
     }
@@ -1660,6 +1295,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     int pg_reset;
     int kon_event;
     int ssg_eg = 0;
+    int ssg_inv_e = 0;
     int ssg_dir = 0;
     int ssg_inv = 0;
     int ssg_holdup = 0;
@@ -1732,7 +1368,6 @@ void FM_EnvelopeGenerator1(fm_t *chip)
 
     csm_kon = chip->fsm_ch3_sel && chip->timer_csm_key_dlatch;
     kon2 = ((chip->mode_kon[3][1] >> 5) & 1) | csm_kon;
-
     chip->eg_kon_latch[0] = (chip->eg_kon_latch[1] << 1) | kon2;
     chip->eg_kon_csm[0] = (chip->eg_kon_csm[1] << 1) | csm_kon;
 
@@ -1750,12 +1385,12 @@ void FM_EnvelopeGenerator1(fm_t *chip)
     for (i = 0; i < 4; i++)
         ssg_eg |= ((chip->slot_ssg_eg[bank][i][1] >> 11) & 1) << i;
     ssg_enable = (ssg_eg & 8) != 0;
+    ssg_inv_e = ssg_enable && (ssg_eg & 4) != 0;
     if (ssg_enable)
     {
         if (okon2)
         {
             ssg_dir = (chip->eg_ssg_dir[1] >> 23) & 1;
-            ssg_inv = ssg_dir ^ ((ssg_eg >> 2) & 1);
             if (level2 & 512)
             {
                 if ((ssg_eg & 3) == 2)
@@ -1774,6 +1409,7 @@ void FM_EnvelopeGenerator1(fm_t *chip)
                 ssg_pgrepeat = 1;
         }
     }
+    ssg_inv = okon2 & (((chip->eg_ssg_dir[1] >> 23) & 1) ^ ssg_inv_e);
     chip->eg_ssg_dir[0] = (chip->eg_ssg_dir[1] << 1) | ssg_dir;
     chip->eg_ssg_inv[0] = ssg_inv;
     chip->eg_ssg_holdup[0] = (chip->eg_ssg_holdup[1] << 1) | ssg_holdup;

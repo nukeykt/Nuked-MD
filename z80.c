@@ -1,3 +1,28 @@
+/*
+ * Copyright (C) 2022-2023 nukeykt
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  Z80 emulator
+ *  Thanks:
+ *      Antoine Bercovici:
+ *          Z80 decap & die shot.
+ *      Visual6502 team:
+ *          VisualZ80 simulator.
+ *      org, andkorzh, HardWareMan (emu-russia):
+ *          help & support.
+ */
+
 // Z80(NMOS)
 #include <stdint.h>
 #include <string.h>
@@ -47,7 +72,7 @@ void Z80_StateLogic(z80_t* chip, int clk)
     chip->w132 = !clk && chip->l36;
     if (clk)
         chip->w59 = chip->w58;
-    if (clk)
+    if (!clk)
         chip->w63 = chip->l23;
     chip->w65 = !(!chip->l24 || clk || !chip->w59);
     chip->w67 = !clk && !chip->w59;
@@ -392,7 +417,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
             chip->w92 = !chip->l43;
     }
     if (chip->w55)
-        chip->w100 = 1;
+        chip->w100 = 0;
     else if (!clk)
     {
         if (!chip->w98 && chip->w103)
@@ -1929,12 +1954,12 @@ void Z80_AluLogic2(z80_t *chip, int clk)
         if (chip->w480)
         {
             chip->w498 &= 0xf0;
-            chip->w498 ^= (chip->w499 & 15) ^ 15;
+            chip->w498 |= (chip->w499 & 15) ^ 15;
         }
     }
     chip->w502 = !((chip->w498 & 8) != 0 && ((chip->w498 & 4) != 0 || (chip->w498 & 2) != 0));
     chip->w501 = !((chip->w498 & 128) != 0 && ((chip->w498 & 64) != 0 || (chip->w498 & 32) != 0
-        || ((chip->w498 & 16) != 0) && !chip->w502));
+        || ((chip->w498 & 16) != 0 && !chip->w502)));
     chip->w443 = !(chip->pla[21] && chip->l83 && chip->w501);
     chip->w444 = !(chip->pla[21] && chip->l84 && chip->w502);
     if (chip->w446)
