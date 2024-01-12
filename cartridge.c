@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "cartridge.h"
 #include "fc1004.h"
 
