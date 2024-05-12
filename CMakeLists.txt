@@ -17,6 +17,7 @@ add_executable(Nuked-MD
 	vdp.c
 	z80.c
 	vram.c
+	audio.c
 	video.c)
 
 if(TARGET SDL2::SDL2main)
