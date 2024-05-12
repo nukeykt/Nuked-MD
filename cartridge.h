@@ -12,3 +12,5 @@ static inline unsigned short short_swap(unsigned short v)
 int cart_load_game_rom(char *filename, int _m3);
 void cart_handle_md(void);
 void cart_handle_m3(void);
+int cart_save(FILE* f);
+int cart_load(FILE* f);

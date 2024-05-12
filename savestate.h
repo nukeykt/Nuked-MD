@@ -11,5 +11,7 @@ typedef struct _NukedSaveHeader
 #pragma pack(pop)
 
 int save_state(const char* filename);
-
 int load_state(const char* filename);
+
+int save_blob(void* ptr, size_t size, FILE* f);
+int load_blob(void* ptr, size_t size, FILE* f);

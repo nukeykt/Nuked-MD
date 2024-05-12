@@ -4,6 +4,7 @@
 
 #include "68k.h"
 #include "z80.h"
+#include "fc1004.h"
 
 #define MCLK_NTSC 53693182
 #define MCLK_PAL  53203425
@@ -54,3 +55,5 @@ typedef struct _md_state
 #pragma pack(pop)
 
 extern md_state md;
+
+extern uint64_t mcycles;

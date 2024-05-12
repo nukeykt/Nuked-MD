@@ -3,6 +3,7 @@
 #include "cartridge.h"
 #include "fc1004.h"
 #include "md.h"
+#include "savestate.h"
 
 unsigned short rom[ROM_SIZE * 2];   // *2 to support sega mapper (up to 8mb games)
 
@@ -204,4 +205,42 @@ void cart_handle_m3(void)
             }
         }
     }
+}
+
+int cart_save(FILE* f)
+{
+    if (save_blob(&rom, sizeof(rom), f))
+        return -1;
+    if (save_blob(&mapper_enable, sizeof(mapper_enable), f))
+        return -1;
+    if (save_blob(&mapper_pages, sizeof(mapper_pages), f))
+        return -1;
+    if (save_blob(&m3_mapper_enable, sizeof(m3_mapper_enable), f))
+        return -1;
+    if (save_blob(&m3_mapper_data, sizeof(m3_mapper_data), f))
+        return -1;
+    if (save_blob(&m3_mapper_page, sizeof(m3_mapper_page), f))
+        return -1;
+    if (save_blob(&m3_mapper_ram, sizeof(m3_mapper_ram), f))
+        return -1;
+    return 0;
+}
+
+int cart_load(FILE* f)
+{
+    if (load_blob(&rom, sizeof(rom), f))
+        return -1;
+    if (load_blob(&mapper_enable, sizeof(mapper_enable), f))
+        return -1;
+    if (load_blob(&mapper_pages, sizeof(mapper_pages), f))
+        return -1;
+    if (load_blob(&m3_mapper_enable, sizeof(m3_mapper_enable), f))
+        return -1;
+    if (load_blob(&m3_mapper_data, sizeof(m3_mapper_data), f))
+        return -1;
+    if (load_blob(&m3_mapper_page, sizeof(m3_mapper_page), f))
+        return -1;
+    if (load_blob(&m3_mapper_ram, sizeof(m3_mapper_ram), f))
+        return -1;
+    return 0;
 }

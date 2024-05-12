@@ -2,8 +2,11 @@
 #include <stdio.h>
 #include "common.h"
 #include "savestate.h"
+#include "md.h"
+#include "vram.h"
+#include "cartridge.h"
 
-static int save_blob(void* ptr, size_t size, FILE* f)
+int save_blob(void* ptr, size_t size, FILE* f)
 {
 	size_t written = fwrite (ptr, 1, size, f);
 	if (written != size)
@@ -11,7 +14,7 @@ static int save_blob(void* ptr, size_t size, FILE* f)
 	return 0;
 }
 
-static int load_blob(void* ptr, size_t size, FILE* f)
+int load_blob(void* ptr, size_t size, FILE* f)
 {
 	size_t readed = fread(ptr, 1, size, f);
 	if (readed != size)
@@ -89,13 +92,37 @@ int save_state(const char* filename)
 
 	// Board
 
+	if (save_blob(&md, sizeof(md), f))
+		return -1;
+	if (save_blob(&mcycles, sizeof(mcycles), f))
+		return -1;
+	if (save_blob(&ram, sizeof(ram), f))
+		return -1;
+	if (save_blob(&zram, sizeof(zram), f))
+		return -1;
+	if (vram_save(f))
+		return -1;
+
 	// 68K
+
+	if (save_blob(&m68k, sizeof(m68k), f))
+		return -1;
 
 	// Z80
 
+	if (save_blob(&z80, sizeof(z80), f))
+		return -1;
+
 	// Chipset
 
+	if (save_blob(&ym, sizeof(ym), f))
+		return -1;
+	// TBD: Delays
+
 	// Cart
+
+	if (cart_save(f))
+		return -1;
 
 	fclose(f);
 	return 0;
@@ -123,13 +150,37 @@ int load_state(const char* filename)
 
 	// Board
 
+	if (load_blob(&md, sizeof(md), f))
+		return -1;
+	if (load_blob(&mcycles, sizeof(mcycles), f))
+		return -1;
+	if (load_blob(&ram, sizeof(ram), f))
+		return -1;
+	if (load_blob(&zram, sizeof(zram), f))
+		return -1;
+	if (vram_load(f))
+		return -1;
+
 	// 68K
+
+	if (load_blob(&m68k, sizeof(m68k), f))
+		return -1;
 
 	// Z80
 
+	if (load_blob(&z80, sizeof(z80), f))
+		return -1;
+
 	// Chipset
 
+	if (load_blob(&ym, sizeof(ym), f))
+		return -1;
+	// TBD: Delays
+
 	// Cart
+
+	if (cart_load(f))
+		return -1;
 
 	fclose(f);
 	return 0;

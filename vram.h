@@ -46,3 +46,6 @@ typedef struct {
 #pragma pack(pop)
 
 void update_vram();
+
+int vram_save(FILE* f);
+int vram_load(FILE* f);
