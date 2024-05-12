@@ -1,11 +1,7 @@
 # Notes
 
 ## Disabling TMSS
-Change `SDFFR_Update(&chip->dff3, ...` to `SDFFS_Update` in tmss.c:
-```
-//SDFFR_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
-SDFFS_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
-```
+Make the macro TMSS_ENABLE=0 in tmss.h; This macro can be defined externally (in the build script or environment variables)
 
 ## Audio, Video dump format:
 Audio and video are dumped in raw format.

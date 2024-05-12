@@ -28,6 +28,10 @@
 
 #define TMSS_SIZE 1024
 
+#ifndef TMSS_ENABLE
+#define TMSS_ENABLE 1
+#endif
+
 extern unsigned short tmss_rom[TMSS_SIZE];
 
 typedef struct {

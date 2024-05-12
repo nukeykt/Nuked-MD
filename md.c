@@ -89,7 +89,7 @@ void load_dummy_tmss()
 
 int load_tmss_rom(char *filename)
 {
-    int i, ret;
+    size_t i, ret;
     FILE* tmss;
 
     tmss = fopen(filename, "rb");
