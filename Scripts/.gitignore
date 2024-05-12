@@ -5,3 +5,4 @@ Release
 x64
 *.vcxproj.user
 *.bin
+*.sav

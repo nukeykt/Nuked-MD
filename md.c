@@ -36,6 +36,7 @@
 #include "controller.h"
 #include "cartridge.h"
 #include "md.h"
+#include "savestate.h"
 
 m68k_t m68k;
 z80_t z80;
@@ -48,6 +49,10 @@ md_state md;
 uint64_t mcycles;
 
 static int work_thread_run;         // It is used internally and does not require serialization
+
+// Used to initiate the save/load state process
+int pending_save_state;
+int pending_load_state;
 
 void load_dummy_tmss()
 {
@@ -108,6 +113,15 @@ int SDLCALL work_thread(void *data)
     while (work_thread_run)
     {
         const int frame_div = 1789772;
+
+        if (pending_load_state) {
+            load_state(DEFAULT_SAVE_NAME);
+            pending_load_state = 0;
+        }
+        if (pending_save_state) {
+            save_state(DEFAULT_SAVE_NAME);
+            pending_save_state = 0;
+        }
 
         for (i = 0; i < 2; i++)
         {

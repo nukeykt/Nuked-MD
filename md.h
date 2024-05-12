@@ -57,3 +57,7 @@ typedef struct _md_state
 extern md_state md;
 
 extern uint64_t mcycles;
+
+// Used to initiate the save/load state process
+extern int pending_save_state;
+extern int pending_load_state;

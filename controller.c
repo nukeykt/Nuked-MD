@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include "SDL.h"
 #include "controller.h"
+#include "md.h"
 
 int controller_buttons_state_1;
 int controller_buttons_state_2;
@@ -38,12 +40,30 @@ int controller_handle_3button(int sel, int id)
     return value;
 }
 
+// TODO: Separate control keys (like the planned RESET Button, Save/Load State) and controller bindings.
 void controller_sdl_event(int scancode, int pressed)
 {
     int button1 = 0;
     int button2 = 0;
     switch (scancode)
     {
+    case SDL_SCANCODE_F5:
+        if (!pending_load_state && !pressed) {
+            pending_save_state = 1;
+        }
+        break;
+    case SDL_SCANCODE_F7:
+        if (!pending_save_state && !pressed) {
+            pending_load_state = 1;
+        }
+        break;
+    case SDL_SCANCODE_F12:
+        // TODO: RESET Button.
+        if (!pressed) {
+            printf("Reset Button pressed!\n");
+        }
+        break;
+
     case SDL_SCANCODE_UP:
         button1 = CTRL_BUTTON_UP;
         break;

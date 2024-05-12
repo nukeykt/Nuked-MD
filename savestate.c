@@ -117,13 +117,30 @@ int save_state(const char* filename)
 
 	if (save_blob(&ym, sizeof(ym), f))
 		return -1;
-	// TBD: Delays
+	// Arbiter Delays
+	if (save_delay(&ym.arb.d1, f))
+		return -1;
+	if (save_delay(&ym.arb.d2, f))
+		return -1;
+	if (save_delay(&ym.arb.d3, f))
+		return -1;
+	if (save_delay(&ym.arb.d4, f))
+		return -1;
+	if (save_delay(&ym.arb.d5, f))
+		return -1;
+	if (save_delay(&ym.arb.d6, f))
+		return -1;
+	if (save_delay(&ym.arb.d7, f))
+		return -1;
+	if (save_delay(&ym.arb.d8, f))
+		return -1;
 
 	// Cart
 
 	if (cart_save(f))
 		return -1;
 
+	printf("Saved state: %s\n", filename);
 	fclose(f);
 	return 0;
 }
@@ -175,13 +192,30 @@ int load_state(const char* filename)
 
 	if (load_blob(&ym, sizeof(ym), f))
 		return -1;
-	// TBD: Delays
+	// Arbiter Delays
+	if (load_delay(&ym.arb.d1, f))
+		return -1;
+	if (load_delay(&ym.arb.d2, f))
+		return -1;
+	if (load_delay(&ym.arb.d3, f))
+		return -1;
+	if (load_delay(&ym.arb.d4, f))
+		return -1;
+	if (load_delay(&ym.arb.d5, f))
+		return -1;
+	if (load_delay(&ym.arb.d6, f))
+		return -1;
+	if (load_delay(&ym.arb.d7, f))
+		return -1;
+	if (load_delay(&ym.arb.d8, f))
+		return -1;
 
 	// Cart
 
 	if (cart_load(f))
 		return -1;
 
+	printf("Loaded state: %s\n", filename);
 	fclose(f);
 	return 0;
 }

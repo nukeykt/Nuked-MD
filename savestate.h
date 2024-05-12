@@ -2,6 +2,8 @@
 
 #pragma once
 
+#define DEFAULT_SAVE_NAME "nukedmd.sav"
+
 #pragma pack(push, 1)
 typedef struct _NukedSaveHeader
 {
