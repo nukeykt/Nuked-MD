@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "68k.h"
+#include "z80.h"
+
 #define MCLK_NTSC 53693182
 #define MCLK_PAL  53203425
 
