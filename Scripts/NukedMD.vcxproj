@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\68k.c" />
     <ClCompile Include="..\arbiter.c" />
+    <ClCompile Include="..\audio.c" />
     <ClCompile Include="..\cartridge.c" />
     <ClCompile Include="..\controller.c" />
     <ClCompile Include="..\fc1004.c" />
@@ -38,6 +39,7 @@
     <ClInclude Include="..\68k.h" />
     <ClInclude Include="..\68k_ucode.h" />
     <ClInclude Include="..\arbiter.h" />
+    <ClInclude Include="..\audio.h" />
     <ClInclude Include="..\cartridge.h" />
     <ClInclude Include="..\common.h" />
     <ClInclude Include="..\controller.h" />
