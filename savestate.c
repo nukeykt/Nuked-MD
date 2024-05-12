@@ -68,6 +68,8 @@ int save_state(const char* filename)
 
 	if (save_blob(&ym, sizeof(ym), f))
 		return -1;
+	if (save_blob(&tmss_rom, sizeof(tmss_rom), f))
+		return -1;
 
 	// Cart
 
@@ -94,10 +96,14 @@ int load_state(const char* filename)
 	if (load_blob(&hdr, sizeof(hdr), f))
 		return -1;
 
-	if (!(hdr.type[0] == 'M' && hdr.type[1] == 'D'))
-		return -2;		// Invalid save type
-	if (strcmp(hdr.version, VERSION) != 0)
-		return -3;		// Invalid save version
+	if (!(hdr.type[0] == 'M' && hdr.type[1] == 'D')) {
+		printf("Invalid save type\n");
+		return -2;
+	}
+	if (strcmp(hdr.version, VERSION) != 0) {
+		printf("Invalid save version");
+		return -3;
+	}
 
 	// Board
 
@@ -125,6 +131,8 @@ int load_state(const char* filename)
 	// Chipset
 
 	if (load_blob(&ym, sizeof(ym), f))
+		return -1;
+	if (load_blob(&tmss_rom, sizeof(tmss_rom), f))
 		return -1;
 
 	// Cart
