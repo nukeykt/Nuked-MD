@@ -18,7 +18,7 @@ extern int vdata, vaddress;
 
 int cart_load_game_rom(char *filename, int _m3)
 {
-    int i, ret;
+    size_t i, ret;
     FILE* romfile;
 
     romfile = fopen(filename, "rb");
@@ -37,7 +37,7 @@ int cart_load_game_rom(char *filename, int _m3)
             if (siz > ROM_SIZE * 4)
                 siz = ROM_SIZE * 4;
             for (i = 0; i < 8; i++)
-                mapper_pages[i] = i;
+                mapper_pages[i] = (int)i;
         }
         else
         {
