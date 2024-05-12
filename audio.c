@@ -108,6 +108,7 @@ static void Playback()
 
 static void FeedSampleForPlayback(int l, int r)
 {
+	DecimateCounter++;
 	if (DecimateCounter >= DecimateEach)
 	{
 		SampleBuf[2 * SampleBuf_Ptr] = l;
@@ -119,10 +120,6 @@ static void FeedSampleForPlayback(int l, int r)
 		{
 			Playback();
 		}
-	}
-	else
-	{
-		DecimateCounter++;
 	}
 }
 
