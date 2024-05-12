@@ -272,20 +272,19 @@ static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int r
     }
 }
 
-// Does not require packing or other alignment as it is serialized by special processing.
+#pragma pack(push, 1)
+#define MAX_DELAYCHAIN_DEPTH 10
 typedef struct {
     uint64_t lastcycle;
     int items;
     int pos;
     int lastval;
-    int *fifo;
+    int fifo[MAX_DELAYCHAIN_DEPTH];
 } delaychain_t;
+#pragma pack(pop)
 
 static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 {
-    delay->fifo = (int*)malloc((delaycycles + 1) * sizeof(int));
-    if (!delay->fifo)
-        return;
     delay->lastcycle = 0;
     delay->items = delaycycles + 1;
     delay->pos = 0;
@@ -293,7 +292,6 @@ static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 
 static inline void DELAY_Free(delaychain_t *delay)
 {
-    free(delay->fifo);
 }
 
 static inline int DELAY_Update(delaychain_t *delay, uint64_t cycles, int pushval)

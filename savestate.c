@@ -22,55 +22,6 @@ int load_blob(void* ptr, size_t size, FILE* f)
 	return 0;
 }
 
-static int save_delay(delaychain_t* delay_ptr, FILE* f)
-{
-	size_t n;
-
-	if (save_blob(&delay_ptr->lastcycle, sizeof(delay_ptr->lastcycle), f))
-		return -1;
-	if (save_blob(&delay_ptr->items, sizeof(delay_ptr->items), f))
-		return -1;
-	if (save_blob(&delay_ptr->pos, sizeof(delay_ptr->pos), f))
-		return -1;
-	if (save_blob(&delay_ptr->lastval, sizeof(delay_ptr->lastval), f))
-		return -1;
-
-	for (n = 0; n < delay_ptr->items; n++) {
-		if (save_blob(&delay_ptr->fifo[n], sizeof(delay_ptr->fifo[n]), f))
-			return -1;
-	}
-	return 0;
-}
-
-static int load_delay(delaychain_t* delay_ptr, FILE* f)
-{
-	size_t n;
-
-	if (load_blob(&delay_ptr->lastcycle, sizeof(delay_ptr->lastcycle), f))
-		return -1;
-	if (load_blob(&delay_ptr->items, sizeof(delay_ptr->items), f))
-		return -1;
-	if (load_blob(&delay_ptr->pos, sizeof(delay_ptr->pos), f))
-		return -1;
-	if (load_blob(&delay_ptr->lastval, sizeof(delay_ptr->lastval), f))
-		return -1;
-
-	if (delay_ptr->fifo) {
-		free(delay_ptr->fifo);
-		delay_ptr->fifo = 0;
-	}
-
-	delay_ptr->fifo = (int*)malloc(delay_ptr->items * sizeof(int));
-	if (!delay_ptr->fifo)
-		return -1;
-
-	for (n = 0; n < delay_ptr->items; n++) {
-		if (load_blob(&delay_ptr->fifo[n], sizeof(delay_ptr->fifo[n]), f))
-			return -1;
-	}
-	return 0;
-}
-
 int save_state(const char* filename)
 {
 	FILE* f;
@@ -116,23 +67,6 @@ int save_state(const char* filename)
 	// Chipset
 
 	if (save_blob(&ym, sizeof(ym), f))
-		return -1;
-	// Arbiter Delays
-	if (save_delay(&ym.arb.d1, f))
-		return -1;
-	if (save_delay(&ym.arb.d2, f))
-		return -1;
-	if (save_delay(&ym.arb.d3, f))
-		return -1;
-	if (save_delay(&ym.arb.d4, f))
-		return -1;
-	if (save_delay(&ym.arb.d5, f))
-		return -1;
-	if (save_delay(&ym.arb.d6, f))
-		return -1;
-	if (save_delay(&ym.arb.d7, f))
-		return -1;
-	if (save_delay(&ym.arb.d8, f))
 		return -1;
 
 	// Cart
@@ -191,23 +125,6 @@ int load_state(const char* filename)
 	// Chipset
 
 	if (load_blob(&ym, sizeof(ym), f))
-		return -1;
-	// Arbiter Delays
-	if (load_delay(&ym.arb.d1, f))
-		return -1;
-	if (load_delay(&ym.arb.d2, f))
-		return -1;
-	if (load_delay(&ym.arb.d3, f))
-		return -1;
-	if (load_delay(&ym.arb.d4, f))
-		return -1;
-	if (load_delay(&ym.arb.d5, f))
-		return -1;
-	if (load_delay(&ym.arb.d6, f))
-		return -1;
-	if (load_delay(&ym.arb.d7, f))
-		return -1;
-	if (load_delay(&ym.arb.d8, f))
 		return -1;
 
 	// Cart
