@@ -21,7 +21,7 @@ FILE* audio_out;
 
 int DecimateEach;
 int DecimateCounter;
-const int OutputSampleRate = 48000;     // Frequency for playback on a real device (sound card)
+int OutputSampleRate;		// Frequency for playback on a real device (sound card)
 
 int16_t* SampleBuf;         // Buffer for audio playback at the OutputSampleRate frequency
 int SampleBuf_Ptr;          // in stereo-samples
@@ -44,7 +44,8 @@ SDL_AudioDeviceID dev_id;
 static void Redecimate(int ntsc)
 {
 	int SampleRate = ntsc ? 223722 : 221681;
-	DecimateEach = SampleRate / OutputSampleRate;
+	DecimateEach = 4;
+	OutputSampleRate = SampleRate / 4;
 	printf("Audio sample rate: %d, SoundCard sample rate: %d, decimate factor: %d\n", SampleRate, OutputSampleRate, DecimateEach);
 	DecimateCounter = 0;
 }
