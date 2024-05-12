@@ -31,6 +31,7 @@
 #include "z80.h"
 #include "fc1004.h"
 #include "vram.h"
+#include "audio.h"
 #include "video.h"
 #include "controller.h"
 #include "cartridge.h"
@@ -131,15 +132,6 @@ uint64_t mcycles;
 int ovclk;
 int odclk;
 
-float psg_sum;
-int fm_sum[2];
-int fm_sample[2];
-int psg_sample;
-short snd_buf[16 * 1024];
-int snd_buf_cnt = 0;
-
-FILE *audio_out;
-
 int work_thread_run;
 
 int SDLCALL work_thread(void *data)
@@ -148,8 +140,6 @@ int SDLCALL work_thread(void *data)
     while (work_thread_run)
     {
         const int frame_div = 1789772;
-        const int psg_div = 30 * 16;
-        const int fm_div = 14 * 144;
 
         for (i = 0; i < 2; i++)
         {
@@ -462,48 +452,7 @@ int SDLCALL work_thread(void *data)
             }
         }
 
-        {
-            fm_sum[0] += ym.fm.out_l;
-            fm_sum[1] += ym.fm.out_r;
-            if ((mcycles % fm_div) == 0)
-            {
-#define FM_DIVIDE 8
-                fm_sample[0] = fm_sum[0] / FM_DIVIDE;
-                fm_sample[1] = fm_sum[1] / FM_DIVIDE;
-                fm_sum[0] = fm_sum[1] = 0;
-            }
-
-            psg_sum += ym.vdp.psg.psg_out * 16.f;
-            if ((mcycles % psg_div) == 0)
-            {
-                int suml = 0, sumr = 0;
-                psg_sample = (int)psg_sum;
-                suml = fm_sample[0] + psg_sample;
-                sumr = fm_sample[1] + psg_sample;
-                if (suml < -32768)
-                    suml = -32768;
-                else if (suml > 32767)
-                    suml = 32767;
-                if (sumr < -32768)
-                    sumr = -32768;
-                else if (sumr > 32767)
-                    sumr = 32767;
-                snd_buf[snd_buf_cnt] = suml;
-                snd_buf_cnt++;
-                snd_buf[snd_buf_cnt] = sumr;
-                snd_buf_cnt++;
-                if (snd_buf_cnt == 16 * 1024)
-                {
-                    snd_buf_cnt = 0;
-                    if (audio_out)
-                    {
-                        fwrite(snd_buf, 1, sizeof(snd_buf), audio_out);
-                        fflush(audio_out);
-                    }
-                }
-                psg_sum = 0;
-            }
-        }
+        Audio_Update();
 
         if (ym.vdp.input.i_clk1 && !odclk)
             Video_PlotVDP();
@@ -648,14 +597,15 @@ int main(int argc, char *argv[])
 
     zram[0] = 0xc3; // hack to get overdrive 2 running
 
-    audio_out = fopen(audioout_filename, "wb");
+    Audio_Init(audioout_filename);
 
     work_thread_run = 1;
     thread = SDL_CreateThread(work_thread, "work thread", 0);
 
     if (!thread)
     {
-        fclose(audio_out);
+        Audio_Shutdown();
+        Video_Shutdown();
         return EXIT_FAILURE;
     }
 
@@ -697,7 +647,7 @@ int main(int argc, char *argv[])
     work_thread_run = 0;
     SDL_WaitThread(thread, 0);
 
-    fclose(audio_out);
+    Audio_Shutdown();
     Video_Shutdown();
     FC1004_Destroy(&ym);
 
