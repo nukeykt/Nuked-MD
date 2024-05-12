@@ -46,6 +46,7 @@
     <ClInclude Include="..\fc1004.h" />
     <ClInclude Include="..\fm.h" />
     <ClInclude Include="..\iochip.h" />
+    <ClInclude Include="..\md.h" />
     <ClInclude Include="..\savestate.h" />
     <ClInclude Include="..\tmss.h" />
     <ClInclude Include="..\vdp.h" />

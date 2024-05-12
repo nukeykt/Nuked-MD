@@ -272,6 +272,7 @@ static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int r
     }
 }
 
+// Does not require packing or other alignment as it is serialized by special processing.
 typedef struct {
     uint64_t lastcycle;
     int items;
