@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define VERSION "1.3"       // The emulator version in the main branch is ahead of the latest release 
+
 enum {
     state_0 = 0,
     state_1,
