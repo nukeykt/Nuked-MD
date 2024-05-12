@@ -560,12 +560,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
-    {
-        printf("SDL_Init failed!\n");
-        return EXIT_FAILURE;
-    }
-
     Video_Init(videoout_filename);
 
     memset(&ym, 0, sizeof(ym));
@@ -597,7 +591,7 @@ int main(int argc, char *argv[])
 
     zram[0] = 0xc3; // hack to get overdrive 2 running
 
-    Audio_Init(audioout_filename);
+    Audio_Init(audioout_filename, ntsc);
 
     work_thread_run = 1;
     thread = SDL_CreateThread(work_thread, "work thread", 0);

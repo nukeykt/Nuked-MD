@@ -7,7 +7,7 @@ Make the macro TMSS_ENABLE=0 in tmss.h; This macro can be defined externally (in
 Audio and video are dumped in raw format.
 Audio:
 ```
-16-bit stereo, Little endian, 223721 hz
+16-bit stereo, Little endian, 223722 hz NTSC / 221681 hz PAL
 ```
 Video:
 ```
