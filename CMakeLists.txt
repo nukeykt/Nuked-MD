@@ -17,7 +17,8 @@ add_executable(Nuked-MD
 	vdp.c
 	z80.c
 	vram.c
-	video.c)
+	video.c
+	savestate.c)
 
 if(TARGET SDL2::SDL2main)
 	target_link_libraries(Nuked-MD PRIVATE SDL2::SDL2main)

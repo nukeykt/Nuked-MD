@@ -619,9 +619,7 @@ int main(int argc, char *argv[])
 
     Video_Init(videoout_filename);
 
-    memset(&ym, 0, sizeof(ym));
-    memset(&m68k, 0, sizeof(m68k));
-    memset(&z80, 0, sizeof(z80));
+    init_chips();
 
     FC1004_Init(&ym);
 
