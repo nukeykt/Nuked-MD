@@ -25,6 +25,8 @@
 #pragma once
 #include "common.h"
 
+#pragma pack(push, 1)
+
 typedef struct {
     int port_a;
     int port_b;
@@ -181,6 +183,8 @@ typedef struct {
 
     iochip_input_t input, input_old;
 } iochip_t;
+
+#pragma pack(pop)
 
 void IOC_Clock2(iochip_t *chip);
 void IOC_UpdateOutputBus(iochip_t *chip);

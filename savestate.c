@@ -1,14 +1,7 @@
 // Save state support.
 #include <stdio.h>
 #include "common.h"
-
-#pragma pack(push, 1)
-typedef struct _NukedSaveHeader
-{
-	char type[4];		// "MD\0\0"
-	char version[12];
-} NukedSaveHeader;
-#pragma pack(pop)
+#include "savestate.h"
 
 static int save_blob(void* ptr, size_t size, FILE* f)
 {

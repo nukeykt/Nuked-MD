@@ -29,6 +29,8 @@
 #pragma once
 #include "common.h"
 
+#pragma pack(push, 1)
+
 typedef struct {
     int l1;
     int l2;
@@ -1903,6 +1905,8 @@ typedef struct {
     int color_pal;
     int color_priority;
 } vdp_t;
+
+#pragma pack(pop)
 
 void VDP_ClockMCLK(vdp_prescaler_t *chip);
 void VDP_ClockDCLK(vdp_t *chip, int clk1, int clk2);
