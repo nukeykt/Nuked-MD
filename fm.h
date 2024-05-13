@@ -25,6 +25,8 @@
 #pragma once
 #include <stdint.h>
 
+#pragma pack(push, 1)
+
 enum {
     fm_flags_ym2612 = 1,
 };
@@ -343,6 +345,7 @@ typedef struct {
     int last_status;
 } fm_t;
 
+#pragma pack(pop)
 
 int FM_ReadStatus(fm_t *chip);
 

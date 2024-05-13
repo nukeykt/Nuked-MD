@@ -25,7 +25,7 @@
 #include "fc1004.h"
 
 extern fc1004_t ym;
-extern int ntsc;
+int vid_ntsc;
 extern uint64_t mcycles;
 
 SDL_Window* vid_window;
@@ -45,9 +45,15 @@ SDL_mutex* vid_mutex;
 
 uint64_t frame_mcycles;
 
-void Video_Init(char* videoout_filename)
+void Video_Init(char* videoout_filename, int ntsc)
 {
+    vid_ntsc = ntsc;
     vid_counter = vid_counter_write = 0;
+
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+        printf("SDL video could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return;
+    }
 
     vid_window = SDL_CreateWindow("Nuked MD", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         VID_WIDTH * 2, VID_HEIGHT * 2, SDL_WINDOW_SHOWN);
@@ -72,6 +78,7 @@ void Video_Init(char* videoout_filename)
 void Video_Shutdown(void)
 {
     fclose(vid_dump_file);
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void Video_Blit(void)
@@ -123,7 +130,7 @@ void Video_PlotVDP(void)
     if (ovsync && ym.vdp.o_vsync == 0)
     {
         plot_y = 0;
-        if (!ntsc)
+        if (!vid_ntsc)
             plot_y = -22;
         SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));

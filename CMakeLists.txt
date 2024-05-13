@@ -17,7 +17,9 @@ add_executable(Nuked-MD
 	vdp.c
 	z80.c
 	vram.c
-	video.c)
+	audio.c
+	video.c
+	savestate.c)
 
 if(TARGET SDL2::SDL2main)
 	target_link_libraries(Nuked-MD PRIVATE SDL2::SDL2main)
@@ -25,3 +27,6 @@ endif()
 
 target_link_libraries(Nuked-MD PRIVATE SDL2::SDL2)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND SDL2_FRAMEWORK_PATH MATCHES "^/Library/Frameworks/")
+	target_link_options(Nuked-MD PRIVATE -Wl,-rpath,/Library/Frameworks)
+endif()

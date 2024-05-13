@@ -1,17 +1,13 @@
 # Notes
 
 ## Disabling TMSS
-Change `SDFFR_Update(&chip->dff3, ...` to `SDFFS_Update` in tmss.c:
-```
-//SDFFR_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
-SDFFS_Update(&chip->dff3, !chip->w23 || chip->input.ext_rw_in, (chip->input.ext_data_in & 1) != 0, chip->input.ext_sres);
-```
+Make the macro TMSS_ENABLE=0 in tmss.h; This macro can be defined externally (in the build script or environment variables)
 
 ## Audio, Video dump format:
 Audio and video are dumped in raw format.
 Audio:
 ```
-16-bit stereo, Little endian, 223721 hz
+16-bit stereo, Little endian, 223722 hz NTSC / 221681 hz PAL
 ```
 Video:
 ```
@@ -21,3 +17,18 @@ Video:
 ## SMS Mode
 
 Run the emulator with the `-m3` flag
+
+## Savestates
+
+To implement save states, the usual approach is applied, where internal contexts are serialized sequentially to a file. This is a simple and time-tested method of saves in emulators.
+Of course, over time, the format of save states becomes incompatible, but for this you just need to maintain the codebase, it is a natural and inevitable process.
+
+Save state controls:
+- F5: Quick Save (nukedmd.sav)
+- F7: Quick Load (nukedmd.sav)
+
+## Reset Button
+
+Hold down F12 for a short time.
+
+Note: The Overdrive 2 demo has an issue loading Z80 microcode and requires pressing Reset after the first run (behavior is similar on real hardware).

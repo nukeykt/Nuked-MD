@@ -21,12 +21,14 @@
   <ItemGroup>
     <ClCompile Include="..\68k.c" />
     <ClCompile Include="..\arbiter.c" />
+    <ClCompile Include="..\audio.c" />
     <ClCompile Include="..\cartridge.c" />
     <ClCompile Include="..\controller.c" />
     <ClCompile Include="..\fc1004.c" />
     <ClCompile Include="..\fm.c" />
     <ClCompile Include="..\iochip.c" />
     <ClCompile Include="..\md.c" />
+    <ClCompile Include="..\savestate.c" />
     <ClCompile Include="..\tmss.c" />
     <ClCompile Include="..\vdp.c" />
     <ClCompile Include="..\video.c" />
@@ -37,12 +39,15 @@
     <ClInclude Include="..\68k.h" />
     <ClInclude Include="..\68k_ucode.h" />
     <ClInclude Include="..\arbiter.h" />
+    <ClInclude Include="..\audio.h" />
     <ClInclude Include="..\cartridge.h" />
     <ClInclude Include="..\common.h" />
     <ClInclude Include="..\controller.h" />
     <ClInclude Include="..\fc1004.h" />
     <ClInclude Include="..\fm.h" />
     <ClInclude Include="..\iochip.h" />
+    <ClInclude Include="..\md.h" />
+    <ClInclude Include="..\savestate.h" />
     <ClInclude Include="..\tmss.h" />
     <ClInclude Include="..\vdp.h" />
     <ClInclude Include="..\video.h" />

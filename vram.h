@@ -19,6 +19,8 @@
 
 #pragma once
 
+#pragma pack(push, 1)
+
 typedef struct {
     int ras;
     int cas;
@@ -41,4 +43,9 @@ typedef struct {
     int vram_addr_o;
 } vram_bank_t;
 
+#pragma pack(pop)
+
 void update_vram();
+
+int vram_save(FILE* f);
+int vram_load(FILE* f);
