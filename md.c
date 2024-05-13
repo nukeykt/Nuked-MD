@@ -477,8 +477,6 @@ int main(int argc, char *argv[])
     md.port_b = 127;
     md.port_c = 127;
 
-    zram[0] = 0xc3; // hack to get overdrive 2 running
-
     Audio_Init(audioout_filename, md.ntsc);
     Video_Init(videoout_filename, md.ntsc);
 

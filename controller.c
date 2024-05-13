@@ -40,7 +40,7 @@ int controller_handle_3button(int sel, int id)
     return value;
 }
 
-// TODO: Separate control keys (like the planned RESET Button, Save/Load State) and controller bindings.
+// TODO: Separate control keys (like the RESET Button, Save/Load State) and controller bindings.
 void controller_sdl_event(int scancode, int pressed)
 {
     int button1 = 0;
@@ -58,10 +58,20 @@ void controller_sdl_event(int scancode, int pressed)
         }
         break;
     case SDL_SCANCODE_F12:
-        // TODO: RESET Button.
-        if (!pressed) {
-            printf("Reset Button pressed!\n");
+        // RESET Button.
+        if (pressed) {
+            if (md.wres) {
+                printf("Reset Button pressed!\n");
+            }
+            md.wres = 0;
         }
+        else {
+            if (!md.wres) {
+                printf("Reset Button released!\n");
+            }
+            md.wres = 1;
+        }
+        ym.arb.input.ext_wres = md.wres;
         break;
 
     case SDL_SCANCODE_UP:
