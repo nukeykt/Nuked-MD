@@ -24,7 +24,9 @@
 
 // FC1004 TMSS
 #include <string.h>
+#include <stdio.h>
 #include "tmss.h"
+#include "cartridge.h"
 
 unsigned short tmss_rom[1024];
 #define MAGIC_SE   0x00005345 /* SE */
@@ -108,4 +110,50 @@ void TMSS_UpdateOutputBus(tmss_t *chip)
         chip->w20 = (chip->input.ext_address_in & 1) != 0 ? chip->l2 : chip->l1;
         *chip->ext_data_out = chip->w28 ? chip->w20 : tmss_rom[chip->input.ext_address_in & 1023];
     }
+}
+
+void load_dummy_tmss()
+{
+    static const short data[] = {
+        0x00ff,0x000c,
+        0x0000,0x0008,
+        0x41f9,0x00a1,0x4101,
+        0x2f3c,0x2058,0x4ed0,
+        0x2f3c,0x91c8,0x2e58,
+        0x2f3c,0x08d0,0x0000,
+        0x4ed7
+    };
+    printf("loading dummy TMSS ROM\n");
+    memcpy(tmss_rom, data, sizeof(data));
+}
+
+int load_tmss_rom(char *filename)
+{
+    size_t i, ret;
+    FILE* tmss;
+
+    tmss = fopen(filename, "rb");
+    if (!tmss)
+        return 1;
+
+    fseek(tmss, 0, SEEK_END);
+    size_t siz = ftell(tmss);
+    rewind(tmss);
+    if (siz < TMSS_SIZE * 2)
+    {
+        fclose(tmss);
+        return 1;
+    }
+
+    ret = fread(tmss_rom, 1, TMSS_SIZE * 2, tmss);
+    if (ret < TMSS_SIZE * 2)
+    {
+        fclose(tmss);
+        return 1;
+    }
+
+    for (i = 0; i < TMSS_SIZE; i++)
+        tmss_rom[i] = short_swap(tmss_rom[i]);
+    fclose(tmss);
+    return 0;
 }

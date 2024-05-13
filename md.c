@@ -13,7 +13,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- *  Mega Drive board.
+ *  Mega Drive board.  Contains emulator runtime parameters parser, motherboard and backend component initialization, and 
+ *                  worker thread, where all emulated chips are "connected" (main loop).
  *  Thanks:
  *      org, andkorzh, HardWareMan (emu-russia):
  *          help & support.
@@ -53,52 +54,6 @@ static int work_thread_run;         // It is used internally and does not requir
 // Used to initiate the save/load state process
 int pending_save_state;
 int pending_load_state;
-
-void load_dummy_tmss()
-{
-    static const short data[] = {
-        0x00ff,0x000c,
-        0x0000,0x0008,
-        0x41f9,0x00a1,0x4101,
-        0x2f3c,0x2058,0x4ed0,
-        0x2f3c,0x91c8,0x2e58,
-        0x2f3c,0x08d0,0x0000,
-        0x4ed7
-    };
-    printf("loading dummy TMSS ROM\n");
-    memcpy(tmss_rom, data, sizeof(data));
-}
-
-int load_tmss_rom(char *filename)
-{
-    size_t i, ret;
-    FILE* tmss;
-
-    tmss = fopen(filename, "rb");
-    if (!tmss)
-        return 1;
-
-    fseek(tmss, 0, SEEK_END);
-    size_t siz = ftell(tmss);
-    rewind(tmss);
-    if (siz < TMSS_SIZE * 2)
-    {
-        fclose(tmss);
-        return 1;
-    }
-
-    ret = fread(tmss_rom, 1, TMSS_SIZE * 2, tmss);
-    if (ret < TMSS_SIZE * 2)
-    {
-        fclose(tmss);
-        return 1;
-    }
-
-    for (i = 0; i < TMSS_SIZE; i++)
-        tmss_rom[i] = short_swap(tmss_rom[i]);
-    fclose(tmss);
-    return 0;
-}
 
 void init_chips(void)
 {

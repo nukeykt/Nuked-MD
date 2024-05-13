@@ -26,7 +26,7 @@
 
 #include "common.h"
 
-#define TMSS_SIZE 1024
+#define TMSS_SIZE 1024      // in uint16_t's
 
 #ifndef TMSS_ENABLE
 #define TMSS_ENABLE 1
@@ -99,3 +99,5 @@ typedef struct {
 
 void TMSS_Clock2(tmss_t *chip);
 void TMSS_UpdateOutputBus(tmss_t *chip);
+void load_dummy_tmss();
+int load_tmss_rom(char* filename);
