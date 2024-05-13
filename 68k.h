@@ -27,6 +27,8 @@
 
 #include "common.h"
 
+#pragma pack(push, 1)
+
 typedef struct {
     int i_clk_phase;
     int i_vpa;
@@ -1119,6 +1121,8 @@ typedef struct {
     int dbg_ucode_last;
     int dbg_alucode;
 } m68k_t;
+
+#pragma pack(pop)
 
 void M68K_Clock(m68k_t* chip, int clk1, int clk2);
 void M68K_Clock2(m68k_t *chip, int clk1, int clk2);

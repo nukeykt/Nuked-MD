@@ -34,6 +34,8 @@
 
 extern unsigned short tmss_rom[TMSS_SIZE];
 
+#pragma pack(push, 1)
+
 typedef struct {
     int ext_data_in;
     int ext_test;
@@ -93,6 +95,7 @@ typedef struct {
     tmss_input_t input, input_old;
 } tmss_t;
 
+#pragma pack(pop)
 
 void TMSS_Clock2(tmss_t *chip);
 void TMSS_UpdateOutputBus(tmss_t *chip);

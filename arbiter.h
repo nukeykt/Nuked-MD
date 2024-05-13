@@ -25,6 +25,8 @@
 #pragma once
 #include "common.h"
 
+#pragma pack(push, 1)
+
 typedef struct {
     int mclk;
     int sres;
@@ -562,6 +564,7 @@ typedef struct {
     sdffr_t z80bank;
 } arbiter_t;
 
+#pragma pack(pop)
 
 void ARB_Init(arbiter_t *chip);
 void ARB_Destroy(arbiter_t *chip);

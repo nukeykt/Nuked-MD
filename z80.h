@@ -26,6 +26,8 @@
 #pragma once
 #include "common.h"
 
+#pragma pack(push, 1)
+
 typedef struct {
     int clk;
     int ext_data_i;
@@ -684,6 +686,8 @@ typedef struct {
     int ix;
 
 } z80_t;
+
+#pragma pack(pop)
 
 void Z80_Clock(z80_t* chip, int clk);
 void Z80_Clock2(z80_t *chip, int clk);

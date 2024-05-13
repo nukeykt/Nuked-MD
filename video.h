@@ -22,7 +22,7 @@
 #define VID_WIDTH 400
 #define VID_HEIGHT 300
 
-void Video_Init(char* videoout_filename);
+void Video_Init(char* videoout_filename, int ntsc);
 void Video_Shutdown(void);
 void Video_Blit(void);
 void Video_PlotVDP(void);

@@ -36,11 +36,13 @@ enum {
     state_test
 };
 
+#pragma pack(push, 1)
 typedef struct {
     int l1;
     int l2;
     int cout;
 } staticcnt_t;
+#pragma pack(pop)
 
 static inline void SCNT_Update(staticcnt_t* scnt, int clk, int load, int val, int cin, int reset)
 {
@@ -91,10 +93,12 @@ static inline void SCNT_UpdateWide(staticcnt_t* scnt, int clk, int load, int val
     }
 }
 
+#pragma pack(push, 1)
 typedef struct {
     int l1;
     int l2;
 } sdff_t;
+#pragma pack(pop)
 
 
 static inline void SDFF_Update(sdff_t *dff, int clk, int val)
@@ -109,12 +113,14 @@ static inline void SDFF_Update(sdff_t *dff, int clk, int val)
     }
 }
 
+#pragma pack(push, 1)
 typedef struct {
     int l1;
     int l2;
     int nq;
     int q;
 } sdffs_t;
+#pragma pack(pop)
 
 
 static inline void SDFFS_Update(sdffs_t *dff, int clk, int val, int set)
@@ -161,12 +167,14 @@ static inline void SDFFS_UpdateWide(sdffs_t* dff, int clk, int val, int set, int
     dff->q = dff->l2;
 }
 
+#pragma pack(push, 1)
 typedef struct {
     int l1;
     int l2;
     int nq;
     int q;
 } sdffr_t;
+#pragma pack(pop)
 
 
 static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
@@ -214,12 +222,14 @@ static inline void SDFFR_UpdateWide(sdffr_t* dff, int clk, int val, int reset, i
     dff->q = dff->l2;
 }
 
+#pragma pack(push, 1)
 typedef struct {
     int l1;
     int l2;
     int nq;
     int q;
 } sdffsr_t;
+#pragma pack(pop)
 
 
 static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int reset)
@@ -262,20 +272,19 @@ static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int r
     }
 }
 
-
+#pragma pack(push, 1)
+#define MAX_DELAYCHAIN_DEPTH 10
 typedef struct {
     uint64_t lastcycle;
     int items;
     int pos;
     int lastval;
-    int *fifo;
+    int fifo[MAX_DELAYCHAIN_DEPTH];
 } delaychain_t;
+#pragma pack(pop)
 
 static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 {
-    delay->fifo = (int*)malloc((delaycycles + 1) * sizeof(int));
-    if (!delay->fifo)
-        return;
     delay->lastcycle = 0;
     delay->items = delaycycles + 1;
     delay->pos = 0;
@@ -283,7 +292,6 @@ static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 
 static inline void DELAY_Free(delaychain_t *delay)
 {
-    free(delay->fifo);
 }
 
 static inline int DELAY_Update(delaychain_t *delay, uint64_t cycles, int pushval)

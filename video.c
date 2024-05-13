@@ -25,7 +25,7 @@
 #include "fc1004.h"
 
 extern fc1004_t ym;
-extern int ntsc;
+int vid_ntsc;
 extern uint64_t mcycles;
 
 SDL_Window* vid_window;
@@ -45,8 +45,9 @@ SDL_mutex* vid_mutex;
 
 uint64_t frame_mcycles;
 
-void Video_Init(char* videoout_filename)
+void Video_Init(char* videoout_filename, int ntsc)
 {
+    vid_ntsc = ntsc;
     vid_counter = vid_counter_write = 0;
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
@@ -129,7 +130,7 @@ void Video_PlotVDP(void)
     if (ovsync && ym.vdp.o_vsync == 0)
     {
         plot_y = 0;
-        if (!ntsc)
+        if (!vid_ntsc)
             plot_y = -22;
         SDL_LockMutex(vid_mutex);
         memcpy(vid_currentbuffer, vid_workbuffer, sizeof(vid_workbuffer));

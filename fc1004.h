@@ -31,6 +31,8 @@
 #include "tmss.h"
 
 
+#pragma pack(push, 1)
+
 typedef struct
 {
     fm_t fm;
@@ -138,6 +140,8 @@ typedef struct
     int o_zdata_dir;
     int o_rw;
 } fc1004_t;
+
+#pragma pack(pop)
 
 
 void FC1004_Init(fc1004_t *chip);

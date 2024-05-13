@@ -28,6 +28,7 @@
     <ClCompile Include="..\fm.c" />
     <ClCompile Include="..\iochip.c" />
     <ClCompile Include="..\md.c" />
+    <ClCompile Include="..\savestate.c" />
     <ClCompile Include="..\tmss.c" />
     <ClCompile Include="..\vdp.c" />
     <ClCompile Include="..\video.c" />
@@ -45,6 +46,8 @@
     <ClInclude Include="..\fc1004.h" />
     <ClInclude Include="..\fm.h" />
     <ClInclude Include="..\iochip.h" />
+    <ClInclude Include="..\md.h" />
+    <ClInclude Include="..\savestate.h" />
     <ClInclude Include="..\tmss.h" />
     <ClInclude Include="..\vdp.h" />
     <ClInclude Include="..\video.h" />

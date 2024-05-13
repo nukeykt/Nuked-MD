@@ -2,6 +2,8 @@
 #include <string.h>
 #include "cartridge.h"
 #include "fc1004.h"
+#include "md.h"
+#include "savestate.h"
 
 unsigned short rom[ROM_SIZE * 2];   // *2 to support sega mapper (up to 8mb games)
 
@@ -14,7 +16,7 @@ int m3_mapper_page[3];
 unsigned char m3_mapper_ram[0x4000];
 
 extern fc1004_t ym;
-extern int vdata, vaddress;
+extern md_state md;
 
 int cart_load_game_rom(char *filename, int _m3)
 {
@@ -81,14 +83,14 @@ void cart_handle_md(void)
         {
             if (mapper_enable)
             {
-                int address = vaddress & 0x3ffff;
-                int page = (vaddress >> 18) & 7;
+                int address = md.vaddress & 0x3ffff;
+                int page = (md.vaddress >> 18) & 7;
                 int mapped_address = address | (mapper_pages[page] << 18);
                 mapped_address &= 0x3fffff;
-                vdata = rom[mapped_address];
+                md.vdata = rom[mapped_address];
             }
             else
-                vdata = rom[vaddress & 0x1fffff];
+                md.vdata = rom[md.vaddress & 0x1fffff];
         }
     }
     // mapper
@@ -96,28 +98,28 @@ void cart_handle_md(void)
     {
         if (!ym.arb.ext_time && !ym.o_lwr)
         {
-            switch (vaddress & 0x7f)
+            switch (md.vaddress & 0x7f)
             {
                 case 0x79:
-                    mapper_pages[1] = vdata & 255;
+                    mapper_pages[1] = md.vdata & 255;
                     break;
                 case 0x7a:
-                    mapper_pages[2] = vdata & 255;
+                    mapper_pages[2] = md.vdata & 255;
                     break;
                 case 0x7b:
-                    mapper_pages[3] = vdata & 255;
+                    mapper_pages[3] = md.vdata & 255;
                     break;
                 case 0x7c:
-                    mapper_pages[4] = vdata & 255;
+                    mapper_pages[4] = md.vdata & 255;
                     break;
                 case 0x7d:
-                    mapper_pages[5] = vdata & 255;
+                    mapper_pages[5] = md.vdata & 255;
                     break;
                 case 0x7e:
-                    mapper_pages[6] = vdata & 255;
+                    mapper_pages[6] = md.vdata & 255;
                     break;
                 case 0x7f:
-                    mapper_pages[7] = vdata & 255;
+                    mapper_pages[7] = md.vdata & 255;
                     break;
             }
         }
@@ -127,9 +129,9 @@ void cart_handle_md(void)
 void cart_handle_m3(void)
 {
     // M3
-    vaddress &= ~0x700000;
-    vaddress |= 0x500000;
-    if (!(vaddress & 0x20000)) // cart chip enable
+    md.vaddress &= ~0x700000;
+    md.vaddress |= 0x500000;
+    if (!(md.vaddress & 0x20000)) // cart chip enable
     {
         if (!ym.o_cas0)
         {
@@ -137,23 +139,23 @@ void cart_handle_m3(void)
             int enable = 0;
             if (!m3_mapper_enable)
             {
-                address = vaddress & 0x7fff;
+                address = md.vaddress & 0x7fff;
                 enable = !ym.o_ce0;
             }
             else
             {
-                address = vaddress & 0x3fff;
+                address = md.vaddress & 0x3fff;
                 if (!ym.o_ce0)
                 {
-                    address |= m3_mapper_page[(vaddress >> 14) & 1];
+                    address |= m3_mapper_page[(md.vaddress >> 14) & 1];
                     enable = 1;
                 }
                 else if (!ym.arb.ext_cas2)
                 {
                     if (m3_mapper_data & 8)
                     {
-                        vdata &= ~0xff;
-                        vdata |= m3_mapper_ram[address];
+                        md.vdata &= ~0xff;
+                        md.vdata |= m3_mapper_ram[address];
                     }
                     else
                     {
@@ -165,11 +167,11 @@ void cart_handle_m3(void)
             }
             if (enable)
             {
-                vdata &= ~0xff;
+                md.vdata &= ~0xff;
                 if (address & 1)
-                    vdata |= rom[address >> 1] & 255;
+                    md.vdata |= rom[address >> 1] & 255;
                 else
-                    vdata |= (rom[address >> 1] >> 8) & 255;
+                    md.vdata |= (rom[address >> 1] >> 8) & 255;
             }
         }
         if (!ym.o_lwr)
@@ -180,27 +182,65 @@ void cart_handle_m3(void)
                 {
                     if (m3_mapper_data & 8)
                     {
-                        m3_mapper_ram[vaddress & 0x3fff] = vdata & 0xff;
+                        m3_mapper_ram[md.vaddress & 0x3fff] = md.vdata & 0xff;
                     }
                 }
-                if ((vaddress & 0xffff) >= 0xfffc)
+                if ((md.vaddress & 0xffff) >= 0xfffc)
                 {
                     int page;
 
                     // GPGX
-                    page = vdata & 15;
+                    page = md.vdata & 15;
                     if (m3_mapper_data & 3)
                         page = (page + ((4 - (m3_mapper_data & 3)) << 3)) & 15;
-                    if ((vaddress & 3) == 0)
-                        m3_mapper_data = vdata & 0xff;
-                    if ((vaddress & 3) == 1)
+                    if ((md.vaddress & 3) == 0)
+                        m3_mapper_data = md.vdata & 0xff;
+                    if ((md.vaddress & 3) == 1)
                         m3_mapper_page[0] = page << 14;
-                    if ((vaddress & 3) == 2)
+                    if ((md.vaddress & 3) == 2)
                         m3_mapper_page[1] = page << 14;
-                    if ((vaddress & 3) == 3)
+                    if ((md.vaddress & 3) == 3)
                         m3_mapper_page[2] = page << 14;
                 }
             }
         }
     }
+}
+
+int cart_save(FILE* f)
+{
+    if (save_blob(&rom, sizeof(rom), f))
+        return -1;
+    if (save_blob(&mapper_enable, sizeof(mapper_enable), f))
+        return -1;
+    if (save_blob(&mapper_pages, sizeof(mapper_pages), f))
+        return -1;
+    if (save_blob(&m3_mapper_enable, sizeof(m3_mapper_enable), f))
+        return -1;
+    if (save_blob(&m3_mapper_data, sizeof(m3_mapper_data), f))
+        return -1;
+    if (save_blob(&m3_mapper_page, sizeof(m3_mapper_page), f))
+        return -1;
+    if (save_blob(&m3_mapper_ram, sizeof(m3_mapper_ram), f))
+        return -1;
+    return 0;
+}
+
+int cart_load(FILE* f)
+{
+    if (load_blob(&rom, sizeof(rom), f))
+        return -1;
+    if (load_blob(&mapper_enable, sizeof(mapper_enable), f))
+        return -1;
+    if (load_blob(&mapper_pages, sizeof(mapper_pages), f))
+        return -1;
+    if (load_blob(&m3_mapper_enable, sizeof(m3_mapper_enable), f))
+        return -1;
+    if (load_blob(&m3_mapper_data, sizeof(m3_mapper_data), f))
+        return -1;
+    if (load_blob(&m3_mapper_page, sizeof(m3_mapper_page), f))
+        return -1;
+    if (load_blob(&m3_mapper_ram, sizeof(m3_mapper_ram), f))
+        return -1;
+    return 0;
 }

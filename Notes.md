@@ -17,3 +17,18 @@ Video:
 ## SMS Mode
 
 Run the emulator with the `-m3` flag
+
+## Savestates
+
+To implement save states, the usual approach is applied, where internal contexts are serialized sequentially to a file. This is a simple and time-tested method of saves in emulators.
+Of course, over time, the format of save states becomes incompatible, but for this you just need to maintain the codebase, it is a natural and inevitable process.
+
+Save state controls:
+- F5: Quick Save (nukedmd.sav)
+- F7: Quick Load (nukedmd.sav)
+
+## Reset Button
+
+Hold down F12 for a short time.
+
+Note: The Overdrive 2 demo has an issue loading Z80 microcode and requires pressing Reset after the first run (behavior is similar on real hardware).

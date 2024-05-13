@@ -18,10 +18,12 @@
  */
 
 
+#include <stdio.h>
 #include <string.h>
 
 #include "fc1004.h"
 #include "vram.h"
+#include "savestate.h"
 
 extern fc1004_t ym;
 
@@ -146,4 +148,26 @@ void update_vram()
 {
     update_vram_bank(&bank0, 0);
     update_vram_bank(&bank1, 1);
+}
+
+int vram_save(FILE* f)
+{
+    if (save_blob(&bank0, sizeof(bank0), f))
+        return -1;
+    if (save_blob(&bank1, sizeof(bank1), f))
+        return -1;
+    if (save_blob(&vram_flat, sizeof(vram_flat), f))
+        return -1;
+    return 0;
+}
+
+int vram_load(FILE* f)
+{
+    if (load_blob(&bank0, sizeof(bank0), f))
+        return -1;
+    if (load_blob(&bank1, sizeof(bank1), f))
+        return -1;
+    if (load_blob(&vram_flat, sizeof(vram_flat), f))
+        return -1;
+    return 0;
 }
