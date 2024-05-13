@@ -1480,7 +1480,7 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 
     int w337 = w334 || (chip->hclk1 && chip->l81[1]);
 
-    int w336 = !cpu_sel || w337;
+    int w336 = !chip->reg_m5 || w337;
 
     if (chip->hclk1)
     {
