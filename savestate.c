@@ -1,5 +1,6 @@
 // Save state support.
 #include <stdio.h>
+#include <string.h>
 #include "common.h"
 #include "savestate.h"
 #include "md.h"
