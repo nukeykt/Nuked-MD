@@ -38,6 +38,7 @@
 #include "cartridge.h"
 #include "md.h"
 #include "savestate.h"
+#include "verilator/nuked-md-fpga.h"
 
 m68k_t m68k;
 z80_t z80;
@@ -301,10 +302,91 @@ int SDLCALL work_thread(void *data)
 
         Audio_Update();
 
-        if (ym.vdp.input.i_clk1 && !md.odclk)
+        if (ym.vdp.hclk1 && !md.odclk)
             Video_PlotVDP();
 
-        md.odclk = ym.vdp.input.i_clk1;
+        md.odclk = ym.vdp.hclk1;
+
+        if ((mcycles % frame_div) == 0)
+        {
+            printf("frame %lld\n", (long long)(mcycles / frame_div));
+        }
+        mcycles++;
+    }
+    return 0;
+}
+
+int SDLCALL work_thread_verilator(void *data)
+{
+    int i;
+    while (work_thread_run)
+    {
+        const int frame_div = 1789772;
+
+        mdfpga_io.ext_reset = (mcycles < 10000);
+        mdfpga_io.reset_button = md.wres;
+        mdfpga_io.ram_68k_o = (ram[mdfpga_io.ram_68k_address * 2] << 8) |
+            ram[mdfpga_io.ram_68k_address * 2 + 1];
+        mdfpga_io.ram_z80_o = zram[mdfpga_io.ram_z80_address];
+        mdfpga_io.M3 = md.m3;
+        int cart_oe2 = mdfpga_io.cart_cs && mdfpga_io.cart_oe;
+        mdfpga_io.cart_data = md.vdata;
+        mdfpga_io.cart_data_en = cart_oe2;
+        mdfpga_io.tmss_data = tmss_rom[mdfpga_io.tmss_address];
+
+        mdfpga_io.PA_i = controller_handle_3button((mdfpga_io.PA_o & 64) != 0 || (mdfpga_io.PA_d & 64) != 0, 0);
+        mdfpga_io.PB_i = controller_handle_3button((mdfpga_io.PB_o & 64) != 0 || (mdfpga_io.PB_d & 64) != 0, 1);
+        mdfpga_io.PC_i = 127;
+        MDFPGA_Cycle(mcycles);
+
+        // ram
+        if (mdfpga_io.ram_68k_wren)
+        {
+            if (mdfpga_io.ram_68k_byteena & 1)
+            {
+                ram[mdfpga_io.ram_68k_address * 2 + 1] = mdfpga_io.ram_68k_data & 0xff;
+            }
+            if (mdfpga_io.ram_68k_byteena & 2)
+            {
+                ram[mdfpga_io.ram_68k_address * 2] = (mdfpga_io.ram_68k_data >> 8) & 0xff;
+            }
+        }
+        if (mdfpga_io.ram_z80_wren)
+        {
+            zram[mdfpga_io.ram_z80_address] = mdfpga_io.ram_z80_data;
+        }
+
+        md.vaddress = mdfpga_io.cart_address;
+        ym.o_ce0 = !mdfpga_io.cart_cs;
+        ym.o_cas0 = !mdfpga_io.cart_oe;
+        ym.arb.ext_time = !mdfpga_io.cart_time;
+        ym.o_lwr = !mdfpga_io.cart_lwr;
+        ym.arb.ext_cas2 = !mdfpga_io.cart_cas2;
+        // cart
+        if (md.m3)
+            cart_handle_md();
+        else
+            cart_handle_m3();
+
+        ym.vdp.rgb_out[0] = mdfpga_io.V_R;
+        ym.vdp.rgb_out[1] = mdfpga_io.V_G;
+        ym.vdp.rgb_out[2] = mdfpga_io.V_B;
+        ym.vdp.o_hsync = mdfpga_io.V_HS;
+        ym.vdp.o_vsync = mdfpga_io.V_VS;
+        ym.vdp.o_csync = mdfpga_io.V_CS;
+        ym.vdp.reg_rs0 = mdfpga_io.vdp_rs1;
+
+        ym.fm.out_l = ((mdfpga_io.MOL ^ 0x100) << 23) >> 23;
+        ym.fm.out_r = ((mdfpga_io.MOR ^ 0x100) << 23) >> 23;
+
+        ym.vdp.psg.psg_out = mdfpga_io.PSG / 1200.0;
+
+        Audio_Update();
+
+        if (mdfpga_io.vdp_hclk1 && !md.odclk)
+            Video_PlotVDP();
+
+        md.odclk = mdfpga_io.vdp_hclk1;
 
         if ((mcycles % frame_div) == 0)
         {
@@ -326,6 +408,7 @@ int main(int argc, char *argv[])
     int pal = 0;
     int _jap = 0;
     int _m3 = 0;
+    int verilator = 1;
     for (i = 1; i < argc && *argv[i] == '-'; i++)
     {
         switch(argv[i][1])
@@ -411,6 +494,9 @@ int main(int argc, char *argv[])
 
     FC1004_Init(&ym);
 
+    if (verilator)
+        MDFPGA_Init();
+
     md.m3 = !_m3;
     md.ntsc = !pal;
     md.cart = 0;
@@ -436,10 +522,13 @@ int main(int argc, char *argv[])
     Video_Init(videoout_filename, md.ntsc);
 
     work_thread_run = 1;
-    thread = SDL_CreateThread(work_thread, "work thread", 0);
+    thread = SDL_CreateThread(verilator ? work_thread_verilator : work_thread,
+        "work thread", 0);
 
     if (!thread)
     {
+        if (verilator)
+            MDFPGA_Shutdown();
         Audio_Shutdown();
         Video_Shutdown();
         return EXIT_FAILURE;
@@ -486,6 +575,9 @@ int main(int argc, char *argv[])
     Audio_Shutdown();
     Video_Shutdown();
     FC1004_Destroy(&ym);
+
+    if (verilator)
+        MDFPGA_Shutdown();
 
     SDL_Quit();
 

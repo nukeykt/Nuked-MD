@@ -122,7 +122,7 @@ void Video_PlotVDP(void)
 
     if (ohsync && ym.vdp.o_hsync == 0)
     {
-        plot_x = -75;
+        plot_x = -75 / 2;
         if (ym.vdp.reg_rs0 == 0)
             plot_x = 0;
         plot_y++;
@@ -141,7 +141,7 @@ void Video_PlotVDP(void)
         frame_mcycles = mcycles;
     }
 
-    if (plot_x >= 0 && plot_x < VID_WIDTH * 2 && plot_y >= 0 && plot_y < VID_HEIGHT)
+    if (plot_x >= 0 && plot_x < VID_WIDTH && plot_y >= 0 && plot_y < VID_HEIGHT)
     {
         uint32_t abgr = 0;
 
@@ -149,7 +149,7 @@ void Video_PlotVDP(void)
         abgr |= ym.vdp.rgb_out[1] << 8;
         abgr |= ym.vdp.rgb_out[2] << 16;
 
-        vid_workbuffer[plot_y][plot_x / 2] = abgr;
+        vid_workbuffer[plot_y][plot_x] = abgr;
     }
 
     plot_x++;
