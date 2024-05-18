@@ -218,7 +218,7 @@ void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
     chip->fm.input.address = chip->i_zaddress & 3;
     chip->fm.input.data = chip->i_zdata;
     chip->fm.input.test = chip->i_test0;
-    chip->fm.input.i_fsm_reset = (chip->fm.prescaler.ic_check_latch[1] & 16) != 0;
+    chip->fm.input.i_fsm_reset = (chip->fm.prescaler.ic_check_latch[1] & 8) != 0;
     FM_Clock2(&chip->fm, chip->fm.prescaler.phi1_latch[1],
         chip->fm.prescaler.phi2_latch[1]);
 
