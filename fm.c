@@ -1921,11 +1921,11 @@ void FM_Operator1(fm_t *chip)
     }
     if (chip->alg_mod_prev_0)
     {
-        mod2 |= chip->op_output[1];
+        mod2 |= chip->op_output[1] & 0x3fff;
     }
     if (chip->alg_mod_prev_1)
     {
-        mod1 |= chip->op_output[1];
+        mod1 |= chip->op_output[1] & 0x3fff;
     }
     if (mod1 & (1 << 13))
         mod1 |= 1 << 14;
