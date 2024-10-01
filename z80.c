@@ -431,8 +431,8 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->w287 = !chip->w95 || (chip->w103 && chip->w98);
     
     // pla
+    chip->pla[33] = (chip->w147 & 0xc0) == 0x80 && chip->w90; // 0x80-0xbf alu opcodes?
     chip->pla[34] = (chip->w147 & 0xc7) == 0xc6 && chip->w90; // n alu opcodes
-    chip->pla[35] = (chip->w147 & 0xc7) == 0x06 && chip->w90; // ld n opcodes
     chip->w82 = !(chip->pla[33] || chip->pla[34]);
     chip->pla[0] = (chip->w147 & 0xf7) == 0xd3 && chip->w90; // out(n), a; in(n), a
     chip->pla[1] = (chip->w147 & 0xf7) == 0xf3 && chip->w90; // di; ei
@@ -466,7 +466,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->pla[30] = (chip->w147 & 0xc7) == 0x42 && chip->w92; // sbc hl, adc hl
     chip->pla[31] = (chip->w147 & 0xc7) == 0x40 && chip->w92; // in (c)
     chip->pla[32] = (chip->w147 & 0xc6) == 0x04 && chip->w90; // inc dec byte
-    chip->pla[33] = (chip->w147 & 0xc0) == 0x80 && chip->w90; // 0x80-0xbf alu opcodes?
+    chip->pla[35] = (chip->w147 & 0xc7) == 0x06 && chip->w90; // ld n opcodes
     chip->pla[36] = !chip->w96;
     chip->pla[37] = (chip->w147 & 0xc0) == 0x40 && chip->w90; // ld reg opcodes
     chip->pla[38] = (chip->w147 & 0xf7) == 0x67 && chip->w92; // rrd, rld

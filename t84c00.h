@@ -4,7 +4,13 @@ typedef struct
 {
     int w147;
 
-    int pla[99];
+    int pla[108];
+
+    int w74;
+    int w82;
+    int w90;
+    int w92;
+    int w96;
 
     int tm_w1;
     int tm_w2;
