@@ -2,6 +2,17 @@
 
 typedef struct
 {
+    int i_data;
+} t84c00_input_t;
+
+typedef struct
+{
+    t84c00_input_t input;
+
+    int w2;
+    int w42;
+    int w145;
+    int w146;
     int w147;
 
     int pla[108];
@@ -19,6 +30,11 @@ typedef struct
     int tm_w5;
     int tm_w6;
     int tm_w7;
+
+
+    int o_data;
+    int o_data_z;
+
 } t84c00_t;
 
 

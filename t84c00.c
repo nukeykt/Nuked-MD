@@ -136,4 +136,16 @@ void T84C00_Clock(t84c00_t* chip)
     chip->pla[105] = (chip->w147 == 0xeb && chip->w90) || !chip->tm_w2;
     chip->pla[106] = ((chip->w147 & 0xf4) == 0xa0 && chip->w92) || !chip->tm_w2;
     chip->pla[107] = (chip->w147 == 0xd9 && chip->w90) || !chip->tm_w2;
+
+    if (chip->w42)
+        chip->w145 = chip->w146 ^ 255;
+    else if (chip->w2)
+        chip->w145 = chip->input.i_data;
+
+    if (chip->w1)
+        chip->w146 = chip->w145 ^ 255;
+
+    chip->o_data = chip->w145;
+    chip->o_data_z = chip->w44;
+
 }
