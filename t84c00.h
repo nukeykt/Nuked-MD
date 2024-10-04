@@ -5,6 +5,8 @@ typedef struct
     int i_clk;
     int i_data;
     int i_reset;
+    int i_int;
+    int i_nmi;
 } t84c00_input_t;
 
 typedef struct
@@ -17,6 +19,13 @@ typedef struct
     int w1;
     int w2;
     int w3;
+    int w4;
+    int w5;
+    int w6;
+    int w7;
+    int w8;
+    int w9;
+    int w19;
     int w42;
     int w44;
     int w145;
@@ -51,11 +60,19 @@ typedef struct
     int tm_w7;
 
     int l1;
+    int l2;
+    int l4;
     int l14;
     int l15;
     int l19;
 
+    int l26;
+    int l27;
+
     int w56;
+
+    int w73;
+    int w74;
 
 
     int o_data;

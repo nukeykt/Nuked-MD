@@ -203,4 +203,63 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w57 = chip->w56 || chip->w104;
 
+    if (chip->clk_n)
+        chip->w4 = !chip->input.i_int;
+    if (chip->clk_p)
+        chip->w5 = chip->w4;
+
+    int nmi = !chip->input.i_nmi;
+
+    if (chip->l2)
+        chip->w7 = 0;
+    else if (!nmi)
+        chip->w7 = 1;
+
+    if (chip->l2)
+        chip->w6 = 0;
+    else if (nmi)
+        chip->w6 = chip->w7;
+
+    if (chip->clk_n)
+        chip->w8 = !chip->w6;
+    if (chip->clk_p)
+        chip->w9 = chip->w8;
+
+    if (chip->clk_p)
+        chip->l2 = chip->w55 || chip->tm_w2;
+    if (chip->clk_p)
+        chip->l3 = chip->w73 && !chip->pla[2];
+
+    int w12 = !(chip->w5 && chip->w9 && chip->l3);
+
+    if (chip->clk_p)
+        chip->l4 = !(chip->w55 || chip->tm_w2 || chip->tm_w4 || chip->tm_w5);
+
+    int w16 = chip->clk_n && chip->l4;
+
+    if (w16)
+        chip->w19 = chip->w9;
+    if (chip->w55)
+        chip->w19 = 0;
+
+    if (chip->clk_p)
+        chip->l26 = chip->w131 && chip->pla[2] && chip->w110;
+    if (chip->clk_p)
+        chip->l27 = chip->w131 && chip->pla[70] && chip->w114;
+
+    int w71 = chip->clk_n && chip->l26;
+    int w75 = chip->clk_n && chip->l27 && !chip->w19;
+
+    if (chip->w55 || chip->w18)
+        chip->w74 = 0;
+    else if (w71)
+        chip->w74 = (chip->w147 >> 3) & 1;
+
+    if (chip->w19 || chip->w55 || chip->w18)
+        chip->w73 = 0;
+    else if (w71)
+        chip->w73 = (chip->w147 >> 3) & 1;
+    else if (w75)
+        chip->w73 = chip->w74;
+
 }
