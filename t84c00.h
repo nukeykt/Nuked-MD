@@ -7,6 +7,8 @@ typedef struct
     int i_reset;
     int i_int;
     int i_nmi;
+    int i_busrq;
+    int i_wait;
 } t84c00_input_t;
 
 typedef struct
@@ -112,6 +114,17 @@ typedef struct
     int w33;
     int l11;
     int l10;
+    int w66;
+    int l24;
+    int l23;
+    int w63;
+    int l22;
+    int w58;
+    int w59;
+    int w39;
+    int w37;
+    int w38;
+    int l82;
 
     int o_data;
     int o_data_z;
@@ -124,6 +137,7 @@ typedef struct
     int o_rd_z;
     int o_wr;
     int o_wr_z;
+    int o_busak;
 
 } t84c00_t;
 
