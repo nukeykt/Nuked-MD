@@ -251,7 +251,7 @@ void Z80_IOLogic(z80_t *chip, int clk)
         chip->w33 = 0;
     if (clk)
         chip->l11 = !(chip->w114 && chip->w201);
-    if (!chip->l11)
+    if (!chip->l11 && !clk)
         chip->w33 = 1;
     if (clk && chip->w106 && chip->w114 && chip->w201)
         chip->w33 = 1;
