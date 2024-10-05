@@ -98,9 +98,19 @@ typedef struct
     int l33;
     int w121;
 
+    int halt;
+
+    int w18;
+
+    int w21;
+    int l6;
+    int l9;
 
     int o_data;
     int o_data_z;
+    int o_halt;
+    int o_mreq;
+    int o_mreq_z;
 
 } t84c00_t;
 

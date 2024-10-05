@@ -12,8 +12,6 @@ void T84C00_Clock(t84c00_t* chip)
 
     chip->w82 = !(chip->pla[20] || chip->pla[32]);
 
-    chip->w74 = chip->tm_w1;
-
     chip->w90 = !chip->tm_w1;
     chip->w92 = !chip->tm_w1;
 
@@ -29,7 +27,7 @@ void T84C00_Clock(t84c00_t* chip)
     chip->pla[6] = ((chip->w147 & 0xe7) == 0xa0 && chip->w92) || !chip->tm_w2; // 4
     chip->pla[7] = (chip->w147 == 0x10 && chip->w90) || !chip->tm_w2; // 8
     chip->pla[8] = ((chip->w147 & 0x38) == 0x30 && !chip->w82) || !chip->tm_w2; // 12
-    chip->pla[9] = ((chip->w147 & 0xf7) == 0x57 && chip->w92 && !chip->w74) || !chip->tm_w3; // 15
+    chip->pla[9] = ((chip->w147 & 0xf7) == 0x57 && chip->w92 && chip->w74) || !chip->tm_w3; // 15
 
     chip->pla[10] = ((chip->w147 & 0xc0) == 0xc0 && !chip->w96) || !chip->tm_w2; // 24
     chip->pla[11] = (chip->w147 == 0x37 && chip->w90) || !chip->tm_w2; // 6
@@ -329,4 +327,54 @@ void T84C00_Clock(t84c00_t* chip)
         chip->l33 = !chip->w123;
     if (w132)
         chip->w121 = !(chip->l33 || chip->w130);
+
+    int w11 = w12 || !chip->w9 || !chip->pla[0];
+    int w10 = !w11 || w12 || !chip->w9;
+
+    if (w16 && !w11)
+        chip->halt = 1;
+    else if (chip->w19 || chip->w18 || chip->w55 || !w57)
+        chip->halt = 0;
+
+    chip->o_halt = !chip->halt;
+
+    if (w16)
+        chip->w18 = chip->tm_w1;
+    else if (chip->w55)
+        chip->w18 = w12;
+    int w18_l = chip->w18 && !chip->w55;
+
+    int w13 = (chip->halt || (w16 && w10)) || (chip->w19 || w18_l);
+    int w14 = w13 && (w10 || !w16);
+
+    int w106 = (chip->pla[80] && chip->w120) || (chip->w127 && chip->pla[81]) || ((chip->pla[55] || chip->pla[75]) && chip->w123);
+
+    if (chip->clk_p)
+        chip->l6 = !(chip->w110 && !(chip->w131 || w106)) && !(chip->w131 && (chip->w41 || !(!chip->w110 || chip->w18)));
+
+    int w24 = chip->clk_n && !chip->w202 && chip->l6;
+    int w26 = chip->w131 && chip->w41 && chip->clk_p;
+
+    if (chip->clk_p)
+        chip->l9 = (!chip->w131 && chip->w41) || chip->w55 || chip->w109;
+
+    int w32 = chip->clk_n && chip->l9;
+
+    if (w24)
+        chip->w21 = 0;
+    else if (w26 || w32)
+        chip->w21 = 1;
+
+    chip->o_mreq_z = 1;
+    if (!chip->w21)
+    {
+        chip->o_mreq = 0;
+        chip->o_mreq_z = 0;
+    }
+    if (chip->w21 && chip->w62)
+    {
+        chip->o_mreq = 1;
+        chip->o_mreq_z = 0;
+    }
+
 }
