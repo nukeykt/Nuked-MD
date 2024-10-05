@@ -105,12 +105,25 @@ typedef struct
     int w21;
     int l6;
     int l9;
+    int w22;
+    int l5;
+    int w31;
+    int l8;
+    int w33;
+    int l11;
+    int l10;
 
     int o_data;
     int o_data_z;
     int o_halt;
     int o_mreq;
     int o_mreq_z;
+    int o_iorq;
+    int o_iorq_z;
+    int o_rd;
+    int o_rd_z;
+    int o_wr;
+    int o_wr_z;
 
 } t84c00_t;
 
