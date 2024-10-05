@@ -74,6 +74,30 @@ typedef struct
     int w73;
     int w74;
 
+    int w110;
+    int l31;
+    int w114;
+    int l12;
+    int w34;
+    int w41;
+    int l30;
+    int l25;
+    int w68;
+    int l21;
+    int w61;
+
+    int l36;
+    int l32;
+    int w120;
+    int w134;
+    int l35;
+    int l34;
+    int w130;
+    int w127;
+    int w123;
+    int l33;
+    int w121;
+
 
     int o_data;
     int o_data_z;

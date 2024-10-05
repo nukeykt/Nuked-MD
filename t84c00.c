@@ -232,8 +232,10 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w12 = !(chip->w5 && chip->w9 && chip->l3);
 
+    int w118 = chip->tm_w1 || chip->tm_w1 || (chip->w131 && chip->tm_w1);
+
     if (chip->clk_p)
-        chip->l4 = !(chip->w55 || chip->tm_w2 || chip->tm_w4 || chip->tm_w5);
+        chip->l4 = !(chip->w55 || !w118 || chip->tm_w4 || chip->tm_w5);
 
     int w16 = chip->clk_n && chip->l4;
 
@@ -262,4 +264,69 @@ void T84C00_Clock(t84c00_t* chip)
     else if (w75)
         chip->w73 = chip->w74;
 
+    chip->w110 = !(chip->tm_w1 || chip->tm_w2);
+    if (chip->clk_p)
+        chip->l31 = chip->w110;
+    if (chip->clk_n)
+        chip->w114 = chip->l31 && chip->w112;
+
+    if (chip->clk_p)
+        chip->l12 = (chip->w114 || !chip->w34) && !chip->w41;
+    if (chip->clk_n)
+        chip->w34 = !(chip->l12 && chip->w112);
+
+    chip->w41 = !chip->tm_w1 && !chip->w34;
+
+    if (chip->clk_p)
+        chip->l30 = chip->w41;
+    if (chip->clk_n)
+        chip->w109 = chip->l30 && chip->w112;
+
+    if (chip->clk_p)
+        chip->l25 = chip->w109;
+    if (chip->clk_n)
+        chip->w68 = chip->l25 && chip->w112;
+
+    if (chip->clk_p)
+        chip->l21 = chip->w68;
+    if (chip->clk_n)
+        chip->w61 = chip->l25 && chip->w112;
+
+    int w137 = !(chip->tm_w1 && chip->tm_w2);
+    int w133 = chip->w55 || w137;
+
+    if (chip->clk_p)
+        chip->l36 = w133;
+
+    int w132 = chip->clk_n && chip->l36;
+
+    if (chip->clk_p)
+        chip->w130 = w118;
+    if (w132)
+        chip->w131 = chip->w130;
+    if (chip->clk_p)
+        chip->l32 = !chip->w131;
+    if (w132)
+        chip->w120 = !(chip->l32 || chip->w130 || chip->w134);
+
+    if (chip->clk_p)
+    {
+        int w125 = !((chip->tm_w1 && chip->tm_w2) || (chip->tm_w3 && chip->tm_w4));
+        chip->w134 = w125 && (chip->tm_w1 || (chip->w131 && chip->tm_w3));
+    }
+
+    if (chip->clk_p)
+        chip->l35 = !chip->w120;
+    if (w132)
+        chip->w127 = !(chip->l35 || chip->w130 || chip->w134);
+
+    if (chip->clk_p)
+        chip->l34 = chip->w127;
+    if (w132)
+        chip->w123 = !chip->w130 && (chip->l34 || chip->w134);
+
+    if (chip->clk_p)
+        chip->l33 = !chip->w123;
+    if (w132)
+        chip->w121 = !(chip->l33 || chip->w130);
 }
