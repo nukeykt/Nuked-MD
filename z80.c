@@ -448,7 +448,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->pla[12] = (chip->w147 & 0x38) == 0x30 && !chip->w82; // or
     chip->pla[13] = (chip->w147 & 0x38) == 0x20 && !chip->w82; // and
     chip->pla[14] = (chip->w147 & 0x38) == 0x00 && !chip->w82; // add
-    chip->pla[15] = (chip->w147 & 0xf7) == 0x57 && chip->w92 && !chip->w74; // ???
+    chip->pla[15] = (chip->w147 & 0xf7) == 0x57 && chip->w92 && chip->w74; // ???
     chip->pla[16] = (chip->w147 & 0xc7) == 0x44 && chip->w92; // neg
     chip->pla[17] = chip->w147 == 0x2f && chip->w90; // cpl
     chip->pla[18] = (chip->w147 & 0x38) == 0x08 && !chip->w82; // adc
