@@ -37,10 +37,7 @@ typedef struct
     int pla[108];
 
     int w74;
-    int w82;
-    int w90;
     int w92;
-    int w96;
     
     int w55;
 
@@ -135,6 +132,11 @@ typedef struct
     int l29;
     int w112;
     int w111;
+    int w99;
+    int w100;
+    int w98;
+    int w95;
+    int l43;
 
     int o_data;
     int o_data_z;
