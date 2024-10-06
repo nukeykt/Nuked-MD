@@ -125,6 +125,16 @@ typedef struct
     int w37;
     int w38;
     int l82;
+    int m1;
+    int rfsh;
+    int l7;
+    int w30;
+    int w80;
+    int w78;
+    int l28;
+    int l29;
+    int w112;
+    int w111;
 
     int o_data;
     int o_data_z;
@@ -138,6 +148,8 @@ typedef struct
     int o_wr;
     int o_wr_z;
     int o_busak;
+    int o_m1;
+    int o_rfsh;
 
 } t84c00_t;
 
