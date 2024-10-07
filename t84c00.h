@@ -137,6 +137,11 @@ typedef struct
     int w98;
     int w95;
     int l43;
+    int l16;
+    int l17;
+    int l18;
+    int w48;
+    int w104;
 
     int o_data;
     int o_data_z;
