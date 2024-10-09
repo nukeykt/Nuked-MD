@@ -206,6 +206,57 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w177 = !((chip->pla[4] || chip->pla[5] || chip->pla[6] || chip->pla[11] || chip->pla[13]) && pla_en);
 
+    int w149 = !((w88 || chip->pla[48] || chip->pla[80] || chip->pla[81] || chip->pla[82] || chip->pla[86]
+        || w86 || chip->pla[95] || chip->pla[96] || chip->pla[103]) && pla_en);
+
+    int w151 = !((w88 || chip->pla[51] || chip->pla[54] || chip->pla[63] || chip->pla[64] || chip->pla[68]
+        || chip->pla[80] || chip->pla[81] || chip->pla[101]) && pla_en);
+
+    int w153 = !((w88 || chip->pla[47] || chip->pla[48] || chip->pla[49] || chip->pla[51] || chip->pla[52] || chip->pla[59]
+        || chip->pla[68] || chip->pla[70] || chip->pla[73] || chip->pla[82] || w86 || chip->pla[102]) && pla_en);
+
+    int w155 = !((w88 || chip->pla[49] || chip->pla[50] || chip->pla[52] || chip->pla[54] || chip->pla[57]
+        || chip->pla[63] || chip->pla[64] || chip->pla[80] || chip->pla[81] || chip->pla[90] || chip->pla[92]
+        || chip->pla[99]) && pla_en);
+
+    int w157 = !((w88 || chip->pla[47] || chip->pla[49] || chip->pla[51] || chip->pla[52] || chip->pla[54]
+        || chip->pla[59] || chip->pla[63] || chip->pla[64] || chip->pla[68] || chip->pla[80] || chip->pla[81]
+        || chip->pla[82] || chip->pla[87] || chip->pla[89] || chip->pla[90] || chip->pla[99] || chip->pla[101]) && pla_en);
+
+    int w159 = !((chip->pla[47] || chip->pla[55] || chip->pla[58] || chip->pla[59] || chip->pla[72] || chip->pla[82])
+        && pla_en);
+
+    int w161 = !((chip->pla[48] || chip->pla[55] || chip->pla[56] || chip->pla[61] || chip->pla[70] || chip->pla[73]
+        || chip->pla[75] || chip->pla[79] || chip->pla[83] || w86 || chip->pla[94]) && pla_en);
+
+    int w164 = !((chip->pla[45] || chip->pla[46] || chip->pla[54] || chip->pla[55] || chip->pla[56] || chip->pla[60]
+        || chip->pla[61] || chip->pla[76] || chip->pla[80] || chip->pla[81] || chip->pla[84] || chip->pla[87]
+        || chip->pla[89] || chip->pla[90]) && pla_en);
+
+    int w167 = !((chip->pla[45] || chip->pla[49] || chip->pla[50] || chip->pla[61] || chip->pla[67] || chip->pla[69]
+        || chip->pla[74] || chip->pla[86] || chip->pla[90] || w86 || chip->pla[93] || chip->pla[95] || chip->pla[96]
+        || chip->pla[99]) && pla_en);
+
+    int w170 = !((chip->pla[49] || chip->pla[51] || chip->pla[52] || chip->pla[54] || chip->pla[57] || chip->pla[63]
+        || chip->pla[64] || chip->pla[68] || chip->pla[71] || chip->pla[92] || chip->pla[101]) && pla_en);
+
+    int w173 = (chip->pla[48] || chip->pla[49] || chip->pla[52] || chip->pla[70] || chip->pla[73] || chip->pla[79]
+        || w86 || chip->pla[99]) && pla_en;
+
+    int w169_0 = !((chip->pla[45] || chip->pla[46] || chip->pla[50] || chip->pla[57] || chip->pla[60] || chip->pla[61]
+        || chip->pla[91] || chip->pla[92]) && pla_en);
+    int w169_1 = chip->w100 || w96;
+    int w169_2 = !(w169_0 && w169_1);
+    int w169 = !(w169_2 || w163 || chip->pla[0]);
+
+    int w175 = (chip->pla[47] || chip->pla[59] || chip->pla[82]) && pla_en;
+
+    int w186 = (chip->pla[80] || chip->pla[81] || chip->pla[87] || chip->pla[89]) && pla_en;
+
+    int w188 = (chip->pla[75] || chip->pla[80] || chip->pla[81] || chip->pla[82]) && pla_en;
+
+    int w189 = (chip->pla[78] || chip->pla[80] || chip->pla[81] || chip->pla[82]) && pla_en;
+
     if (chip->w42)
         chip->w145 = chip->w146 ^ 255;
     else if (chip->w2)
