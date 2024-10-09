@@ -175,6 +175,37 @@ void T84C00_Clock(t84c00_t* chip)
     int w156 = (chip->pla[8] || chip->pla[12] || chip->pla[14] || chip->pla[24] || chip->pla[25] || chip->pla[28]
         || chip->pla[34] || chip->pla[35] || chip->pla[36] || chip->pla[40]) && pla_en;
 
+    if (chip->clk_p)
+        chip->w452 = (chip->pla[12] || chip->pla[15] || chip->pla[25] || chip->pla[28] || chip->pla[34]
+            || chip->pla[35] || chip->pla[36] || chip->pla[40] || chip->pla[41]) && pla_en;
+
+    int w160 = !((chip->pla[4] || chip->pla[5] || chip->pla[7] || chip->pla[25] || chip->pla[26] || chip->pla[28]
+        || chip->pla[30] || chip->pla[35] || chip->pla[36] || chip->pla[38]) && pla_en);
+
+    int w162 = (chip->pla[4] || chip->pla[5] || chip->pla[7] || chip->pla[12] || chip->pla[15] || chip->pla[18]
+        || chip->pla[19] || chip->pla[21] || chip->pla[25] || chip->pla[27] || chip->pla[31] || chip->pla[33]
+        || chip->pla[39] || chip->pla[41]) && pla_en;
+
+    int w165 = (chip->pla[4] || chip->pla[7] || chip->pla[26] || chip->pla[29] || chip->pla[31]
+        || chip->pla[41]) && pla_en;
+
+    int w166 = (chip->pla[12] || chip->pla[13] || chip->pla[34] || chip->pla[35]) && pla_en;
+
+    int w163 = !((chip->pla[21] || chip->pla[22] || chip->pla[23] || chip->pla[33] || chip->pla[41]) && pla_en);
+
+    int w172 = (chip->pla[10] || chip->pla[18] || chip->pla[23] || chip->pla[30] || chip->pla[39]
+        || chip->pla[41] || chip->pla[43]) && !pla_en;
+
+    int w159 = (chip->pla[4] || chip->pla[7] || chip->pla[16] || chip->pla[22] || chip->pla[37] || chip->pla[41])
+        & pla_en;
+
+    int w171 = (chip->pla[11] || chip->pla[13] || chip->pla[29]) && pla_en;
+
+    if (chip->clk_p)
+        chip->l65 = !((chip->pla[8] || chip->pla[10] || chip->pla[14]) && pla_en);
+
+    int w177 = !((chip->pla[4] || chip->pla[5] || chip->pla[6] || chip->pla[11] || chip->pla[13]) && pla_en);
+
     if (chip->w42)
         chip->w145 = chip->w146 ^ 255;
     else if (chip->w2)
