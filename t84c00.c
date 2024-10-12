@@ -135,21 +135,21 @@ void T84C00_Clock(t84c00_t* chip)
 
     chip->pla[87] = ((chip->w147 & 0xe7) == 0xa0 && !chip->w92) || !pla_en; // 80
     chip->pla[88] = ((chip->w147 & 0xc7) == 0x06 && !w90) || !pla_en; // 81
-    chip->pla[89] = ((chip->w147 & 0xe7) == 0xa1 && !chip->w92) || !pla_en;
-    chip->pla[90] = ((chip->w147 & 0xf7) == 0x67 && !chip->w92) || !pla_en;
+    chip->pla[89] = ((chip->w147 & 0xe7) == 0xa1 && !chip->w92) || !pla_en; // 79
+    chip->pla[90] = ((chip->w147 & 0xf7) == 0x67 && !chip->w92) || !pla_en; // 83
     chip->pla[91] = ((chip->w147 & 0x07) == 0x06 && !w96) || !pla_en;
     chip->pla[92] = (!w96 && !chip->w100) || !pla_en;
     chip->pla[93] = ((chip->w147 & 0xcf) == 0x02 && !w90) || !pla_en;
     chip->pla[94] = ((chip->w147 & 0xc7) == 0x42 && !chip->w92) || !pla_en;
     chip->pla[95] = ((chip->w147 & 0xc7) == 0x03 && !w90) || !pla_en;
-    chip->pla[96] = (chip->w147 == 0xf9 && !w90) || !pla_en;
+    chip->pla[96] = (chip->w147 == 0xf9 && !w90) || !pla_en; // 93
 
     chip->pla[97] = ((chip->w147 & 0xe7) == 0xa0 && !chip->w92) || !pla_en;
     chip->pla[98] = ((chip->w147 & 0xe7) == 0xa1 && !chip->w92) || !pla_en;
     chip->pla[99] = (chip->w147 == 0xe3 && !w90) || !pla_en;
     chip->pla[100] = ((chip->w147 & 0xe7) == 0x02 && !w90) || !pla_en;
     chip->pla[101] = ((chip->w147 & 0xcf) == 0x01 && !w90) || !pla_en;
-    chip->pla[102] = (chip->w147 == 0xe9 && !w90) || !pla_en;
+    chip->pla[102] = (chip->w147 == 0xe9 && !w90) || !pla_en; // 92
     chip->pla[103] = ((chip->w147 & 0xe7) == 0x47 && !chip->w92) || !pla_en;
     chip->pla[104] = ((chip->w147 & 0xdf) == 0xdd && !w90) || !pla_en;
     chip->pla[105] = (chip->w147 == 0xeb && !w90) || !pla_en;
@@ -315,6 +315,17 @@ void T84C00_Clock(t84c00_t* chip)
     int w255 = (chip->w115 && w256) || w174;
 
     int w254 = !(!w255 || w186);
+
+    int w191 = chip->pla[87] || chip->pla[89] || chip->pla[90] || w169 || chip->pla[102] || chip->pla[96];
+
+    int w199 = !(chip->pla[90] || w254 || chip->pla[98]);
+
+    int w196 = chip->pla[98] || chip->pla[97];
+
+    int w225 = !(chip->w100 || !w169);
+    int w312 = !(chip->w100 || w169);
+
+    int w240 = !(!w186 || chip->pla[80])
 
     if (chip->w42)
         chip->w145 = chip->w146 ^ 255;
