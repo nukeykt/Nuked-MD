@@ -20,7 +20,6 @@ typedef struct
 
     int w1;
     int w2;
-    int w3;
     int w4;
     int w5;
     int w6;
@@ -147,6 +146,7 @@ typedef struct
     int w453;
     int l64;
     int w115;
+    int l63;
 
     int o_data;
     int o_data_z;

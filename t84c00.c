@@ -22,14 +22,12 @@ void T84C00_Clock(t84c00_t* chip)
     int w49 = !(chip->l16 && chip->clk_n) && chip->w48;
 
     if (!w49)
-        chip->w147 = chip->tm_w2 ^ 255;
+        chip->w147 = chip->w146 ^ 255;
 
 
     chip->pla[20] = ((chip->w147 & 0xc0) == 0x80 && !w90);
     chip->pla[32] = ((chip->w147 & 0xc7) == 0xc6 && !w90);
     int w82 = !(chip->pla[20] || chip->pla[32]);
-
-    chip->w92 = !chip->tm_w1;
 
     int w103 = chip->clk_n && chip->l29;
 
@@ -261,10 +259,10 @@ void T84C00_Clock(t84c00_t* chip)
     if (chip->clk_p)
         chip->w453 = chip->pla[9];
 
-    int w179 = chip->pla[5] || chip->pla[7] || chip->pla[4];
+    int w179 = !(chip->pla[5] || chip->pla[7] || chip->pla[4]);
     int w178 = chip->pla[4] || chip->pla[7];
 
-    int w388 = chip->pla[4] || w177;
+    int w388 = !(chip->pla[4] || w177);
 
     int w457 = (chip->pla[12] && (chip->w147 & 8) == 0) || !w160;
 
@@ -295,16 +293,16 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w187 = (chip->pla[54] || chip->pla[55] || chip->pla[56]);
 
-    int w252 = ((chip->tm_w1 && w167) || w86 || w234) && !w187;
+    int w245 = w187 || chip->pla[101] || !(w175 || w153) || chip->pla[79]
+        || w173 || !((chip->w147 & 8) == 0 || w236);
+
+    int w252 = ((w245 && w167) || w86 || w234) && !w187;
 
     int w257_0 = w189 || w187;
 
     int w184 = chip->pla[49] || chip->pla[51];
 
     int w185 = chip->pla[49] || chip->pla[52];
-
-    int w245 = w187 || chip->pla[101] || !(w175 || w153) || chip->pla[79]
-        || w173 || !((chip->w147 & 8) == 0 || w236);
 
     int w253 = w235 || w245;
 
@@ -325,7 +323,28 @@ void T84C00_Clock(t84c00_t* chip)
     int w225 = !(chip->w100 || !w169);
     int w312 = !(chip->w100 || w169);
 
-    int w240 = !(!w186 || chip->pla[80])
+    int w240 = !(!w186 || chip->pla[80]);
+
+    if (chip->clk_p)
+        chip->l63 = !(chip->pla[8] || chip->pla[10]);
+
+    int w454 = chip->l63 || chip->w115;
+
+    int w287 = (chip->w98 && w103) || chip->w95;
+
+    int w286_0 = w287 && w256;
+    int w286 = (w286_0 && chip->w123 && chip->w110) || (w287 && chip->w131 && chip->w41);
+
+    int w456 = chip->w115 || chip->l65;
+
+    int w126 = w255 || (w169 && !chip->w100);
+    if (chip->clk_p)
+    {
+        if (chip->w120 && chip->w114 && w126)
+            chip->w115 = 1;
+        else if (chip->w123 || chip->w131)
+            chip->w115 = 0;
+    }
 
     if (chip->w42)
         chip->w145 = chip->w146 ^ 255;
@@ -339,27 +358,25 @@ void T84C00_Clock(t84c00_t* chip)
     chip->o_data_z = chip->w44;
 
     if (chip->clk_p)
-        chip->l14 = chip->tm_w1;
-    if (chip->clk_p)
         chip->l15 = chip->w201 && chip->w110;
-    if (chip->l14 || (chip->clk_p && chip->tm_w3))
+    if (chip->l14 || (chip->clk_p && chip->w110))
         chip->w44 = 1;
     else if (chip->clk_n && chip->l15)
         chip->w44 = 0;
 
     chip->w42 = chip->clk_n && chip->l15 && !chip->pla[43];
 
-    chip->w3 = !(chip->tm_w1 || chip->tm_w2);
+    int w3 = !(chip->w202 || chip->w201);
 
-    if (chip->clk_p && chip->w41 && !(chip->w201 || chip->tm_w2))
+    if (chip->clk_p && chip->w41 && w3)
         chip->w1 = 1;
     else if (chip->w55 || (chip->clk_p && (chip->w201 || chip->w114)))
         chip->w1 = 0;
 
     if (clk_p)
-        chip->l1 = chip->w55 || (chip->w41 && chip->tm_w3);
+        chip->l1 = chip->w55 || (chip->w41 && !chip->w131);
 
-    int w15 = !(chip->w201 || chip->w202 || chip->tm_w3);
+    int w15 = !(chip->w201 || chip->w202 || !chip->w114);
 
     if (chip->clk_p && w15)
         chip->w2 = 1;
@@ -367,7 +384,7 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w2 = 0;
 
     int w46 = !(chip->w131 || (chip->w127 && chip->w107) || (chip->w127 && chip->pla[43]);
-    chip->w192 = (chip->w201 && chip->w110) || (chip->w41 && chip->w3 && w46);
+    chip->w192 = (chip->w201 && chip->w110) || (chip->w41 && w3 && w46);
 
     if (chip->clk_n)
         chip->w50 = !chip->input.i_reset;
@@ -383,8 +400,10 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w53 = !chip->l19 && chip->clk_n && !chip->w55;
 
+    int w97 = chip->pla[66] || chip->pla[76] || chip->pla[65];
+
     if (chip->clk_p)
-        chip->w104 = chip->pla[66] || chip->pla[76] || chip->pla[65];
+        chip->w104 = w97;
 
     if (w53 && chip->w51)
         chip->w56 = 0;
@@ -416,7 +435,7 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w9 = chip->w8;
 
     if (chip->clk_p)
-        chip->l2 = chip->w55 || chip->tm_w2;
+        chip->l2 = chip->w55 || chip->w19;
     if (chip->clk_p)
         chip->l3 = chip->w73 && !chip->pla[2];
 
@@ -428,7 +447,7 @@ void T84C00_Clock(t84c00_t* chip)
     int w133 = chip->w55 || w137;
 
     if (chip->clk_p)
-        chip->l4 = !(chip->w55 || !w118 || !w133 || chip->tm_w5);
+        chip->l4 = !(chip->w55 || !w118 || !w133 || w97);
 
     int w16 = chip->clk_n && chip->l4;
 
@@ -464,6 +483,8 @@ void T84C00_Clock(t84c00_t* chip)
     int w65 = chip->clk_n && chip->w59 && !chip->l24;
 
     int w113 = w65 || chip->w66 || chip->w63;
+    if (chip->clk_p)
+        chip->l14 = w113;
 
     chip->w110 = !(chip->w111 || w113);
     if (chip->clk_p)
@@ -515,8 +536,8 @@ void T84C00_Clock(t84c00_t* chip)
 
     if (chip->clk_p)
     {
-        int w125 = !((chip->tm_w1 && chip->tm_w2) || (chip->tm_w3 && chip->tm_w4));
-        chip->w134 = w125 && (chip->tm_w1 || (chip->w131 && chip->tm_w3));
+        int w125 = !((w161 && !w169) || (w169 && !chip->w100));
+        chip->w134 = w125 && (chip->w120 || (chip->w131 && w159));
     }
 
     if (chip->clk_p)
@@ -545,9 +566,9 @@ void T84C00_Clock(t84c00_t* chip)
     chip->o_halt = !chip->halt;
 
     if (w16)
-        chip->w18 = chip->tm_w1;
-    else if (chip->w55)
         chip->w18 = w12;
+    else if (chip->w55)
+        chip->w18 = 0;
     int w18_l = chip->w18 && !chip->w55;
 
     int w13 = (chip->halt || (w16 && w10)) || (chip->w19 || w18_l);
@@ -751,6 +772,4 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w92 = 1;
     else if (w103)
         chip->w92 = !chip->l43;
-
-    int w287 = (chip->w98 && w103) || chip->w95;
 }
