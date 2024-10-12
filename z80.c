@@ -655,7 +655,7 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->w189 = !(chip->pla[72] || chip->pla[73] || chip->pla[77]
         || chip->pla[78]);
     chip->w190 = !(chip->pla[89] || chip->pla[93]);
-    chip->w191 = !(chip->pla[79] || chip->pla[80] || chip->pla[81]
+    chip->w191 = !(chip->pla[79] || chip->pla[80]
         || !chip->w169 || chip->pla[83] || chip->pla[92] || chip->pla[93]);
 
     chip->w256 = !chip->w169 && !chip->w100;
