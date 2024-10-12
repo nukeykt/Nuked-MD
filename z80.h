@@ -38,6 +38,11 @@ typedef struct {
     int i_busrq;
 } z80_input_t;
 
+/// <summary>
+/// The complete Z80 processor state. All internal signals and sequential elements (latches, flip flops) are collected in this structure.
+/// The wires can be inspected in the attached .svg file and mapped to Visual Z80 signals if required.
+/// It doesn't make much sense to rename the signals, everything works as it is, but a little commentary on each entity is welcome.
+/// </summary>
 typedef struct {
     // input
     z80_input_t input, input_old;
@@ -466,7 +471,7 @@ typedef struct {
 
     // state
     int w1;
-    int w2;
+    int w2;         // Also known as dp_dl (Data Pad -> Data Latch). 1: Load the input value from the pad to the Datalatch of DB interface
     int l1;
     int w4;
     int w5;

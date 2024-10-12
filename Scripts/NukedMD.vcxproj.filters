@@ -60,6 +60,9 @@
     <ClCompile Include="..\audio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\t84c00.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\68k.h">
@@ -111,6 +114,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\md.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\t84c00.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
