@@ -1,3 +1,27 @@
+/*
+ * Copyright (C) 2024 nukeykt, org(ogamespec)
+ *
+ * This file is part of Nuked-MD.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  Toshiba TMPZ84C00 (CMOS Z80)
+ *  Thanks:
+ *      org:
+ *          TMPZ84C00 poly/diffusion layer & RE.
+ *      Boris Marmontel:
+ *          TMPZ84C00 metal layer.
+ */
+
+ // Z80(Toshiba CMOS)
 #pragma once
 
 typedef struct
