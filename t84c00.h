@@ -147,6 +147,7 @@ typedef struct
     int l64;
     int w115;
     int l63;
+    int w109;
 
     int o_data;
     int o_data_z;
