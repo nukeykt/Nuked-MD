@@ -16,6 +16,7 @@ add_executable(Nuked-MD
 	tmss.c
 	vdp.c
 	z80.c
+# t84c00.c   -- WIP
 	vram.c
 	audio.c
 	video.c
