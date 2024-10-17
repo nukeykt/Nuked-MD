@@ -179,6 +179,9 @@ typedef struct
     int l38;
     int l40;
     int w210;
+    int w215;
+    int w293;
+    int w292;
 
     int o_data;
     int o_data_z;
