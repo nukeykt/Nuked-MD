@@ -182,6 +182,8 @@ typedef struct
     int w215;
     int w293;
     int w292;
+    int pla_105_l;
+    int w163_l;
 
     int o_data;
     int o_data_z;

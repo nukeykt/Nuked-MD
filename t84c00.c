@@ -960,4 +960,134 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w92 = 1;
     else if (w103)
         chip->w92 = !chip->l43;
+
+    if (chip->clk_p)
+        chip->pla_105_l = chip->pla[105];
+
+    if (chip->clk_p)
+        chip->w163_l = w163;
+
+    int w274 = !((chip->w41 && chip->w131) || (chip->w123 && chip->w114 && (w271 || w256)));
+    int w283 = !(w283_0 && w283_1 && w274);
+    int w273 = !((w247 || w152) && chip->w131 && chip->w110);
+
+    int w272 = w255 && chip->w120 && chip->w41;
+
+    int w270 = (chip->w131 && chip->w109) || (chip->w123 && chip->w41 && (w271 || w256));
+
+    int w269 = !(((chip->w131 || chip->w120) && chip->w41)
+        || (chip->w131 && w86 && chip->w68)
+        || (w234 && chip->w121 && chip->w110)
+        || (chip->w110 && chip->w123 && (w234 || w256)));
+
+    int w268 = (w150 && chip->w109 && chip->w131) || (w150 && chip->w123 && chip->w41);
+
+    int w267 = !(((w88 || chip->pla[27]) && chip->w127 && chip->w41)
+        || (chip->w41 && chip->w123 && w86)
+        || (chip->w110 && chip->w123 && chip->pla[27]));
+
+    int w266 = (!w88 && chip->w127 && chip->w110) || (chip->pla[42] && chip->w109 && chip->w131);
+
+    int w265 = !((chip->pla[47] && chip->w120) || (chip->w131 && chip->pla[48]) || (chip->w127 && w184));
+
+    int w264 = (w261 && chip->w121 && chip->w110)
+        || (chip->w110 && chip->w123 && (w245 || w187))
+        || (chip->w41 && chip->w127 && w255);
+
+    int w263 = (chip->w120 && w88 && (chip->w110 || chip->w41))
+        || (((chip->w131 && w189) || chip->w123) && chip->w109);
+
+    int w414_0 = w263 || w264;
+
+    int w262 = (w261 && chip->w123 && chip->w110)
+        || (w88 && chip->w127 && chip->w110)
+        || (chip->w114 && chip->w120);
+
+    int w260 = (w261 && chip->w131 && chip->w109) || (w245 && chip->w110 && chip->w121);
+
+    int w412 = w262 || w260;
+
+    int w259 = chip->w110 && chip->w131 && chip->pla[53];
+
+    int w258 = (chip->w114 && chip->w131 && w247)
+        || (chip->w41 && chip->w123 && w187)
+        || (chip->w68 && chip->w127 && w255);
+
+    int w257 = (chip->w41 && chip->w121 && w252)
+        || (chip->w41 && chip->w127 && w253)
+        || (chip->w110 && chip->w120 && w257_0);
+
+    int w410_0 = w258 || w257;
+
+    int w251 = !((chip->w127 && chip->w114 && (w88 || w254))
+        || (chip->w41 && chip->w120 && w253 && !w88)
+        || (chip->w41 && chip->w123 && w252));
+
+    int w250 = !(w172 && chip->w114 && chip->w131);
+
+    int w249 = !(chip->w109 && chip->w131 && chip->pla[62]);
+
+    int w366 = !(w250 && (w249 || !w317));
+
+    int w248_0 = !(w169 || chip->pla[0] || w163);
+
+    int w248_1 = !(chip->w131 && chip->w109 && w248_0);
+
+    int w248_2 = !((!w163 || chip->pla[75]) && chip->w123 && chip->w110);
+
+    int w248 = w248_1 && w248_2;
+
+    int w365 =!(w248_1 && w248_2 && (w317 || w249));
+
+    int w246 = (chip->w114 && chip->w131 && w247)
+        || (chip->pla[78] && chip->w131 && chip->w109)
+        || (chip->w41 && chip->w123 && w167 && w187)
+        || (chip->w110 && chip->w123 && w187);
+
+    int w244 = (chip->w110 || chip->w41) && (chip->w121 && chip->w123) && chip->pla[79];
+
+    int w243 = !(
+        (chip->w41 && chip->pla[81] && chip->w120)
+        || (chip->w41 && w186 && chip->w127)
+        || (chip->w110 && chip->w120 && w188)
+        || (chip->w68 && chip->w131 && chip->pla[80])
+        || (chip->w109 && w188 && chip->w131)
+        || (chip->w109 && w186 && chip->w127)
+        );
+
+    int w242 = !(
+        (chip->pla[87] && chip->w114 && chip->w127)
+        || (chip->pla[87] && chip->w41 && chip->w120)
+        );
+
+    int w241 = !(
+        ((chip->pla[80] || chip->pla[88]) && chip->w120 && chip->w41)
+        || (chip->w114 && chip->w127 && chip->pla[80])
+        || ((w234 || w191) && chip->w131 && chip->w109)
+        || (chip->w131 && chip->w68 && chip->pla[81])
+        );
+
+    int w239 = !(
+        ((chip->w121 || chip->w123) && chip->w41 && w234)
+        || (w234 && chip->w123 && chip->w109)
+        || (chip->pla[90] && chip->w127 && chip->w109)
+        || (chip->w114 && chip->w120 && w240)
+        );
+
+    int w238 = !(
+        (w225 && chip->w41 && chip->w127)
+        || (w225 && chip->w114 && chip->w120)
+        );
+
+    int w233 = !(
+        ((chip->w121 || chip->w123) && chip->w41 && w237)
+        || ((w234 || chip->pla[99] || w235)
+            && (chip->w121 || chip->w123) && chip->w110)
+        );
+
+    int w232 = !(
+        ((chip->w121 || (chip->w131 && (chip->pla[95] || chip->pla[100]))
+        && (chip->w68 || chip->w109))
+        || ((chip->w127 || chip->w120) && chip->pla[101] && chip->w41)
+        );
 }
