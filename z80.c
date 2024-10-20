@@ -2007,7 +2007,7 @@ void Z80_AluLogic2(z80_t *chip, int clk)
         else if (chip->w440)
         {
             if (chip->w452)
-                chip->w441 = (chip->w508 ^ chip->w507) && !chip->w453;
+                chip->w441 = (chip->w508 ^ chip->w507) || chip->w453;
             else
             {
                 Z80_CalcAlu(chip);
