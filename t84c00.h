@@ -237,10 +237,10 @@ typedef struct
     int w330_0;
     int w330;
     int w341;
-    int w319;
+    int w319_0;
     int l44;
-    int l42;
-    int l42_l;
+    int l45;
+    int w320;
     int w369;
     int l56;
     int l61;
@@ -259,6 +259,8 @@ typedef struct
     int w450;
     int w441;
     int w464;
+    int w339;
+    int w438;
 
     int o_data;
     int o_data_z;
