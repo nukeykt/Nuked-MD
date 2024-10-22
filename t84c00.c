@@ -1536,4 +1536,234 @@ void T84C00_Clock(t84c00_t* chip)
 
     if (chip->clk_p && chip->w210)
         chip->w438 = !chip->tm_w1;
+
+    if (w518)
+    {
+        chip->w484 = (~chip->w514) & 255;
+    }
+
+    if (!w339_1)
+    {
+        chip->w514 = 0xffff;
+        chip->w515 = 0xffff;
+        chip->w520 = 0xffff;
+        chip->w521 = 0xffff;
+    }
+    else
+    {
+        int ix1 = -1;
+        if (w364)
+            ix1 = 0;
+        else if (w363)
+            ix1 = 1;
+        else if (w355)
+            ix1 = 2;
+        else if (w354)
+            ix1 = 3;
+        else if (w353)
+            ix1 = 4;
+        else if (w352)
+            ix1 = 5;
+        else if (w350)
+            ix1 = 6;
+        else if (w348)
+            ix1 = 7;
+        else if (w342)
+            ix1 = 8;
+        else if (w340)
+            ix1 = 9;
+        else if (w319)
+            ix1 = 10;
+        else if (w314)
+            ix1 = 11;
+        int ix2 = -1;
+        if (w336)
+            ix2 = 0;
+        else if (w337)
+            ix2 = 1;
+
+        if (w338)
+        {
+            int v1 = chip->w514 & chip->w520;
+            int v2 = chip->w515 & chip->w521;
+
+            // strong
+            int s_u = 0;
+            int s_u1 = 0;
+            int s_u2 = 0;
+
+            if (w516)
+            {
+                s_u |= 255;
+                s_u1 |= (~chip->w484) & 255;
+                s_u2 |= (chip->w484) & 255;
+            }
+            if (w517)
+            {
+                s_u |= 255 << 8;
+                s_u1 |= ((~chip->w513) & 255) << 8;
+                s_u2 |= ((chip->w513) & 255) << 8;
+            }
+            if (w335)
+            {
+                s_u |= 65535;
+                s_u1 |= chip->tm_w1 & 65535;
+                s_u2 |= (¨chip->tm_w1) & 65535;
+            }
+
+            v1 &= ~s_u;
+            v2 &= ~s_u;
+            v1 |= s_u1;
+            v2 |= s_u2;
+
+            // weak
+
+            if (ix1 >= 0 || ix2 >= 0)
+            {
+                int w_u = 65536;
+                int w_v1 = 0;
+                int w_v2 = 0;
+
+                if (ix1 >= 0)
+                {
+                    chip->regs1[ix1] &= ~s_u;
+                    chip->regs1[ix1] |= v1 & s_u;
+
+                    w_v1 = chip->regs1[ix1];
+                    w_v2 = chip->regs1[ix1] ^ 65535;
+                }
+                if (ix2 >= 0)
+                {
+                    chip->regs2[ix2] &= ~s_u;
+                    chip->regs2[ix2] |= v1 & s_u;
+
+                    w_v1 = chip->regs2[ix2];
+                    w_v2 = chip->regs2[ix2] ^ 65535;
+                }
+
+                w_u &= ~s_u;
+                w_v1 &= ~s_u;
+                w_v2 &= ~s_u;
+
+                v1 &= ~w_u;
+                v2 &= ~w_u;
+                v1 |= w_u1;
+                v2 |= w_u2;
+            }
+
+            chip->w514 = chip->w520 = v1;
+            chip->w515 = chip->w521 = v2;
+        }
+        else
+        {
+            {
+                int v1 = chip->w514;
+                int v2 = chip->w515;
+
+                // strong
+                int s_u = 0;
+                int s_u1 = 0;
+                int s_u2 = 0;
+
+                if (w516)
+                {
+                    s_u |= 255;
+                    s_u1 |= (~chip->w484) & 255;
+                    s_u2 |= (chip->w484) & 255;
+                }
+                if (w517)
+                {
+                    s_u |= 255 << 8;
+                    s_u1 |= ((~chip->w513) & 255) << 8;
+                    s_u2 |= ((chip->w513) & 255) << 8;
+                }
+
+                v1 &= ~s_u;
+                v2 &= ~s_u;
+                v1 |= s_u1;
+                v2 |= s_u2;
+
+                // weak
+
+                if (ix1 >= 0)
+                {
+                    int w_u = 65536;
+                    int w_v1 = 0;
+                    int w_v2 = 0;
+
+                    if (ix1 >= 0)
+                    {
+                        chip->regs1[ix1] &= ~s_u;
+                        chip->regs1[ix1] |= v1 & s_u;
+
+                        w_v1 = chip->regs1[ix1];
+                        w_v2 = chip->regs1[ix1] ^ 65535;
+                    }
+
+                    w_u &= ~s_u;
+                    w_v1 &= ~s_u;
+                    w_v2 &= ~s_u;
+
+                    v1 &= ~w_u;
+                    v2 &= ~w_u;
+                    v1 |= w_u1;
+                    v2 |= w_u2;
+                }
+
+                chip->w514 = v1;
+                chip->w515 = v2;
+            }
+            {
+                int v1 = chip->w520;
+                int v2 = chip->w521;
+
+                // strong
+                int s_u = 0;
+                int s_u1 = 0;
+                int s_u2 = 0;
+
+                if (w335)
+                {
+                    s_u |= 65535;
+                    s_u1 |= chip->tm_w1 & 65535;
+                    s_u2 |= (~chip->tm_w1) & 65535;
+                }
+
+                v1 &= ~s_u;
+                v2 &= ~s_u;
+                v1 |= s_u1;
+                v2 |= s_u2;
+
+                // weak
+
+                if (ix2 >= 0)
+                {
+                    int w_u = 65536;
+                    int w_v1 = 0;
+                    int w_v2 = 0;
+
+                    if (ix1 >= 0)
+                    {
+                        chip->regs2[ix2] &= ~s_u;
+                        chip->regs2[ix2] |= v1 & s_u;
+
+                        w_v1 = chip->regs2[ix2];
+                        w_v2 = chip->regs2[ix2] ^ 65535;
+                    }
+
+                    w_u &= ~s_u;
+                    w_v1 &= ~s_u;
+                    w_v2 &= ~s_u;
+
+                    v1 &= ~w_u;
+                    v2 &= ~w_u;
+                    v1 |= w_u1;
+                    v2 |= w_u2;
+                }
+
+                chip->w520 = v1;
+                chip->w521 = v2;
+            }
+        }
+    }
 }
