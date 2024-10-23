@@ -268,6 +268,8 @@ typedef struct
     int regs1[12];
     int regs2[2];
     int w513;
+    int w527;
+    int w522;
 
     int o_data;
     int o_data_z;
