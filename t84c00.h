@@ -232,8 +232,8 @@ typedef struct
     int w305;
     int w327_0;
     int w327;
-    int w322_0;
-    int w322;
+    int w332_0;
+    int w332;
     int w330_0;
     int w330;
     int w341;
@@ -270,6 +270,8 @@ typedef struct
     int w513;
     int w527;
     int w522;
+    int w322;
+    int w526;
 
     int o_data;
     int o_data_z;
@@ -285,6 +287,8 @@ typedef struct
     int o_busak;
     int o_m1;
     int o_rfsh;
+    int o_address_z;
+    int o_address;
 
 } t84c00_t;
 

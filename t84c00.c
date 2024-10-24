@@ -1291,9 +1291,9 @@ void T84C00_Clock(t84c00_t* chip)
     int w331 = w326 && chip->w327 && chip->clk_n;
 
     if (w331)
-        chip->w332 = !chip->w322_0;
+        chip->w332 = !chip->w332_0;
     else
-        chip->w322_0 = chip->w322;
+        chip->w332_0 = chip->w332;
 
     int w329 = w326 && !chip->w327 && chip->clk_n;
 
@@ -1810,5 +1810,21 @@ void T84C00_Clock(t84c00_t* chip)
                 chip->w521 = v2;
             }
         }
+    }
+
+    if (chip->clk_p)
+        chip->w322 = !w113;
+
+    int w323 = (chip->clk_p && !w113) || chip->w322;
+
+    if (w194 && chip->clk_p)
+        chip->w526 = chip->w522;
+
+    chip->o_address_z = 1;
+
+    if (w323)
+    {
+        chip->o_address_z = 0;
+        chip->o_address = chip->w526 ^ 0xffff;
     }
 }
