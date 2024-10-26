@@ -731,7 +731,7 @@ void T84C00_Clock(t84c00_t* chip)
         );
 
     if (chip->clk_p)
-        chip->l40 = !(w206 || w208);
+        chip->l40 = !(w206 && w208);
     if (chip->clk_n)
         chip->w210 = chip->l40;
 
@@ -1512,7 +1512,7 @@ void T84C00_Clock(t84c00_t* chip)
         int o2[16];
         int w523 = 0;
 
-        int w525 = chip->w210 ? (chip->w522 ^ 0xffff) : chip->w522;
+        int w525 = chip->w210 ? chip->w522 : (chip->w522 ^ 0xffff);
         for (i = 0; i < 16; i++)
         {
             o[i] = (chip->w522 >> i) & 1;
@@ -1621,7 +1621,7 @@ void T84C00_Clock(t84c00_t* chip)
 
             if (ix1 >= 0 || ix2 >= 0)
             {
-                int w_u = 65536;
+                int w_u = 65535;
                 int w_v1 = 0;
                 int w_v2 = 0;
 
@@ -1688,7 +1688,7 @@ void T84C00_Clock(t84c00_t* chip)
 
                 if (ix1 >= 0)
                 {
-                    int w_u = 65536;
+                    int w_u = 65535;
                     int w_v1 = 0;
                     int w_v2 = 0;
 
@@ -1739,11 +1739,11 @@ void T84C00_Clock(t84c00_t* chip)
 
                 if (ix2 >= 0)
                 {
-                    int w_u = 65536;
+                    int w_u = 65535;
                     int w_v1 = 0;
                     int w_v2 = 0;
 
-                    if (ix1 >= 0)
+                    if (ix2 >= 0)
                     {
                         chip->regs2[ix2] &= ~s_u;
                         chip->regs2[ix2] |= v1 & s_u;
