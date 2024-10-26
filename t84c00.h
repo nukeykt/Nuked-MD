@@ -66,7 +66,6 @@ typedef struct
 
     int w41;
     int w131;
-    int w127;
     int w107;
 
     int w50;
@@ -75,6 +74,7 @@ typedef struct
 
     int l1;
     int l2;
+    int l3;
     int l4;
     int l14;
     int l15;
@@ -86,19 +86,18 @@ typedef struct
     int w56;
 
     int w73;
-    int w74;
 
     int w110;
     int l31;
     int w114;
     int l12;
     int w34;
-    int w41;
     int l30;
     int l25;
     int w68;
     int l21;
     int w61;
+    int w40;
 
     int l36;
     int l32;
@@ -233,6 +232,7 @@ typedef struct
     int l44;
     int l45;
     int w320;
+    int w321;
     int w369;
     int l56;
     int l61;
@@ -297,4 +297,6 @@ typedef struct
 
 } t84c00_t;
 
+
+void T84C00_Clock(t84c00_t* chip);
 
