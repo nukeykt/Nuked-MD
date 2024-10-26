@@ -272,6 +272,17 @@ typedef struct
     int w522;
     int w322;
     int w526;
+    int l62;
+    int l78;
+    int w449;
+    int w496;
+    int w498;
+    int w499;
+    int l83;
+    int l84;
+    int w370;
+    int w503;
+    int w511;
 
     int o_data;
     int o_data_z;
