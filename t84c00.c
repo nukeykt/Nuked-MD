@@ -26,6 +26,10 @@
 
 void T84C00_Clock(t84c00_t* chip)
 {
+    int bu1 = 0;
+    int bu2 = 0;
+    int bu3 = 0;
+
     chip->clk_p = chip->input.i_clk;
     chip->clk_n = !chip->input.i_clk;
 
@@ -362,7 +366,10 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w145 = chip->input.i_data;
 
     if (chip->w1)
+    {
+        bu1 = 255;
         chip->w146 = chip->w145 ^ 255;
+    }
 
     chip->o_data = chip->w145;
     chip->o_data_z = chip->w44;
@@ -1362,7 +1369,7 @@ void T84C00_Clock(t84c00_t* chip)
     int w461 = chip->clk_n && chip->l68;
 
     if (chip->clk_p)
-        chip->w423 = chip->tm_w1;
+        chip->w423 = !chip->w473;
 
     if (w462)
         chip->w476 = chip->l75;
@@ -1417,9 +1424,6 @@ void T84C00_Clock(t84c00_t* chip)
     if (chip->clk_p)
         chip->w419 = !w274;
 
-    if (chip->w419 && chip->clk_n)
-        chip->w420 = chip->tm_w1;
-
     int w432 = chip->clk_n && !chip->l57;
 
     if (w432)
@@ -1436,11 +1440,8 @@ void T84C00_Clock(t84c00_t* chip)
 
     if (w381)
     {
-        chip->w484 &= ~1;
-        chip->w484 &= ~4;
-        chip->w484 &= ~16;
-        chip->w484 &= ~64;
-        chip->w484 &= ~128;
+        bu2 |= 0xd7;
+        chip->w484 &= ~0xd7;
         if (!chip->w473)
             chip->w484 |= 1;
         if (!w481)
@@ -1476,7 +1477,7 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w486 = !0;
 
     if (w440)
-        chip->w450 = chip->tm_w1;
+        chip->w450 = (w504 & 8) != 0;
     else if (w382_2)
         chip->w450 = (chip->w484 & 128) == 0;
 
@@ -1503,13 +1504,16 @@ void T84C00_Clock(t84c00_t* chip)
 
 
     int w425_0 = !(w407 || (chip->w423 && w405));
-    int w425_1 = !(((chip->w484 & 128) != 0 && w408) || (w409 && (chip->w484 & 1) != 0))
+    int w425_1 = !(((chip->w484 & 128) != 0 && w408) || (w409 && (chip->w484 & 1) != 0));
     int w425_2 = w425_0 && w425_1;
 
     int w494 = !((w408 && (chip->w484 & 4) != 0)
         || (w409 && (chip->w484 & 64) != 0))
         && !((w405 && (chip->w484 & 1) != 0)
             || (w407 && (chip->w484 & 128) != 0));
+
+    if (chip->w419 && chip->clk_n)
+        chip->w420 = w494;
 
     int w517 = chip->clk_n && chip->w416;
 
@@ -1545,7 +1549,13 @@ void T84C00_Clock(t84c00_t* chip)
 
     if (w518)
     {
+        bu2 = 255;
         chip->w484 = (~chip->w514) & 255;
+    }
+    if (w519)
+    {
+        bu3 = 255;
+        chip->w513 = (~chip->w514 >> 8) & 255;
     }
 
     if (w334)
@@ -1868,13 +1878,6 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w496 |= (~chip->w484 >> 7) & 1;
     }
 
-    if (w471)
-    {
-        chip->w496 = chip->tm_w1;
-        if (!w495)
-            chip->w496 |= w422;
-    }
-
     int w497 = (1 << ((~chip->w146 >> 3) & 7)) ^ 255;
 
     if (chip->w372)
@@ -1910,7 +1913,8 @@ void T84C00_Clock(t84c00_t* chip)
 
     if (chip->w370)
     {
-        chip->w484 |= 0x99;
+        bu2 = 255;
+        chip->w484 = 0x99;
         if (!w444)
             chip->w484 |= 6;
         if (!w443)
@@ -1978,5 +1982,102 @@ void T84C00_Clock(t84c00_t* chip)
         w504 |= t2 << 3;
 
         w507 = c;
+    }
+
+    if (w432_1)
+        chip->w510 = (w500 & 15) | ((~chip->w496 & 15) << 4);
+
+    if (w480_1)
+        chip->w511 = chip->w510;
+    else if (w492)
+        chip->w511 = chip->w496;
+    else
+    {
+        if (!w490 && !w491)
+            chip->w511 = 0;
+        else if (!w491)
+            chip->w511 &= 0x38;
+        else if (!w490)
+            chip->w511 &= 0x7f;
+    }
+
+    if (!chip->w402)
+        chip->w496_l = chip->w496 ^ 255;
+
+    if (!chip->w402)
+    {
+        bu3 = 255;
+        chip->w513 = chip->w496_l ^ 255;
+    }
+
+    if (!chip->w404)
+        chip->w496 = chip->w513 ^ 255;
+
+    if (w472)
+    {
+        chip->w496 = (~chip->w513 >> 1) & 127;
+        chip->w496 |= w425_2 << 7;
+    }
+    if (w471)
+    {
+        chip->w496 &= 1;
+        chip->w496 |= (~chip->w513 << 1) & 254;
+        if (!w495)
+        {
+            chip->w496 &= 254;
+            chip->w496 |= w422;
+        }
+    }
+
+    int w483 = !(chip->w1 || !chip->w2);
+    if (!w483)
+    {
+        bu1 = 255;
+        chip->w146 = 255;
+    }
+
+    {
+        int val = 0;
+        int val2 = 0;
+        int umask = 0;
+        if (chip->w369 && !chip->w419)
+        {
+            umask |= chip->bu1 | chip->bu2 | chip->bu3;
+            val |= (chip->w146 & chip->bu1);
+            val |= (chip->w484 & chip->bu2);
+            val |= (chip->w513 & chip->bu3);
+            val2 = 255;
+            val2 &= chip->w146;
+            val2 &= chip->w484;
+            val2 &= chip->w513;
+            val2 &= ~umask;
+            chip->w146 = val | val2;
+            chip->w484 = val | val2;
+            chip->w513 = val | val2;
+        }
+        else if (chip->w369) // bus1, bus2
+        {
+            umask |= chip->bu1 | chip->bu2;
+            val |= (chip->w146 & chip->bu1);
+            val |= (chip->w484 & chip->bu2);
+            val2 = 255;
+            val2 &= chip->w146;
+            val2 &= chip->w484;
+            val2 &= ~umask;
+            chip->w146 = val | val2;
+            chip->w484 = val | val2;
+        }
+        else if (!chip->w419) // bus2, bus3
+        {
+            umask |= chip->bu2 | chip->bu3;
+            val |= (chip->w484 & chip->bu2);
+            val |= (chip->w513 & chip->bu3);
+            val2 = 255;
+            val2 &= chip->w484;
+            val2 &= chip->w513;
+            val2 &= ~umask;
+            chip->w484 = val | val2;
+            chip->w513 = val | val2;
+        }
     }
 }

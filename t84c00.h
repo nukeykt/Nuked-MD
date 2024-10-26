@@ -73,14 +73,6 @@ typedef struct
     int w51;
     int w52;
 
-    int tm_w1;
-    int tm_w2;
-    int tm_w3;
-    int tm_w4;
-    int tm_w5;
-    int tm_w6;
-    int tm_w7;
-
     int l1;
     int l2;
     int l4;
@@ -283,6 +275,8 @@ typedef struct
     int w370;
     int w503;
     int w511;
+    int w510;
+    int w496_l;
 
     int o_data;
     int o_data_z;
