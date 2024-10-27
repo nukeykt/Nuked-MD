@@ -575,7 +575,7 @@ void T84C00_Clock(t84c00_t* chip)
     int w277 = chip->w131 && chip->w114 && w156;
 
     int w275 = !(chip->w68 && chip->w127) && !(w234 && chip->w121 && chip->w41)
-        && !(chip->w121 && chip->w114 && (w247 || w172))
+        && !(chip->w131 && chip->w114 && (w247 || w172))
         && !(w255 && chip->w110 && (chip->w120 || chip->w121));
 
     if (chip->clk_p)
@@ -1051,7 +1051,7 @@ void T84C00_Clock(t84c00_t* chip)
         || (chip->w41 && chip->w123 && w167 && w187)
         || (chip->w110 && chip->w123 && w187);
 
-    int w244 = (chip->w110 || chip->w41) && (chip->w121 && chip->w123) && chip->pla[79];
+    int w244 = (chip->w110 || chip->w41) && (chip->w121 || chip->w123) && chip->pla[79];
 
     int w243 = (chip->w41 && chip->pla[81] && chip->w120)
         || (chip->w41 && w186 && chip->w127)
