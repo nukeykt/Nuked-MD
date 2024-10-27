@@ -570,7 +570,7 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w278 = w171 && chip->w131 && chip->w114;
 
-    int w276 = !(w255 && chip->w120 && chip->w41);
+    int w276 = w255 && chip->w120 && chip->w41;
 
     int w277 = chip->w131 && chip->w114 && w156;
 
