@@ -874,12 +874,12 @@ void T84C00_Clock(t84c00_t* chip)
     }
 
     chip->o_iorq_z = 1;
-    if (!chip->w21)
+    if (!chip->w22)
     {
         chip->o_iorq = 0;
         chip->o_iorq_z = 0;
     }
-    if (chip->w21 && w62)
+    if (chip->w22 && w62)
     {
         chip->o_iorq = 1;
         chip->o_iorq_z = 0;
