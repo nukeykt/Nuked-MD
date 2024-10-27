@@ -954,8 +954,6 @@ void T84C00_Clock(t84c00_t* chip)
     if (chip->clk_p)
         chip->w99 = chip->pla[76];
 
-    if (chip->clk_p)
-
     if (chip->w55)
         chip->w100 = 1;
     else if (w103 && !chip->w98)
