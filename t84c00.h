@@ -277,6 +277,7 @@ typedef struct
     int w511;
     int w510;
     int w496_l;
+    int w392_l;
 
     int o_data;
     int o_data_z;
