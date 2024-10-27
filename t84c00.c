@@ -1204,7 +1204,7 @@ void T84C00_Clock(t84c00_t* chip)
         chip->w303 = !w227;
     }
 
-    int w304_0 = chip->w303 && chip->pla[104];
+    int w304 = chip->w303 && chip->pla[104];
     int w326 = chip->w303 && chip->pla_105_l;
     int w302 = chip->w303 && chip->pla_107_l;
 
@@ -1325,8 +1325,10 @@ void T84C00_Clock(t84c00_t* chip)
     else if (chip->clk_n && !chip->w305 && !chip->w293)
         chip->w321 = 0;
 
-    if (chip->clk_n)
+    if (chip->clk_n && chip->w304_l)
         chip->w320 = chip->l45;
+
+    chip->w304_l = w304;
 
     if (chip->clk_p)
     {
