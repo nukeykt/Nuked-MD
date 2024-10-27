@@ -498,7 +498,7 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w279 = !(chip->pla[7] && chip->w120) && !(chip->w127 && (chip->pla[4] || chip->pla[5]));
 
-    int w383 = !(chip->w486 || w279);
+    int w383 = !(!chip->w486 || w279);
 
     int w183 = !(!(chip->pla[21] || chip->pla[22]) && (chip->w114 || !chip->pla[23]));
 
