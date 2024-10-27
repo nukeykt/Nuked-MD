@@ -324,7 +324,7 @@ void T84C00_Clock(t84c00_t* chip)
 
     int w253 = w235 || w245;
 
-    int w237 = (!w167 || w236);
+    int w237 = !(!w167 || w236);
 
     int w256 = !(chip->w100 || !w169);
     int w225 = !(chip->w100 || !w169);
