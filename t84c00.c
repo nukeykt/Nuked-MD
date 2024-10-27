@@ -93,8 +93,8 @@ void T84C00_Clock(t84c00_t* chip)
     chip->pla[23] = ((chip->w147 & 0xc0) == 0x40 && !w90) || !pla_en; // 37
     chip->pla[24] = ((chip->w147 & 0xcf) == 0x09 && !w90) || !pla_en; // 29
     chip->pla[25] = ((chip->w147 & 0xc7) == 0x44 && !chip->w92) || !pla_en; // 16
-    chip->pla[26] = (chip->w147 == 0x2f && !chip->w92) || !pla_en; // 17
-    chip->pla[27] = ((chip->w147 & 0xf7) == 0x67 && !w90) || !pla_en; // 38
+    chip->pla[26] = (chip->w147 == 0x2f && !w90) || !pla_en; // 17
+    chip->pla[27] = ((chip->w147 & 0xf7) == 0x67 && !chip->w92) || !pla_en; // 38
     chip->pla[28] = ((chip->w147 & 0x38) == 0x38 && !w82) || !pla_en; // 22
     chip->pla[29] = ((chip->w147 & 0x38) == 0x20 && !w82) || !pla_en; // 13
     chip->pla[30] = ((chip->w147 & 0xc0) == 0x80 && !w96) || !pla_en; // 25
