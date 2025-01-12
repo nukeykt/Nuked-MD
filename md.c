@@ -264,7 +264,7 @@ int SDLCALL work_thread(void *data)
                 }
             }
 
-            // cart
+            // cart (m3 is active low)
             if (md.m3)
                 cart_handle_md();
             else
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
 
     FC1004_Init(&ym);
 
-    md.m3 = !_m3;
+    md.m3 = !_m3;       // m3 is active low
     md.ntsc = !pal;
     md.cart = 0;
     md.wres = 1;

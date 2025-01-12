@@ -30,7 +30,7 @@ typedef struct _md_state
 	int zdata;
 	int dtack;
 	int hsync;
-	int m3;
+	int m3;				// active low
 	int ntsc;
 	int cart;
 	int wres;
