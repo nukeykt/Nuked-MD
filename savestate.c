@@ -1,3 +1,5 @@
+/** @file savestate.c @brief Save state support: raw blob I/O and full-context save/load. */
+
 // Save state support.
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +9,14 @@
 #include "vram.h"
 #include "cartridge.h"
 
+/**
+ * @brief Writes an opaque blob of @p size bytes to the save file.
+ *
+ * @param ptr Pointer to the data to write.
+ * @param size Number of bytes to write.
+ * @param f Open file to write to.
+ * @return 0 on success, -1 if fewer than @p size bytes were written.
+ */
 int save_blob(void* ptr, size_t size, FILE* f)
 {
 	size_t written = fwrite (ptr, 1, size, f);
@@ -15,6 +25,14 @@ int save_blob(void* ptr, size_t size, FILE* f)
 	return 0;
 }
 
+/**
+ * @brief Reads an opaque blob of @p size bytes from the save file.
+ *
+ * @param ptr Pointer to the buffer to fill.
+ * @param size Number of bytes to read.
+ * @param f Open file to read from.
+ * @return 0 on success, -1 if fewer than @p size bytes were read.
+ */
 int load_blob(void* ptr, size_t size, FILE* f)
 {
 	size_t readed = fread(ptr, 1, size, f);
@@ -23,6 +41,16 @@ int load_blob(void* ptr, size_t size, FILE* f)
 	return 0;
 }
 
+/**
+ * @brief Saves the complete emulator state to a file.
+ *
+ * Writes the NukedSaveHeader (type "MD", emulator version) followed by the
+ * serialized internal contexts in order: board (md, mcycles, ram, zram, vram),
+ * 68K, Z80, chipset (ym, tmss_rom) and cart.
+ *
+ * @param filename Path of the file to write.
+ * @return 0 on success, -1 on failure (open or write error).
+ */
 int save_state(const char* filename)
 {
 	FILE* f;
@@ -82,6 +110,16 @@ int save_state(const char* filename)
 	return 0;
 }
 
+/**
+ * @brief Loads a complete emulator state from a file.
+ *
+ * Reads and validates the NukedSaveHeader (type must be "MD", version must
+ * match VERSION), then restores the serialized internal contexts in order.
+ *
+ * @param filename Path of the file to read.
+ * @return 0 on success, -1 on open/read failure, -2 on invalid save type,
+ *         -3 on version mismatch.
+ */
 int load_state(const char* filename)
 {
 	FILE* f;

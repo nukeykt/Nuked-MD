@@ -26,10 +26,19 @@
  *
  */
 
+/** @file vdp.c @brief Transistor-level, cycle-accurate emulation of the Yamaha YM7101 VDP. */
+
 // YM7101 core
 #include <string.h>
 #include "vdp.h"
 
+/**
+ * @brief Update one master/slave flip-flop from its clock, data input, and reset.
+ * @param dff Pointer to the flip-flop state (`l1` master latch, `l2` slave latch).
+ * @param clk Clock input; the master latch is transparent while low.
+ * @param input Data input sampled by the master latch.
+ * @param reset Active-high reset that clears both latches.
+ */
 void DFF_Update(dff_t *dff, int clk, int input, int reset)
 {
     if (!clk)
@@ -47,6 +56,10 @@ void DFF_Update(dff_t *dff, int clk, int input, int reset)
     }
 }
 
+/**
+ * @brief Clock the MCLK prescaler once per master clock edge, deriving the internal clocks.
+ * @param chip Pointer to the prescaler state.
+ */
 void VDP_ClockMCLK(vdp_prescaler_t *chip)
 {
     int mclk = chip->input.mclk;
@@ -119,6 +132,12 @@ void VDP_ClockMCLK(vdp_prescaler_t *chip)
 #endif
 }
 
+/**
+ * @brief Divide DCLK to produce the HCLK1/HCLK2 dot-clock phases.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 static void VDP_DCLKPrescale(vdp_t *chip, int clk1, int clk2)
 {
     if (clk1)
@@ -138,6 +157,12 @@ static void VDP_DCLKPrescale(vdp_t *chip, int clk1, int clk2)
     chip->hclk2 = !chip->dclk_prescaler_dff2.l2;
 }
 
+/**
+ * @brief Synchronise the external reset input and generate the internal reset pulse.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 static void VDP_ResetLogic(vdp_t *chip, int clk1, int clk2)
 {
     chip->reset_comb = !(chip->input.i_reset && chip->w100);
@@ -157,6 +182,12 @@ static void VDP_ResetLogic(vdp_t *chip, int clk1, int clk2)
     chip->reset_ext = !chip->input.i_reset;
 }
 
+/**
+ * @brief Model the asynchronous CPU bus interface, register writes/reads, and control logic.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
 {
     int i, j, k, l, m;
@@ -1726,6 +1757,10 @@ void VDP_ClockAsync(vdp_t *chip, int clk1, int clk2)
     chip->o_ram_addr = w103 & 255;
 }
 
+/**
+ * @brief Advance the horizontal/vertical counters and generate the sync and HV status signals.
+ * @param chip Pointer to the VDP state.
+ */
 void VDP_ClockHVCounters(vdp_t* chip)
 {
     int i;
@@ -2429,6 +2464,12 @@ void VDP_ClockHVCounters(vdp_t* chip)
     chip->o_hsync = chip->l136[1] ? state_z : 0;
 }
 
+/**
+ * @brief Fetch plane name-table entries and pattern data for the current scanline.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
 {
 
@@ -3347,6 +3388,12 @@ void VDP_ClockPlanes(vdp_t *chip, int clk1, int clk2)
     }
 }
 
+/**
+ * @brief Fetch sprite attribute/pattern data and assemble the per-line sprite line buffer.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
 {
     int i, j;
@@ -5180,6 +5227,12 @@ void VDP_ClockSprites(vdp_t *chip, int clk1, int clk2)
     }
 }
 
+/**
+ * @brief Generate the VRAM control signals (RAS/CAS/WE/OE plus address and data) for the current access.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
 {
     if (chip->hclk1)
@@ -5413,20 +5466,32 @@ void VDP_ClockVRAMCtrl(vdp_t *chip, int clk1, int clk2)
     chip->o_spa = chip->l613[1] ? state_z : state_0;
 }
 
-// FIXME: crude approximation
+/**
+ * @brief DAC levels for mode 5 RGB output; crude approximation (see FIXME above).
+ */
 
 int rgb_val_m5[15] = {
     0, 18, 36, 54, 72, 91, 109, 127, 145, 163, 182, 200, 218, 236, 255
 };
 
+/**
+ * @brief DAC levels for mode 4 red/green output.
+ */
 int rgb_val_m4_rg[2] = {
     85, 170
 };
 
+/**
+ * @brief DAC levels for mode 4 blue output.
+ */
 int rgb_val_m4_b[2] = {
     102, 170
 };
 
+/**
+ * @brief Combine plane and sprite pixels into the final colour and produce the RGB output.
+ * @param chip Pointer to the VDP state.
+ */
 void VDP_ClockVideoMux(vdp_t *chip)
 {
     int i;
@@ -5909,10 +5974,17 @@ void VDP_ClockVideoMux(vdp_t *chip)
     }
 }
 
+/**
+ * @brief PSG channel volume lookup table; index 16 is the forced test-mode level.
+ */
 const float ympsg_vol[17] = {
     1.f, 0.772f, 0.622f, 0.485f, 0.382f, 0.29f, 0.229f, 0.174f, 0.132f, 0.096f, 0.072f, 0.051f, 0.034f, 0.019f, 0.009f, 0.f, -1.059f
 };
 
+/**
+ * @brief Advance the built-in PSG tone/noise channels and mix their output for one clock phase.
+ * @param chip Pointer to the PSG state.
+ */
 void VDP_ClockPSG(vdp_psg_t *chip)
 {
     int i;
@@ -6244,6 +6316,12 @@ void VDP_ClockPSG(vdp_psg_t *chip)
 }
 
 
+/**
+ * @brief Run one DCLK phase through all VDP sub-blocks in emulation order.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 void VDP_ClockDCLK(vdp_t* chip, int clk1, int clk2)
 {
     VDP_DCLKPrescale(chip, clk1, clk2);
@@ -6256,6 +6334,11 @@ void VDP_ClockDCLK(vdp_t* chip, int clk1, int clk2)
     VDP_ClockVideoMux(chip);
 }
 
+/**
+ * @brief Feed one MCLK edge to the prescaler, running the prescaler twice per edge.
+ * @param chip Pointer to the prescaler state.
+ * @param mclk Master clock input level.
+ */
 void VDP_ClockMCLK2(vdp_prescaler_t *chip, int mclk)
 {
     chip->input.mclk = mclk;
@@ -6267,6 +6350,12 @@ void VDP_ClockMCLK2(vdp_prescaler_t *chip, int mclk)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Feed one DCLK phase to the VDP, running the core model twice per phase.
+ * @param chip Pointer to the VDP state.
+ * @param clk1 Clock phase 1.
+ * @param clk2 Clock phase 2.
+ */
 void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
 {
     chip->input.i_clk1 = clk1;
@@ -6289,6 +6378,11 @@ void VDP_ClockDCLK2(vdp_t *chip, int clk1, int clk2)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Feed one PSG clock edge, running the PSG model three times per edge.
+ * @param chip Pointer to the PSG state.
+ * @param clk PSG clock input level.
+ */
 void VDP_ClockPSG2(vdp_psg_t *chip, int clk)
 {
     chip->input.i_cpu_clk0 = clk;
@@ -6301,6 +6395,10 @@ void VDP_ClockPSG2(vdp_psg_t *chip, int clk)
 }
 
 
+/**
+ * @brief Drive the CPU data/address bus outputs from the internal status and test registers.
+ * @param chip Pointer to the VDP state.
+ */
 void VDP_UpdateBusOutput(vdp_t *chip)
 {
     if (chip->w97)

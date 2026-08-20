@@ -1,3 +1,5 @@
+/** @file audio.h @brief SDL audio output: initialization, shutdown and per-cycle update entry points. */
+
 #pragma once
 
 void Audio_Init(char* audioout_filename, int ntsc);

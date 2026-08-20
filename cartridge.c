@@ -1,3 +1,5 @@
+/** @file cartridge.c @brief Cartridge ROM loading, high-level cartridge bus handling and cartridge state save/load. */
+
 #include <stdio.h>
 #include <string.h>
 #include "cartridge.h"
@@ -5,19 +7,32 @@
 #include "md.h"
 #include "savestate.h"
 
-unsigned short rom[ROM_SIZE * 2];   // *2 to support sega mapper (up to 8mb games)
+/** @brief Cartridge ROM buffer in words; sized twice `ROM_SIZE` to support the Sega mapper (up to 8 MB games). */
+unsigned short rom[ROM_SIZE * 2];   /**< *2 to support sega mapper (up to 8mb games) */
 
+/** @brief Sega mapper enable flag. */
 int mapper_enable;
+/** @brief Sega mapper page mapping table (8 pages). */
 int mapper_pages[8];
 
+/** @brief SMS (M3) mapper enable flag. */
 int m3_mapper_enable;
+/** @brief SMS (M3) mapper control/data register. */
 int m3_mapper_data;
+/** @brief SMS (M3) mapper page mapping table (3 pages). */
 int m3_mapper_page[3];
+/** @brief SMS (M3) mapper RAM (16 KB). */
 unsigned char m3_mapper_ram[0x4000];
 
 extern fc1004_t ym;
 extern md_state md;
 
+/**
+ * @brief Loads a game ROM file into the cartridge ROM buffer and sets up the appropriate (Sega or SMS) mapper.
+ * @param filename Path of the ROM file to load.
+ * @param _m3 Non-zero to load as an SMS (M3) cartridge.
+ * @return 0 on success, 1 on failure.
+ */
 int cart_load_game_rom(char *filename, int _m3)
 {
     size_t i, ret;
@@ -74,6 +89,9 @@ int cart_load_game_rom(char *filename, int _m3)
     return 0;
 }
 
+/**
+ * @brief Handles a 68000 (MD mode) cartridge bus access: reads ROM data and services Sega mapper register writes.
+ */
 void cart_handle_md(void)
 {               
     // MD
@@ -126,6 +144,9 @@ void cart_handle_md(void)
     }
 }
 
+/**
+ * @brief Handles an SMS (M3 mode) cartridge bus access: maps the SMS address space, reads ROM data and services the SMS mapper.
+ */
 void cart_handle_m3(void)
 {
     // M3
@@ -207,6 +228,11 @@ void cart_handle_m3(void)
     }
 }
 
+/**
+ * @brief Saves the cartridge state (ROM, mapper state and mapper RAM) to a file.
+ * @param f File to write to.
+ * @return 0 on success, -1 on failure.
+ */
 int cart_save(FILE* f)
 {
     if (save_blob(&rom, sizeof(rom), f))
@@ -226,6 +252,11 @@ int cart_save(FILE* f)
     return 0;
 }
 
+/**
+ * @brief Loads the cartridge state (ROM, mapper state and mapper RAM) from a file.
+ * @param f File to read from.
+ * @return 0 on success, -1 on failure.
+ */
 int cart_load(FILE* f)
 {
     if (load_blob(&rom, sizeof(rom), f))

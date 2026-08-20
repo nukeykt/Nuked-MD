@@ -1,0 +1,188 @@
+# ============================================================================
+#  Nuked-MD — Doxygen configuration
+#  Generates: HTML + LaTeX (for subsequent PDF build)
+#
+#  Requirements:
+#    - Doxygen  (https://www.doxygen.nl)        winget install doxygen
+#    - TeX distribution (PDF only):             winget install MiKTeX
+#      (or TeX Live / any distribution providing pdflatex and makeindex)
+#
+#  Building the documentation:
+#    1) doxygen Doxyfile
+#         HTML : doxygen-out/html/index.html
+#         LaTeX: doxygen-out/latex/refman.tex
+#    2) PDF from LaTeX (from the doxygen-out/latex directory):
+#         make pdf          (Linux/macOS/Git Bash; uses pdflatex + makeindex)
+#       or manually:
+#         pdflatex refman.tex
+#         makeindex refman.idx
+#         pdflatex refman.tex
+#         pdflatex refman.tex
+#       result: doxygen-out/latex/refman.pdf
+# ============================================================================
+
+# --- General -----------------------------------------------------------------
+
+# Project name (shown in the header of every page).
+PROJECT_NAME           = "Nuked-MD"
+
+# Project version (matches VERSION in common.h).
+PROJECT_NUMBER         = "1.3"
+
+# Short project description.
+PROJECT_BRIEF          = "Cycle-accurate Sega Mega Drive emulator core"
+
+# Project logo (used in the HTML page header).
+PROJECT_LOGO           = nukedmd_logo.png
+
+# Directory for all generated output (HTML, LaTeX, etc.).
+OUTPUT_DIRECTORY       = doxygen-out
+
+# --- Input -------------------------------------------------------------------
+
+# Project root: scan all sources recursively.
+INPUT                  = .
+
+# Source encoding.
+INPUT_ENCODING         = UTF-8
+
+# Process only C source files and headers.
+FILE_PATTERNS          = *.c *.h
+
+# Scan subdirectories recursively.
+RECURSIVE              = YES
+
+# Exclude third-party and auxiliary directories (SDL2 packages, VS solution,
+# .git, and the output directory itself, just in case).
+EXCLUDE_PATTERNS       = */Scripts/* */packages/* */x64/* */\.git/* */doxygen-out/*
+
+# Use README.md as the main documentation page.
+USE_MDFILE_AS_MAINPAGE = README.md
+
+# --- Extraction --------------------------------------------------------------
+
+# Document everything, including undocumented entities.
+EXTRACT_ALL            = YES
+
+# Document static functions and static variables.
+EXTRACT_STATIC         = YES
+
+# Document all struct/union members (all fields).
+EXTRACT_PRIVATE        = YES
+
+# Do not hide undocumented members (with EXTRACT_ALL = YES).
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+
+# Treat file names as case sensitive.
+CASE_SENSE_NAMES       = YES
+
+# Optimize the output for the C language.
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+# Show the struct name separately from the typedef name.
+TYPEDEF_HIDES_STRUCT   = NO
+
+# --- Warnings -----------------------------------------------------------------
+
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+QUIET                  = NO
+
+# --- Comment parsing -----------------------------------------------------------
+
+# Explicit @brief tags are used (JAVADOC_AUTOBRIEF not needed).
+JAVADOC_AUTOBRIEF      = NO
+QT_AUTOBRIEF           = NO
+MULTILINE_CPP_IS_BRIEF = NO
+
+# Markdown support in comments and .md files.
+MARKDOWN_SUPPORT       = YES
+
+# Automatic links to symbols by name.
+AUTOLINK_SUPPORT       = YES
+
+# --- Page contents --------------------------------------------------------------
+
+# Show file sources in the browser.
+SOURCE_BROWSER         = YES
+
+# Do not embed sources into pages.
+INLINE_SOURCES         = NO
+
+# Strip comments from embedded sources.
+STRIP_CODE_COMMENTS    = YES
+
+# Show which functions reference a symbol and which symbols a function references.
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+# Show used files (#include).
+SHOW_INCLUDE_FILES     = YES
+SHOW_USED_FILES        = YES
+SHOW_FILES             = YES
+
+# --- Sorting ---------------------------------------------------------------------
+
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = YES
+
+# --- HTML -------------------------------------------------------------------------
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+
+# Navigation tree on the left.
+GENERATE_TREEVIEW      = YES
+FULL_SIDEBAR           = NO
+
+# --- LaTeX / PDF -------------------------------------------------------------------
+
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+
+# Build PDF directly via pdflatex (USE_PDFLATEX = YES).
+USE_PDFLATEX           = YES
+
+# TeX executables used by the Makefile in the latex/ directory.
+LATEX_CMD_NAME         = pdflatex
+MAKEINDEX_CMD_NAME     = makeindex
+
+# Do not stop on the first LaTeX error (handy for batch builds).
+LATEX_BATCHMODE        = YES
+
+# Do not hide the index.
+LATEX_HIDE_INDICES     = NO
+
+# Compact document style (NO — standard report layout).
+COMPACT_LATEX          = NO
+
+# Paper format.
+PAPER_TYPE             = a4
+
+# Additional LaTeX packages.
+EXTRA_PACKAGES         = amsmath
+
+# Hyperlinks in the PDF.
+PDF_HYPERLINKS         = YES
+
+# --- Other formats (disabled) --------------------------------------------------------
+
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
+GENERATE_AUTOGEN_DEF   = NO
+
+# --- Graphs (require Graphviz; disabled) -------------------------------------------------
+
+HAVE_DOT               = NO
+CLASS_DIAGRAMS         = NO
+CALL_GRAPH             = NO
+CALLER_GRAPH           = NO
+DIRECTORY_GRAPH        = NO
+INCLUDE_GRAPH          = NO
+INCLUDED_BY_GRAPH      = NO
+GRAPHICAL_HIERARCHY    = NO

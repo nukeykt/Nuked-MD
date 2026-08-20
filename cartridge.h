@@ -1,7 +1,15 @@
+/** @file cartridge.h @brief Cartridge ROM size, byte-swap helper and cartridge API declarations. */
+
 #pragma once
 
+/** @brief Cartridge ROM size in words (2 MiB words = 4 MiB bytes). */
 #define ROM_SIZE (2 * 1024 * 1024)  // in words
 
+/**
+ * @brief Byte-swaps a 16-bit value (converts between big-endian and little-endian).
+ * @param v The 16-bit value to swap.
+ * @return The byte-swapped value.
+ */
 static inline unsigned short short_swap(unsigned short v)
 {
     unsigned short b1 = v & 255;

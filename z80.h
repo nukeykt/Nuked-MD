@@ -23,59 +23,66 @@
  *          help & support.
  */
 
+/** @file z80.h @brief Transistor-level Zilog Z80 (NMOS) CPU core: state structures and API. */
+
 #pragma once
 #include "common.h"
 
 #pragma pack(push, 1)
 
+/**
+ * @brief Registered inputs of the Z80 core.
+ */
 typedef struct {
-    int clk;
-    int ext_data_i;
-    int i_int;
-    int i_nmi;
-    int i_wait;
-    int i_reset;
-    int i_busrq;
+    int clk; /**< Clock input. */
+    int ext_data_i; /**< External data bus input. */
+    int i_int; /**< INT pin input. */
+    int i_nmi; /**< NMI pin input. */
+    int i_wait; /**< WAIT pin input. */
+    int i_reset; /**< RESET pin input. */
+    int i_busrq; /**< BUSRQ pin input. */
 } z80_input_t;
 
-/// <summary>
-/// The complete Z80 processor state. All internal signals and sequential elements (latches, flip flops) are collected in this structure.
-/// The wires can be inspected in the attached .svg file and mapped to Visual Z80 signals if required.
-/// It doesn't make much sense to rename the signals, everything works as it is, but a little commentary on each entity is welcome.
-/// </summary>
+/**
+ * @brief The complete Z80 processor state.
+ *
+ * All internal signals and sequential elements (latches, flip flops) are collected in this structure.
+ * The wires can be inspected in the attached .svg file and mapped to Visual Z80 signals if required.
+ * It doesn't make much sense to rename the signals, everything works as it is, but a little commentary on each entity is welcome.
+ */
 typedef struct {
-    // input
-    z80_input_t input, input_old;
+    /** Input signals: current and previous registered inputs. */
+    z80_input_t input, input_old; /**< Registered inputs (current cycle and previous cycle). */
 
-    // output
+    /** Output signals: external pins and timing outputs. */
 
-    int ext_data_o;
-    int ext_data_o_high;
-    int o_mreq;
-    int o_halt;
-    int o_iorq;
-    int o_rd;
-    int o_wr;
-    int o_busak;
-    int o_m1;
-    int o_rfsh;
-    int o_addr;
-    int o_addr_high;
+    int ext_data_o; /**< External data bus output. */
+    int ext_data_o_high; /**< Data bus output not driven (tri-state high). */
+    int o_mreq; /**< MREQ output pin. */
+    int o_halt; /**< HALT output pin. */
+    int o_iorq; /**< IORQ output pin. */
+    int o_rd; /**< RD output pin. */
+    int o_wr; /**< WR output pin. */
+    int o_busak; /**< BUSAK output pin. */
+    int o_m1; /**< M1 output pin. */
+    int o_rfsh; /**< RFSH output pin. */
+    int o_addr; /**< Address bus output. */
+    int o_addr_high; /**< Address bus output not driven (tri-state high). */
 
-    int w110; // t1
-    int w114; // t2
-    int w41; // t3
-    int w109; // t4
-    int w68; // t5
-    int w61; // t6
-    int w131; // m1
-    int w120; // m2
-    int w127; // m3
-    int w123; // m4
-    int w121; // m5
-    int w115; // m6
+    int w110; /**< T1 state signal. */
+    int w114; /**< T2 state signal. */
+    int w41; /**< T3 state signal. */
+    int w109; /**< T4 state signal. */
+    int w68; /**< T5 state signal. */
+    int w61; /**< T6 state signal. */
+    int w131; /**< M1 cycle signal. */
+    int w120; /**< M2 cycle signal. */
+    int w127; /**< M3 cycle signal. */
+    int w123; /**< M4 cycle signal. */
+    int w121; /**< M5 cycle signal. */
+    int w115; /**< M6 cycle signal. */
 
-    // comb
+    /** Combinational logic wires (internal nodes). */
     int w3;
     int w10;
     int w11;
@@ -119,7 +126,7 @@ typedef struct {
     int w77;
     int w79;
     int w81;
-    int w82; // alu opcode
+    int w82; /**< ALU opcode. */
     int w83;
     int w84;
     int w85;
@@ -127,11 +134,11 @@ typedef struct {
     int w87;
     int w88;
     int w89;
-    int w90; // normal opcode?
+    int w90; /**< Normal opcode. */
     int w91;
     int w93;
     int w94;
-    int w96; // bit opcode
+    int w96; /**< Bit opcode. */
     int w97;
     int w101;
     int w102;
@@ -164,7 +171,7 @@ typedef struct {
     int w142;
     int w143;
     int w304;
-    int pla[99];
+    int pla[99]; /**< PLA opcode decode table. */
     int w148;
     int w149;
     int w150;
@@ -469,9 +476,9 @@ typedef struct {
     int w525;
     int w528;
 
-    // state
+    /** State elements: latches, flip-flops and registers. */
     int w1;
-    int w2;         // Also known as dp_dl (Data Pad -> Data Latch). 1: Load the input value from the pad to the Datalatch of DB interface
+    int w2; /**< Also known as dp_dl (Data Pad -> Data Latch): 1 loads the input value from the pad to the data latch of the DB interface. */
     int l1;
     int w4;
     int w5;
@@ -481,10 +488,10 @@ typedef struct {
     int w9;
     int l2;
     int l3;
-    int halt;
-    int l4; // end of instruction
+    int halt; /**< HALT state flag. */
+    int l4; /**< End of instruction. */
     int w18;
-    int w19; // accept NMI
+    int w19; /**< Accept NMI. */
     int w21;
     int w22;
     int l5;
@@ -527,17 +534,17 @@ typedef struct {
     int w66;
     int l25;
     int l26;
-    int w73; // iff1 ???
-    int w74; // iff2 ???
+    int w73; /**< IFF1 (interrupt flip-flop 1). */
+    int w74; /**< IFF2 (interrupt flip-flop 2). */
     int l27;
     int w78;
     int l28;
     int w80;
-    int w92; // misc opcode
+    int w92; /**< Misc opcode. */
     int w95;
     int w98;
     int w99;
-    int w100; // ix,iy prefix?
+    int w100; /**< IX/IY prefix. */
     int l29;
     int w104;
     int w107;
@@ -556,8 +563,8 @@ typedef struct {
     int l37;
     int l38;
     int w145;
-    int w146; // bus 1
-    int w147; // opcode
+    int w146; /**< Bus 1. */
+    int w147; /**< Opcode. */
     int l39;
     int w205;
     int l40;
@@ -652,8 +659,8 @@ typedef struct {
     int l75;
     int l76;
     int l77;
-    int w484; // bus 2
-    int w496; // alu bus
+    int w484; /**< Bus 2. */
+    int w496; /**< ALU bus. */
     int w498;
     int w499;
     int w500;
@@ -662,12 +669,12 @@ typedef struct {
     int w508;
     int w510;
     int w511;
-    int w513; // bus 3
+    int w513; /**< Bus 3. */
     int w514;
     int w515;
     int l79;
-    int regs[12];
-    int regs_[12][2];
+    int regs[12]; /**< Main register file (8-bit registers). */
+    int regs_[12][2]; /**< Alternate (shadow) register file used by EX/EXX. */
     int w520;
     int w521;
     int w522;
@@ -677,18 +684,18 @@ typedef struct {
     int w526;
     int w527;
     int w529;
-    int regs2[2];
-    int regs2_[2][2];
+    int regs2[2]; /**< Second register file (16-bit registers). */
+    int regs2_[2][2]; /**< Alternate second register file. */
     int l82;
     int l83;
     int l84;
-    int bu1, bu2, bu3;
+    int bu1, bu2, bu3; /**< Internal bus driver masks for bus 1/bus 2/bus 3. */
 
-    int alu_calc;
+    int alu_calc; /**< Flag: ALU result already computed this phase. */
 
-    int pull1[2];
-    int pull2[2];
-    int ix;
+    int pull1[2]; /**< Pull-up network of register bus 1 (low/high byte). */
+    int pull2[2]; /**< Pull-up network of register bus 2 (low/high byte). */
+    int ix; /**< Index of the register selected this cycle (0-11) or -1. */
 
 } z80_t;
 

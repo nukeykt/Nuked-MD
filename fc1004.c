@@ -22,10 +22,16 @@
  *
  */
 
+/** @file fc1004.c @brief FC1004 (YM7101+YM3438+YM6045+YM6046+TMSS) single-chip system emulation. */
+
 // FC1004 (YM7101+YM3438+YM6045+YM6046+TMSS)
 #include "fc1004.h"
 
 
+/**
+ * @brief Wires the external bus outputs of the FC1004 sub-blocks and initializes the arbiter.
+ * @param chip Pointer to the FC1004 chip state.
+ */
 void FC1004_Init(fc1004_t *chip)
 {
     chip->arb.ext_vaddress_out = &chip->o_vaddress;
@@ -37,11 +43,21 @@ void FC1004_Init(fc1004_t *chip)
     ARB_Init(&chip->arb);
 }
 
+/**
+ * @brief Destroys the FC1004 arbiter sub-block, releasing its allocated resources.
+ * @param chip Pointer to the FC1004 chip state.
+ */
 void FC1004_Destroy(fc1004_t *chip)
 {
     ARB_Destroy(&chip->arb);
 }
 
+/**
+ * @brief Advances the FC1004 by one master clock step: routes inter-chip signals and clocks the FM, EDCLK, VDP/PSG, arbiter, IO chip and TMSS sub-blocks.
+ * @param chip Pointer to the FC1004 chip state.
+ * @param mclk Master clock input.
+ * @param cycles Global cycle counter.
+ */
 void FC1004_Clock(fc1004_t *chip, int mclk, uint64_t cycles)
 {
     chip->hl_vdp = chip->tmss.ext_test_1 ? chip->i_zbr : chip->ioc.ext_hl;

@@ -1,3 +1,6 @@
 build/
 build-*/
 *.user*
+
+# Doxygen output (HTML/LaTeX/PDF)
+doxygen-out/

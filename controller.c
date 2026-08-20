@@ -1,11 +1,26 @@
+/** @file controller.c @brief Controller input emulation: 3-button pad state reporting and SDL keyboard event mapping. */
+
 #include <stdio.h>
 #include "SDL.h"
 #include "controller.h"
 #include "md.h"
 
+/** Current button state bitmask for controller 1 (see CTRL_BUTTON_* masks). */
 int controller_buttons_state_1;
+/** Current button state bitmask for controller 2 (see CTRL_BUTTON_* masks). */
 int controller_buttons_state_2;
 
+/**
+ * @brief Emulates the 3-button controller response to the console's read sequence.
+ *
+ * Returns the 6-bit pad value (active low: bits of pressed buttons are cleared)
+ * for controller 1 or 2. When @p sel is high the D-pad plus B/C are reported,
+ * otherwise the D-pad (left/right forced released) plus A/Start are reported.
+ *
+ * @param sel TH/select line state (nonzero: D-pad + B/C; zero: D-pad + A/Start).
+ * @param id Controller ID (0 = controller 1, nonzero = controller 2).
+ * @return 6-bit controller state value (0-63); a cleared bit means the button is pressed.
+ */
 int controller_handle_3button(int sel, int id)
 {
     int state = id ? controller_buttons_state_2 : controller_buttons_state_1;
@@ -40,6 +55,15 @@ int controller_handle_3button(int sel, int id)
     return value;
 }
 
+/**
+ * @brief Handles an SDL keyboard event, mapping scancodes to controller buttons.
+ *
+ * Also handles the non-controller keys: F5 queues a quick save, F7 queues a
+ * quick load and F12 toggles the console reset line.
+ *
+ * @param scancode SDL scancode of the key that changed state.
+ * @param pressed Nonzero if the key was pressed, zero if it was released.
+ */
 // TODO: Separate control keys (like the RESET Button, Save/Load State) and controller bindings.
 void controller_sdl_event(int scancode, int pressed)
 {

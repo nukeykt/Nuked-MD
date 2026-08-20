@@ -22,16 +22,25 @@
  *
  */
 
+/** @file tmss.c @brief TMSS (FC1004) trademark & security system emulator. */
+
 // FC1004 TMSS
 #include <string.h>
 #include <stdio.h>
 #include "tmss.h"
 #include "cartridge.h"
 
+/** TMSS ROM contents (1024 16-bit words). */
 unsigned short tmss_rom[1024];
+/** "SE" magic word (little-endian). */
 #define MAGIC_SE   0x00005345 /* SE */
+/** "GA" magic word (little-endian). */
 #define MAGIC_GA   0x00004741 /* GA */
 
+/**
+ * @brief Clock the TMSS for one cycle.
+ * @param chip Pointer to the TMSS state.
+ */
 void TMSS_Clock(tmss_t *chip)
 {
     SDFFR_Update(&chip->dff1, chip->w40, chip->w3, chip->input.ext_sres);
@@ -92,6 +101,11 @@ void TMSS_Clock(tmss_t *chip)
     chip->ext_test_4 = !chip->w62;
 }
 
+/**
+ * @brief Settle the TMSS after input changes.
+ * Runs `TMSS_Clock` three times if the input state changed, until stable.
+ * @param chip Pointer to the TMSS state.
+ */
 void TMSS_Clock2(tmss_t *chip)
 {
     if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
@@ -103,6 +117,11 @@ void TMSS_Clock2(tmss_t *chip)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Drive the 68k data bus output from the TMSS.
+ * Outputs the latched magic word or the TMSS ROM contents.
+ * @param chip Pointer to the TMSS state.
+ */
 void TMSS_UpdateOutputBus(tmss_t *chip)
 {
     if (!chip->ext_data_out_en)
@@ -112,6 +131,9 @@ void TMSS_UpdateOutputBus(tmss_t *chip)
     }
 }
 
+/**
+ * @brief Load a minimal dummy TMSS ROM.
+ */
 void load_dummy_tmss()
 {
     static const short data[] = {
@@ -127,6 +149,11 @@ void load_dummy_tmss()
     memcpy(tmss_rom, data, sizeof(data));
 }
 
+/**
+ * @brief Load a TMSS ROM image from a file.
+ * @param filename Path to the TMSS ROM file.
+ * @return 0 on success, 1 on failure.
+ */
 int load_tmss_rom(char *filename)
 {
     size_t i, ret;

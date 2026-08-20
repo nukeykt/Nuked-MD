@@ -22,10 +22,19 @@
  *
  */
 
+/** @file iochip.c @brief YM6046 (FC1004) IO chip emulator. */
+
 // FC1004 IO chip
 #include <string.h>
 #include "iochip.h"
 
+/**
+ * @brief Clock one controller port of the IO chip.
+ * Updates the port registers and the UART transmitter/receiver state machines.
+ * @param chip Pointer to the chip state.
+ * @param port Pointer to the controller port state.
+ * @param port_id Port identifier (0/1/2).
+ */
 void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
 {
     int i1, i2, i3, i4, i5;
@@ -168,6 +177,14 @@ void IOC_Clock_Port(iochip_t *chip, controller_port_t *port, int port_id)
     port->irq_uart = port->rx_ready.q && (port->s_control.q & 1) != 0;
 }
 
+/**
+ * @brief Combine output and input data according to the direction mask.
+ * Bits with `d` set pass the input `i`; bits with `d` clear pass the output `o`.
+ * @param o Port output data.
+ * @param i Port input data.
+ * @param d Port direction mask.
+ * @return Combined port data, masked to 7 bits.
+ */
 static inline int IOC_PortData(int o, int i, int d)
 {
     int data = 0;
@@ -176,6 +193,10 @@ static inline int IOC_PortData(int o, int i, int d)
     return data & 127;
 }
 
+/**
+ * @brief Clock the IO chip for one cycle.
+ * @param chip Pointer to the chip state.
+ */
 void IOC_Clock(iochip_t *chip)
 {
     int load;
@@ -451,6 +472,11 @@ void IOC_Clock(iochip_t *chip)
     }
 }
 
+/**
+ * @brief Settle the IO chip after input changes.
+ * Runs `IOC_Clock` four times if the input state changed, until stable.
+ * @param chip Pointer to the chip state.
+ */
 void IOC_Clock2(iochip_t *chip)
 {
     if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
@@ -464,6 +490,11 @@ void IOC_Clock2(iochip_t *chip)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Drive the output buses from the chip state.
+ * Writes the data and address outputs according to the bus control signals.
+ * @param chip Pointer to the chip state.
+ */
 void IOC_UpdateOutputBus(iochip_t *chip)
 {
     if (!chip->ext_bc2)

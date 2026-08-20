@@ -17,9 +17,13 @@
  *
  */
 
+/** @file video.h @brief SDL video output: framebuffer dimensions and the video init/blit/plot/title API. */
+
 #pragma once
 
+/** Width of the emulated video framebuffer in pixels. */
 #define VID_WIDTH 400
+/** Height of the emulated video framebuffer in pixels. */
 #define VID_HEIGHT 300
 
 void Video_Init(char* videoout_filename, int ntsc);

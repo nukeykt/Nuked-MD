@@ -22,27 +22,39 @@
  *
  */
 
+/**
+ * @file arbiter.h
+ * @brief Transistor-level, cycle-accurate model of the YM6045C (FC1004) bus arbiter.
+ */
+
 #pragma once
 #include "common.h"
 
 #pragma pack(push, 1)
 
+/**
+ * @brief Inputs of the EDCLK divider sub-block.
+ */
 typedef struct {
-    int mclk;
-    int sres;
-    int hsync;
+    int mclk; /**< Master clock input. */
+    int sres; /**< System reset input. */
+    int hsync; /**< Horizontal sync input. */
 } arbiter_edclk_input_t;
 
+/**
+ * @brief State of the EDCLK divider sub-block (master-clock divider producing the dot clock `ext_edclk`).
+ */
 typedef struct {
-    staticcnt_t dff1;
-    staticcnt_t dff2;
-    staticcnt_t dff3;
-    staticcnt_t dff4;
-    staticcnt_t dff5;
-    staticcnt_t dff6;
-    staticcnt_t dff7;
-    sdffs_t dff8;
-    sdffr_t dff9;
+    staticcnt_t dff1; /**< Counter stage 1 of the divider chain. */
+    staticcnt_t dff2; /**< Counter stage 2 of the divider chain. */
+    staticcnt_t dff3; /**< Counter stage 3 of the divider chain. */
+    staticcnt_t dff4; /**< Counter stage 4 of the divider chain. */
+    staticcnt_t dff5; /**< Counter stage 5 of the divider chain. */
+    staticcnt_t dff6; /**< Counter stage 6 of the divider chain. */
+    staticcnt_t dff7; /**< Counter stage 7 of the divider chain. */
+    sdffs_t dff8; /**< Set flip-flop; latches the counter-done flag `w5`. */
+    sdffr_t dff9; /**< Reset flip-flop; synchronizes the divider to `hsync`. */
+    /** `w#` wires: internal signal nodes of the EDCLK divider block. */
     int w1;
     int w2;
     int w3;
@@ -51,59 +63,66 @@ typedef struct {
     int w7;
     int w10;
     int w11;
-    int ext_edclk;
+    int ext_edclk; /**< EDCLK (dot clock) output. */
 
-    arbiter_edclk_input_t input, input_old;
+    arbiter_edclk_input_t input, input_old; /**< Current and previous inputs (previous used for change detection). */
 } arbiter_edclk_t;
 
+/**
+ * @brief External inputs of the bus arbiter.
+ */
 typedef struct {
-    int d1_out;
-    int d2_out;
-    int d3_out;
-    int d4_out;
-    int d5_out;
-    int d6_out;
-    int d7_out;
-    int d8_out;
-    int ext_vclk;
-    int ext_zclk;
-    int ext_data_in;
-    int ext_zaddress_in;
-    int ext_vaddress_in;
-    int ext_zrd_in;
-    int ext_m1;
-    int ext_zwr_in;
-    int ext_bgack_in;
-    int ext_bg;
-    int ext_iorq;
-    int ext_rw_in;
-    int ext_uds_in;
-    int ext_as_in;
-    int ext_dtack_in;
-    int ext_lds_in;
-    int ext_cas0;
-    int ext_m3;
-    int ext_za0;
-    int ext_wres;
-    int ext_cart;
-    int ext_oe0;
-    int ext_wait_in;
-    int ext_zbak;
-    int ext_mreq_in;
-    int ext_fc0;
-    int ext_fc1;
-    int ext_sres;
-    int ext_test_mode_0; // 0 - default
-    int ext_zdata_in;
+    int d1_out; /**< Output of delay chain `d1`. */
+    int d2_out; /**< Output of delay chain `d2`. */
+    int d3_out; /**< Output of delay chain `d3`. */
+    int d4_out; /**< Output of delay chain `d4`. */
+    int d5_out; /**< Output of delay chain `d5`. */
+    int d6_out; /**< Output of delay chain `d6`. */
+    int d7_out; /**< Output of delay chain `d7`. */
+    int d8_out; /**< Output of delay chain `d8`. */
+    int ext_vclk; /**< 68k (V-side) clock input. */
+    int ext_zclk; /**< Z80 clock input. */
+    int ext_data_in; /**< Shared data bus input (bit 8 feeds `vd8`). */
+    int ext_zaddress_in; /**< Z80 address bus input. */
+    int ext_vaddress_in; /**< 68k (V-side) address bus input. */
+    int ext_zrd_in; /**< Z80 /RD input. */
+    int ext_m1; /**< Z80 /M1 input. */
+    int ext_zwr_in; /**< Z80 /WR input. */
+    int ext_bgack_in; /**< 68k /BGACK input. */
+    int ext_bg; /**< 68k /BG input. */
+    int ext_iorq; /**< Z80 /IORQ input. */
+    int ext_rw_in; /**< 68k R/W input. */
+    int ext_uds_in; /**< 68k /UDS input. */
+    int ext_as_in; /**< 68k /AS input. */
+    int ext_dtack_in; /**< 68k /DTACK input. */
+    int ext_lds_in; /**< 68k /LDS input. */
+    int ext_cas0; /**< /CAS0 input (from the VDP). */
+    int ext_m3; /**< M3 mode input; 1 = MD (68k) mode, 0 = M3 (Z80) mode. */
+    int ext_za0; /**< Z80 address bit 0 input. */
+    int ext_wres; /**< Warm reset input (WRES). */
+    int ext_cart; /**< Cartridge select input. */
+    int ext_oe0; /**< /OE0 input (from the VDP). */
+    int ext_wait_in; /**< Wait request input. */
+    int ext_zbak; /**< Z80 /BUSACK input. */
+    int ext_mreq_in; /**< Z80 /MREQ input. */
+    int ext_fc0; /**< 68k function code 0 input. */
+    int ext_fc1; /**< 68k function code 1 input. */
+    int ext_sres; /**< System reset input. */
+    int ext_test_mode_0; /**< Test mode input; 0 - default. */
+    int ext_zdata_in; /**< Z80 data bus input. */
 } arb_input_t;
 
+/**
+ * @brief Complete state of the YM6045C bus arbiter.
+ */
 typedef struct {
-    arbiter_edclk_t edclk;
+    arbiter_edclk_t edclk; /**< EDCLK divider sub-block state. */
 
+    /** `w#` fields: internal signal nodes of the arbiter; `dffN` fields: flip-flop cells (meanings noted where evident). */
     int w9;
     int w12;
-    delaychain_t d1; // 6 xor
-    sdff_t dff10; // bus request
+    delaychain_t d1; /**< Delay line of 6 XOR gates. */
+    sdff_t dff10; /**< Bus request flip-flop (`ext_br`). */
     int w16;
     int w24;
     int w25;
@@ -118,8 +137,8 @@ typedef struct {
     int w35;
     sdff_t dff13;
     int w36;
-    sdffr_t zbr;
-    int sres;
+    sdffr_t zbr; /**< Z80 bus request flip-flop. */
+    int sres; /**< Latched system reset. */
     sdffs_t dff15;
     int w40;
     int w41;
@@ -139,10 +158,10 @@ typedef struct {
     int w52;
     int w53;
     int w54;
-    int vd8;
+    int vd8; /**< Latch of shared data bus bit 8. */
     int w58;
     int w59;
-    int vtoz;
+    int vtoz; /**< 68k-to-Z80 transfer direction flag. */
     int w63;
     int w64;
     int w65;
@@ -163,7 +182,7 @@ typedef struct {
     int w79;
     sdff_t dff21;
     sdff_t dff22;
-    int mreq_in;
+    int mreq_in; /**< Latched Z80 /MREQ input. */
     int w83;
     int w84;
     int w85;
@@ -188,7 +207,7 @@ typedef struct {
     sdff_t dff24;
     sdffr_t dff25;
     int w104;
-    int ztov;
+    int ztov; /**< Z80-to-68k transfer direction flag. */
     int w106;
     int w107;
     int w111;
@@ -210,7 +229,7 @@ typedef struct {
     int w128;
     int w129;
     int w130;
-    sdffr_t dff26;
+    sdffr_t dff26; /**< Memory mode register flip-flop. */
     sdff_t dff27;
     int w131;
     int w132;
@@ -231,7 +250,7 @@ typedef struct {
     int w149;
     int w150;
     int w151;
-    int test;
+    int test; /**< Test mode flag (from `ext_test_mode_0`). */
     int w155;
     int w158;
     int w159;
@@ -247,7 +266,7 @@ typedef struct {
     int w168;
     int w169;
     int w170;
-    sdffr_t dff31;
+    sdffr_t dff31; /**< Z80 reset flip-flop. */
     int w171;
     int w172;
     int w173;
@@ -256,7 +275,7 @@ typedef struct {
     int w176;
     int w178;
     int w182;
-    sdff_t sres_syncv;
+    sdff_t sres_syncv; /**< Reset synchronizer flip-flop (VCLK domain). */
     sdffs_t dff33;
     int w183;
     int w185;
@@ -296,7 +315,7 @@ typedef struct {
     //int w225;
     int w226;
     int w227;
-    int va22_cart;
+    int va22_cart; /**< VA22 adjusted by the cartridge select input. */
     int w229;
     sdff_t dff44;
     int w232;
@@ -337,7 +356,7 @@ typedef struct {
     int w283;
     int w286;
     int w287;
-    int sres_syncv_2;
+    int sres_syncv_2; /**< Delayed copy of `sres_syncv.l2`. */
     int w289;
     staticcnt_t dff48;
     int w292;
@@ -374,10 +393,10 @@ typedef struct {
     int w320;
     int w321;
     int w322;
-    int pal_trap;
+    int pal_trap; /**< PAL/NTSC trap flag (unused; formerly PAL detection). */
     int w325;
     int w326;
-    sdffs_t nmi;
+    sdffs_t nmi; /**< NMI flip-flop (`ext_nmi`). */
     sdffr_t dff57;
     sdffr_t dff58;
     sdff_t dff59;
@@ -436,7 +455,7 @@ typedef struct {
     int w364;
     int w365;
     int w366;
-    int w367; // !M3
+    int w367; /**< Inverted M3 signal. */
     int w368;
     int w369;
     int w370;
@@ -447,11 +466,12 @@ typedef struct {
     staticcnt_t dff79;
     staticcnt_t dff80;
 
-    int fc00;
-    int fc01;
-    int fc10;
-    int fc11;
+    int fc00; /**< Function code decode: FC1=0, FC0=0. */
+    int fc01; /**< Function code decode: FC1=0, FC0=1. */
+    int fc10; /**< Function code decode: FC1=1, FC0=0. */
+    int fc11; /**< Function code decode: FC1=1, FC0=1. */
 
+    /** `va#_in` fields: latched 68k (V-side) address bus bit inputs. */
     int va8_in;
     int va9_in;
     int va10_in;
@@ -469,6 +489,7 @@ typedef struct {
     int va22_in;
     int va23_in;
 
+    /** `za#_in` fields: latched Z80 address bus bit inputs. */
     int za7_in;
     int za8_in;
     int za9_in;
@@ -481,87 +502,88 @@ typedef struct {
 
     //int ext_vclk;
     //int ext_zclk;
-    int *ext_data_out;
+    /** `ext_*` fields: external output pins of the arbiter. */
+    int *ext_data_out; /**< Pointer to the shared data bus output (bit 8). */
     //int ext_data_in;
     //int ext_zaddress_in;
-    int ext_zaddress_out;
+    int ext_zaddress_out; /**< Z80 address bus output. */
     //int ext_vaddress_in;
-    int *ext_vaddress_out;
-    int ext_zrd_out;
+    int *ext_vaddress_out; /**< Pointer to the 68k (V-side) address bus output. */
+    int ext_zrd_out; /**< Z80 /RD output. */
     //int ext_zrd_in;
-    int ext_uds_out;
-    int ext_zwr_out;
+    int ext_uds_out; /**< 68k /UDS output. */
+    int ext_zwr_out; /**< Z80 /WR output. */
     //int ext_m1;
     //int ext_zwr_in;
-    int ext_bgack_out;
-    int ext_as_out;
+    int ext_bgack_out; /**< 68k /BGACK output. */
+    int ext_as_out; /**< 68k /AS output. */
     //int ext_bgack_in;
-    int ext_rw_dir;
+    int ext_rw_dir; /**< R/W bus direction control. */
     //int ext_bg;
     //int ext_iorq;
     //int ext_rw_in;
     //int ext_uds_in;
-    int ext_rw_out;
+    int ext_rw_out; /**< 68k R/W output. */
     //int ext_as_in;
     //int ext_dtack_in;
     //int ext_lds_in;
-    int ext_lds_out;
-    int ext_strobe_dir;
-    int ext_dtack_out;
+    int ext_lds_out; /**< 68k /LDS output. */
+    int ext_strobe_dir; /**< Address strobe (AS/UDS/LDS) bus direction control. */
+    int ext_dtack_out; /**< 68k /DTACK output. */
     //int ext_cas0;
     //int ext_m3;
-    int ext_br;
+    int ext_br; /**< 68k /BR (bus request) output. */
     //int ext_za0;
     //int ext_wres;
-    int ext_ia14;
+    int ext_ia14; /**< 68k work RAM address bit 14 output. */
     //int ext_cart;
-    int ext_time;
-    int ext_ce0;
-    int ext_fdwr;
-    int ext_fdc;
-    int ext_rom;
-    int ext_asel;
-    int ext_eoe;
-    int ext_noe;
+    int ext_time; /**< TIME chip select output. */
+    int ext_ce0; /**< Cartridge /CE0 output. */
+    int ext_fdwr; /**< FDC write strobe output. */
+    int ext_fdc; /**< FDC chip select output. */
+    int ext_rom; /**< Cartridge ROM select output. */
+    int ext_asel; /**< /ASEL (address select) output. */
+    int ext_eoe; /**< Output enable for the high byte of the 68k work RAM (active low). */
+    int ext_noe; /**< Output enable for the low byte of the 68k work RAM (active low). */
     //int ext_oe0;
-    int ext_ras2;
-    int ext_cas2;
-    int ext_ref;
-    int ext_zram;
-    int ext_wait_out;
+    int ext_ras2; /**< /RAS2 output. */
+    int ext_cas2; /**< /CAS2 output. */
+    int ext_ref; /**< /REF (DRAM refresh) output. */
+    int ext_zram; /**< Z80 RAM select output. */
+    int ext_wait_out; /**< Wait request output. */
     //int ext_wait_in;
-    int ext_zbr;
-    int ext_nmi;
+    int ext_zbr; /**< Z80 /BUSREQ output. */
+    int ext_nmi; /**< Z80 /NMI output. */
     //int ext_zbak;
-    int ext_zres;
-    int ext_sound;
-    int ext_vz; // vz pin, za, mreq, rd, wr pad dir
-    int ext_mreq_out;
+    int ext_zres; /**< Z80 /RESET output. */
+    int ext_sound; /**< YM3438 (sound) chip select output. */
+    int ext_vz; /**< VZ pin; Z80 address, /MREQ, /RD, /WR pad direction control. */
+    int ext_mreq_out; /**< Z80 /MREQ output. */
     //int ext_mreq_in;
     //int ext_fc0;
     //int ext_fc1;
-    int ext_vres;
-    int ext_vpa;
+    int ext_vres; /**< 68k /RESET output. */
+    int ext_vpa; /**< 68k /VPA output. */
     //int ext_sres;
-    int ext_vdpm;
+    int ext_vdpm; /**< VDP /MREQ output. */
     //int ext_test_mode_0; // 0 - default
     //int ext_zdata_in;
-    int ext_io;
-    int ext_zv;
-    int ext_intak;
+    int ext_io; /**< IO chip select output. */
+    int ext_zv; /**< ZV output (Z80-to-68k transfer direction). */
+    int ext_intak; /**< 68k interrupt acknowledge output. */
 
-    arb_input_t input, input_old;
+    arb_input_t input, input_old; /**< Current and previous external inputs (previous used for change detection). */
 
-    delaychain_t d2; // 6 xor
-    delaychain_t d3; // 40 xor
-    delaychain_t d4; // 6 xor
-    delaychain_t d5; // 12 xor
-    delaychain_t d6; // 36 xor
-    delaychain_t d7; // 37 xor
-    delaychain_t d8; // 6 xor
+    delaychain_t d2; /**< Delay line of 6 XOR gates. */
+    delaychain_t d3; /**< Delay line of 40 XOR gates. */
+    delaychain_t d4; /**< Delay line of 6 XOR gates. */
+    delaychain_t d5; /**< Delay line of 12 XOR gates. */
+    delaychain_t d6; /**< Delay line of 36 XOR gates. */
+    delaychain_t d7; /**< Delay line of 37 XOR gates. */
+    delaychain_t d8; /**< Delay line of 6 XOR gates. */
 
-    int va_out;
-    sdffr_t z80bank;
+    int va_out; /**< 68k (V-side) address output value. */
+    sdffr_t z80bank; /**< Z80 bank register (9 bits). */
 } arbiter_t;
 
 #pragma pack(pop)

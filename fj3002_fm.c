@@ -1,6 +1,20 @@
+/**
+ * @file fj3002_fm.c
+ * @brief FJ3002 FM sub-chip clocking logic (WIP).
+ */
+
 #include "fj3002_fm.h"
 
 
+/**
+ * @brief Clock the FJ3002 FM sub-chip one step (WIP).
+ *
+ * Advances the internal state cells (latches and FSM counters) on the
+ * master clock input. Work in progress: no audio output is produced yet.
+ *
+ * @param chip Pointer to the FJ3002 FM sub-chip state to advance.
+ * @return None (function returns void).
+ */
 void FJ3002_FM_Clock(fj3002_fm_t* chip) {
 	int clk_posedge = chip->i_clk && !chip->clk_delay;
 	chip->clk_delay = chip->i_clk;

@@ -26,69 +26,87 @@
  *
  */
 
+/** @file vdp.h @brief State structures and clock entry points for the YM7101 VDP core. */
+
 #pragma once
 #include "common.h"
 
 #pragma pack(push, 1)
 
+/**
+ * @brief Two-latch master/slave flip-flop state.
+ */
 typedef struct {
-    int l1;
-    int l2;
+    int l1; /**< Master latch. */
+    int l2; /**< Slave latch. */
 } dff_t;
 
+/**
+ * @brief One assembled sprite pixel.
+ */
 typedef struct {
-    int pal;
-    int priority;
-    int index;
+    int pal; /**< Palette number. */
+    int priority; /**< Priority flag. */
+    int index; /**< Colour index. */
 } sprpixel_t;
 
+/**
+ * @brief Registered inputs of the VDP chip pins.
+ */
 typedef struct {
-    int i_clk1;
-    int i_clk2;
-    int i_pal;
-    int i_pen;
-    int i_sel0;
-    int i_as;
-    int i_uds;
-    int i_lds;
-    int i_m1;
-    int i_rd;
-    int i_wr;
-    int i_iorq;
-    int i_mreq;
-    int i_rw;
-    int i_cpu_clk0;
-    int i_cpu_clk1;
-    int i_bg;
-    int i_intak;
-    int i_bgack;
-    int i_reset;
-    int i_dtack;
-    int i_csync;
-    int i_hsync;
-    int i_vram_sd;
-    int i_vram_rd;
-    int i_vram_ad;
-    int i_spa;
+    int i_clk1; /**< Dot clock phase 1. */
+    int i_clk2; /**< Dot clock phase 2. */
+    int i_pal; /**< PAL mode flag. */
+    int i_pen; /**< PEN input. */
+    int i_sel0; /**< Bus select: 0 = Z80, 1 = 68k. */
+    int i_as; /**< Address strobe (active low). */
+    int i_uds; /**< Upper data strobe (active low). */
+    int i_lds; /**< Lower data strobe (active low). */
+    int i_m1; /**< Z80 M1 (active low). */
+    int i_rd; /**< Read strobe (active low). */
+    int i_wr; /**< Write strobe (active low). */
+    int i_iorq; /**< I/O request (active low). */
+    int i_mreq; /**< Memory request (active low). */
+    int i_rw; /**< Read/write direction. */
+    int i_cpu_clk0; /**< CPU clock 0. */
+    int i_cpu_clk1; /**< CPU clock 1. */
+    int i_bg; /**< Bus grant (active low). */
+    int i_intak; /**< Interrupt acknowledge (active low). */
+    int i_bgack; /**< Bus acknowledge. */
+    int i_reset; /**< Reset input. */
+    int i_dtack; /**< Data transfer acknowledge. */
+    int i_csync; /**< Composite sync input. */
+    int i_hsync; /**< Horizontal sync input. */
+    int i_vram_sd; /**< VRAM serial data input. */
+    int i_vram_rd; /**< VRAM read data input. */
+    int i_vram_ad; /**< VRAM address input. */
+    int i_spa; /**< Sprite attribute access flag. */
     // int i_data;
     // int i_address;
 } vdp_i_state_t;
 
+/**
+ * @brief Registered inputs of the MCLK prescaler.
+ */
 typedef struct {
-    int mclk;
-    int i_reset;
-    int i_test_reset;
-    int i_clk1;
-    int i_edclk;
-    int i_pal;
-    int i_rs0; // 
-    int i_rs1; // 
-    int i_test_psg; // chip->reg_test1 & 1
+    int mclk; /**< Master clock input. */
+    int i_reset; /**< Reset input. */
+    int i_test_reset; /**< Test-mode reset input. */
+    int i_clk1; /**< External CPU clock input. */
+    int i_edclk; /**< External dot clock input. */
+    int i_pal; /**< PAL mode flag. */
+    int i_rs0; /**< Resolution select bit 0. */
+    int i_rs1; /**< Resolution select bit 1 (H40 mode). */
+    int i_test_psg; /**< Test flag, chip->reg_test1 & 1. */
     //int i_test_dclk; // chip->reg_test1 & 2
 } vdp_prescaler_i_state_t;
 
+/**
+ * @brief State of the MCLK prescaler that derives the internal dot and CPU clocks.
+ */
 typedef struct {
-    vdp_prescaler_i_state_t input, input_old;
+    vdp_prescaler_i_state_t input, input_old; /**< Registered inputs (current and previous). */
+    /** Flip-flops `mclk_prescaler_dff*`, derived clocks `mclk_clk*`, and internal wires `mclk_*`. */
     dff_t mclk_prescaler_dff1;
     dff_t mclk_prescaler_dff2;
     int mclk_and1;
@@ -112,27 +130,34 @@ typedef struct {
     dff_t mclk_prescaler_dff16;
     dff_t mclk_prescaler_dff17;
     int mclk_clk5;
-    int mclk_sbcr;
-    int mclk_cpu_clk0;
-    int mclk_cpu_clk1;
-    int mclk_dclk;
-    int o_clk0;
-    int o_clk1;
-    int o_sbcr;
-    int o_edclk;
+    int mclk_sbcr; /**< Subcarrier clock (PAL/NTSC select). */
+    int mclk_cpu_clk0; /**< CPU clock 0. */
+    int mclk_cpu_clk1; /**< CPU clock 1. */
+    int mclk_dclk; /**< Selected dot clock. */
+    int o_clk0; /**< Clock 0 output. */
+    int o_clk1; /**< Clock 1 output. */
+    int o_sbcr; /**< Subcarrier clock output. */
+    int o_edclk; /**< External dot clock output. */
 } vdp_prescaler_t;
 
+/**
+ * @brief Registered inputs of the built-in PSG.
+ */
 typedef struct {
-    int i_cpu_clk0;
-    int i_reset; // reset_comb
-    int i_write; // w111
-    int i_data; // io_data;
-    int i_test; // reg_test0
+    int i_cpu_clk0; /**< CPU clock input. */
+    int i_reset; /**< Reset input (reset_comb). */
+    int i_write; /**< Write strobe (w111). */
+    int i_data; /**< Data bus input (io_data). */
+    int i_test; /**< Test register value (reg_test0). */
 } vdp_psg_input_t;
 
+/**
+ * @brief State of the built-in PSG (tone/noise generators and output mixer).
+ */
 typedef struct {
-    vdp_psg_input_t input, input_old;
+    vdp_psg_input_t input, input_old; /**< Registered inputs (current and previous). */
 
+    /** PSG clocks, latches `l###`, internal wires `w####`, timers `t##`, and channel state. */
     int psg_clk1;
     int psg_clk2;
     int l631[2];
@@ -220,39 +245,46 @@ typedef struct {
     int w1150;
     int w1151;
     int w1152;
-    float psg_out;
-    int o_psg_debug;
+    float psg_out; /**< Mixed PSG audio output sample. */
+    int o_psg_debug; /**< Debug output packing the four channel volumes. */
 } vdp_psg_t;
 
+/**
+ * @brief Complete state of the YM7101 VDP: sub-blocks, flip-flops, latches, wires, and chip pins.
+ */
 typedef struct {
     int t;
 
-    vdp_prescaler_t prescaler;
-    vdp_psg_t psg;
+    vdp_prescaler_t prescaler; /**< MCLK prescaler sub-block. */
+    vdp_psg_t psg; /**< Built-in PSG sub-block. */
 
+    /** DCLK prescaler: latches `dclk_prescaler_l*` and flip-flops `dclk_prescaler_dff*`. */
     int dclk_prescaler_l1[2];
     int dclk_prescaler_l2;
     int dclk_prescaler_l3;
     dff_t dclk_prescaler_dff1;
     dff_t dclk_prescaler_dff2;
 
+    /** Reset logic: `reset_comb` combinational reset, `reset_l*` latches, `reset_pulse`, `reset_ext`. */
     int reset_comb;
     int reset_l1[2];
     int reset_l2[2];
     int reset_pulse;
     int reset_ext;
 
+    /** Registered CPU interface flags. */
     int cpu_bg;
     int cpu_intak;
     int cpu_pal;
     int cpu_pen;
 
 
+    /** 68k/Z80 bus interface: M1 detect flip-flops `io_m1_dff*`, bus latches, control flip-flops `dff*`, and timers `t##`. */
     dff_t io_m1_dff1;
     dff_t io_m1_dff2;
     dff_t io_m1_dff3;
     dff_t io_m1_dff4;
-    int io_address;
+    int io_address; /**< Latched CPU address bus. */
     int io_address_22o;
     //int io_oe0;
     //int io_cas0;
@@ -262,7 +294,7 @@ typedef struct {
     //int io_wr;
     //int io_ipl1;
     //int io_ipl2;
-    int io_data;
+    int io_data; /**< Latched CPU data bus. */
     dff_t dff1;
     dff_t dff2;
     int t1;
@@ -574,11 +606,11 @@ typedef struct {
     int w233;
     //int w234;
     //int w235;
-    int l35; // 17 bits
-    int l36; // 17 bits
-    int l37; // 17 bits
-    int l38; // 17 bits
-    int l39; // 17 bits
+    int l35; /**< 17-bit VRAM address capture. */
+    int l36; /**< 17-bit VRAM address capture. */
+    int l37; /**< 17-bit VRAM address capture. */
+    int l38; /**< 17-bit VRAM address capture. */
+    int l39; /**< 17-bit VRAM address capture. */
 #if 0
     int w236;
     int w237;
@@ -746,9 +778,10 @@ typedef struct {
     int l103;
     int l104[2];
 
-    int l105[2]; // v counter
+    /** H/V counters and their decoded status latches `l###`/wires `w###`. */
+    int l105[2]; /**< Vertical counter. */
     int w355;
-    int l106[2]; // h counter
+    int l106[2]; /**< Horizontal counter. */
     int l107[2];
     int l108[2];
     int l109[2];
@@ -861,17 +894,18 @@ typedef struct {
 
     int l178[2];
     int l179;
-    int l180; // 11 bits
+    int l180; /**< 11-bit plane pattern/scroll latch. */
     int l181[2];
     int l182[2];
     int l183[2];
     int l184;
     int l185;
     int l186[2];
+    /** Plane control registers (`reg_*`) decoded from register writes. */
     int reg_hsz;
     int reg_vsz;
     int reg_sa;
-    int reg_nt; // m4
+    int reg_nt; /**< Name table base, mode 4. */
     int reg_sb;
     int reg_8e_b0;
     int reg_8e_b4;
@@ -885,7 +919,7 @@ typedef struct {
     int l188;
     int l189;
     int l190;
-    int reg_88; // m4 scroll
+    int reg_88; /**< Mode 4 scroll value. */
     int l191;
     int l192;
     int l193;
@@ -907,7 +941,7 @@ typedef struct {
     int l209[2];
     int l210[2];
     int l211[2];
-    int l212[2]; // 6 bits
+    int l212[2]; /**< 6-bit scroll offset. */
     int l213;
     int l214[2];
     int l215[2];
@@ -1021,10 +1055,11 @@ typedef struct {
     int l321[2];
     int l322[2];
     int l323[2];
+    /** Vertical scroll RAM (VSRAM): 40 entries and their read outputs. */
     int vsram[40];
-    int vsram_out;
-    int vsram_out_odd;
-    int vsram_out_even;
+    int vsram_out; /**< Current VSRAM read output. */
+    int vsram_out_odd; /**< VSRAM read output for odd entries. */
+    int vsram_out_even; /**< VSRAM read output for even entries. */
 
     //int w650;
     int l324;
@@ -1115,6 +1150,7 @@ typedef struct {
     //int w695;
     //int w696;
     int l365[4];
+    /** Sprite attribute table (SAT) cache: link, size, and y-position for each of 80 sprite slots. */
     int sat_cache_link[80];
     int sat_cache_size[80];
     int sat_cache_ypos[80];
@@ -1250,6 +1286,7 @@ typedef struct {
     int l416;
     int l417;
     int l418;
+    /** Per-sprite fetched attributes for the current scanline (20 sprite slots). */
     int sprdata_pattern[20];
     int sprdata_hpos[20];
     int sprdata_hflip[20];
@@ -1282,7 +1319,7 @@ typedef struct {
     int l426[2];
     //int w776;
     //int w777;
-    int l427[2]; // nc
+    int l427[2]; /**< nc. */
     //int w778;
     //int w779;
     //int w780;
@@ -1614,6 +1651,7 @@ typedef struct {
     int w978;
     int w1154;
 
+    /** Sprite line buffer: assembled sprite pixels per column (40 columns x 8 sub-pixels) and the 8 output pixels. */
     sprpixel_t linebuffer[40][8];
     sprpixel_t linebuffer_out[8];
 
@@ -1755,6 +1793,7 @@ typedef struct {
     int l613[2];
     int w1072;
     int w1073;
+    /** Colour control registers (`reg_col_*`) and colour RAM (CRAM, 64 entries). */
     int reg_col_index;
     int reg_col_pal;
     int reg_col_b6;
@@ -1772,8 +1811,8 @@ typedef struct {
     int l620[2];
     int w1078;
     int w1079;
-    int color_ram[64];
-    int color_ram_out;
+    int color_ram[64]; /**< Colour RAM entries. */
+    int color_ram_out; /**< Colour RAM read output. */
     int l621;
     int l622[2];
     int l623[2];
@@ -1800,9 +1839,9 @@ typedef struct {
     int w1098;
     int w1099;
     int w1100;
-    int l626[2]; // r
-    int l627[2]; // g
-    int l628[2]; // b
+    int l626[2]; /**< Red output level. */
+    int l627[2]; /**< Green output level. */
+    int l628[2]; /**< Blue output level. */
     int l629[2];
     int l630[2];
     int w1101;
@@ -1810,6 +1849,7 @@ typedef struct {
     int w1103[3][17];
     int rgb_out[3];
 
+    /** Decoded VDP control registers (`reg_*`). */
     int reg_clk0_sel;
     int reg_test0;
     int reg_test_18;
@@ -1830,7 +1870,7 @@ typedef struct {
     int reg_8c_b5;
     int reg_8c_b6;
     int reg_rs0;
-    int reg_rs1; // h40
+    int reg_rs1; /**< H40 resolution mode. */
     int reg_81_b0;
     int reg_81_b1;
     int reg_m5;
@@ -1858,11 +1898,12 @@ typedef struct {
     int reg_lg[2];
     int reg_sa_low[2];
 
-    int hclk1;
-    int hclk2;
+    int hclk1; /**< Dot clock phase 1 (HCLK1). */
+    int hclk2; /**< Dot clock phase 2 (HCLK2). */
 
-    vdp_i_state_t input, input_old;
+    vdp_i_state_t input, input_old; /**< Registered chip inputs (current and previous). */
 
+    /** Chip output pins (`o_*`). */
     int o_vram_se1;
     int o_vram_se0;
     int o_vram_sc;
@@ -1897,13 +1938,14 @@ typedef struct {
     int o_ras0;
     int o_ram_addr;
 
-    int vram_address; // 17 bits
-    int vram_data; // 16 bits
-    int vram_serial; // 8 bits
+    /** VRAM access state. */
+    int vram_address; /**< Current VRAM address, 17 bits. */
+    int vram_data; /**< Current VRAM data word, 16 bits. */
+    int vram_serial; /**< VRAM serial (dot) data, 8 bits. */
 
-    int color_index;
-    int color_pal;
-    int color_priority;
+    int color_index; /**< Selected colour index. */
+    int color_pal; /**< Selected palette. */
+    int color_priority; /**< Selected priority. */
 } vdp_t;
 
 #pragma pack(pop)

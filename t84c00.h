@@ -21,27 +21,32 @@
  *          TMPZ84C00 metal layer.
  */
 
+/** @file t84c00.h @brief Transistor-level, cycle-accurate model of the Toshiba TMPZ84C00 (CMOS Z80). */
+
  // Z80(Toshiba CMOS)
 #pragma once
 
+/** Input pin states of the TMPZ84C00 chip. */
 typedef struct
 {
-    int i_clk;
-    int i_data;
-    int i_reset;
-    int i_int;
-    int i_nmi;
-    int i_busrq;
-    int i_wait;
+    int i_clk;   /**< Clock input. */
+    int i_data;  /**< Data bus input. */
+    int i_reset; /**< Reset input (active low). */
+    int i_int;   /**< Interrupt request input (active low). */
+    int i_nmi;   /**< Non-maskable interrupt input (active low). */
+    int i_busrq; /**< Bus request input (active low). */
+    int i_wait;  /**< Wait input (active low). */
 } t84c00_input_t;
 
+/** TMPZ84C00 chip state: input pins, internal wires/latches, PLA, register file and output pins. */
 typedef struct
 {
-    t84c00_input_t input;
+    t84c00_input_t input; /**< Chip input pins. */
 
-    int clk_p;
-    int clk_n;
+    int clk_p; /**< Positive clock phase (follows i_clk). */
+    int clk_n; /**< Negative clock phase (inverted i_clk). */
 
+    /** Internal combinational wire nodes and latches; names follow the die schematic. */
     int w1;
     int w2;
     int w4;
@@ -57,7 +62,7 @@ typedef struct
     int w146;
     int w147;
 
-    int pla[108];
+    int pla[108]; /**< PLA lookup table. */
 
     int w74;
     int w92;
@@ -257,8 +262,8 @@ typedef struct
     int w515;
     int w520;
     int w521;
-    int regs1[12];
-    int regs2[2];
+    int regs1[12]; /**< Main register file (12 registers). */
+    int regs2[2];  /**< Secondary register file (2 registers). */
     int w513;
     int w527;
     int w522;
@@ -280,22 +285,23 @@ typedef struct
     int w392_l;
     int w304_l;
 
-    int o_data;
-    int o_data_z;
-    int o_halt;
-    int o_mreq;
-    int o_mreq_z;
-    int o_iorq;
-    int o_iorq_z;
-    int o_rd;
-    int o_rd_z;
-    int o_wr;
-    int o_wr_z;
-    int o_busak;
-    int o_m1;
-    int o_rfsh;
-    int o_address_z;
-    int o_address;
+    /** Output pins (driven when the corresponding *_z tri-state control is inactive). */
+    int o_data;      /**< Data bus output. */
+    int o_data_z;    /**< Data bus tri-state (high-Z) control. */
+    int o_halt;      /**< HALT output. */
+    int o_mreq;      /**< Memory request output. */
+    int o_mreq_z;    /**< MREQ tri-state (high-Z) control. */
+    int o_iorq;      /**< I/O request output. */
+    int o_iorq_z;    /**< IORQ tri-state (high-Z) control. */
+    int o_rd;        /**< Read output. */
+    int o_rd_z;      /**< RD tri-state (high-Z) control. */
+    int o_wr;        /**< Write output. */
+    int o_wr_z;      /**< WR tri-state (high-Z) control. */
+    int o_busak;     /**< Bus acknowledge output. */
+    int o_m1;        /**< M1 (machine cycle one) output. */
+    int o_rfsh;      /**< Refresh output. */
+    int o_address_z; /**< Address bus tri-state (high-Z) control. */
+    int o_address;   /**< Address bus output. */
 
 } t84c00_t;
 

@@ -24,6 +24,8 @@
  *
  */
 
+/** @file 68k.c @brief Transistor-level, cycle-accurate NMOS Motorola 68000 CPU emulation. */
+
 // 68k(NMOS)
 #include <stdio.h>
 #include <string.h>
@@ -31,12 +33,24 @@
 
 #include "68k_ucode.h"
 
+/**
+ * @brief Assert a register value onto a bus line pair: AND the value into the low side and its complement into the high side.
+ * @param l Low-side bus state.
+ * @param h High-side bus state.
+ * @param val Register value to assert onto the bus.
+ */
 void M68K_RegisterLogic1(busstate_t *l, busstate_t *h, int *val)
 {
     l->val &= *val;
     h->val &= ~*val;
 }
 
+/**
+ * @brief Update a register from its bus line pair: clear bits pulled low by either line, then re-assert the bus from the register value.
+ * @param l Low-side bus state.
+ * @param h High-side bus state.
+ * @param val Register value, updated in place.
+ */
 void M68K_RegisterLogic(busstate_t *l, busstate_t *h, int *val)
 {
     // Update register value if either line pulls to gnd
@@ -50,6 +64,10 @@ void M68K_RegisterLogic(busstate_t *l, busstate_t *h, int *val)
 }
 
 #if 0
+/**
+ * @brief Disabled: weakly pull all register latches `r1`..`r8` from their ALU bus line pairs.
+ * @param chip Pointer to the M68K state.
+ */
 void M68K_AluBusUpdateWeak(m68k_t *chip)
 {
     if (chip->w38)
@@ -245,6 +263,10 @@ void M68K_AluBusUpdateWeak(m68k_t *chip)
 }
 #endif
 
+/**
+ * @brief Apply the strong (buffered) source pulls to buses `b1`/`b2`/`b3`.
+ * @param chip Pointer to the M68K state.
+ */
 void M68K_AluBusUpdateStrong(m68k_t *chip)
 {
     // b1
@@ -398,6 +420,10 @@ void M68K_AluBusUpdateStrong(m68k_t *chip)
     }
 }
 
+/**
+ * @brief Arbitrate the ALU bus segments: AND together the line states of the buses connected at each segment boundary.
+ * @param chip Pointer to the M68K state.
+ */
 void M68K_AluBusArbitrate(m68k_t *chip)
 {
     int andval[4] = { 0xffff, 0xffff, 0xffff, 0xffff };
@@ -486,6 +512,10 @@ void M68K_AluBusArbitrate(m68k_t *chip)
 
 }
 
+/**
+ * @brief Update the register latches `r1`..`r8` from their ALU bus line pairs.
+ * @param chip Pointer to the M68K state.
+ */
 void M68K_AluBusUpdateRegisters(m68k_t *chip)
 {
     if (chip->w38)
@@ -689,12 +719,10 @@ void M68K_AluBusUpdateRegisters(m68k_t *chip)
         M68K_RegisterLogic(&chip->b3[0], &chip->b3[1], &chip->r8);
 }
 
-// 1. clean bus (unless c6 is not asserted???)
-// 2. put weak (registers)
-// 3. put strong (buffers)
-// 4. arbitrate segments
-// 5. update registers
-
+/**
+ * @brief Run one ALU bus cycle: 1. clean the buses, 2. pull registers (weak), 3. pull buffers (strong), 4. arbitrate the bus segments, 5. update the registers.
+ * @param chip Pointer to the M68K state.
+ */
 void M68K_AluBusOps(m68k_t *chip)
 {
     chip->w104 = chip->w103 ? chip->c6 : 0;
@@ -821,6 +849,12 @@ void M68K_AluBusOps(m68k_t *chip)
     M68K_AluBusArbitrate(chip);
 }
 
+/**
+ * @brief Advance the internal multi-phase clock signals `c1`..`c6` from the two external clock phases.
+ * @param chip Pointer to the M68K state.
+ * @param clk1 Clock phase 1 input.
+ * @param clk2 Clock phase 2 input.
+ */
 void M68K_Clocks(m68k_t* chip, int clk1, int clk2)
 {
     // FIXME
@@ -864,6 +898,10 @@ void M68K_Clocks(m68k_t* chip, int clk1, int clk2)
     chip->c2_delay[0] = chip->c2;
 }
 
+/**
+ * @brief Arbitrate the external data bus `data_io` from its byte-level drivers.
+ * @param chip Pointer to the M68K state.
+ */
 void M68K_DataBusArbitrate(m68k_t *chip)
 {
     int lowupdate = 0;
@@ -910,6 +948,12 @@ void M68K_DataBusArbitrate(m68k_t *chip)
     }
 }
 
+/**
+ * @brief Advance the whole 68000 model by one clock cycle (both phases); the main per-cycle entry point.
+ * @param chip Pointer to the M68K state.
+ * @param clk1 Clock phase 1 input.
+ * @param clk2 Clock phase 2 input.
+ */
 void M68K_Clock(m68k_t* chip, int clk1, int clk2)
 {
     int v1, v2;
@@ -6750,6 +6794,12 @@ void M68K_Clock(m68k_t* chip, int clk1, int clk2)
         chip->o_lds = !chip->lds_l2;
 }
 
+/**
+ * @brief Sample the external input pins for the current clock phase and re-run the clock logic when a sampled input changed.
+ * @param chip Pointer to the M68K state.
+ * @param clk1 Clock phase 1 input.
+ * @param clk2 Clock phase 2 input.
+ */
 void M68K_Clock2(m68k_t *chip, int clk1, int clk2)
 {
     if (clk1)

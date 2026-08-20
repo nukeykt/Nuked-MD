@@ -17,6 +17,8 @@
  *
  */
 
+/** @file video.c @brief SDL video output: window/renderer setup, VDP framebuffer plotting, blitting and raw video dumping. */
+
 #include <stdio.h>
 #include <string.h>
 #define SDL_MAIN_HANDLED
@@ -25,26 +27,49 @@
 #include "fc1004.h"
 
 extern fc1004_t ym;
+/** Video mode flag: nonzero for NTSC, zero for PAL. */
 int vid_ntsc;
 extern uint64_t mcycles;
 
+/** SDL window handle ("Nuked MD"). */
 SDL_Window* vid_window;
+/** SDL renderer handle. */
 SDL_Renderer* vid_renderer;
+/** SDL streaming texture holding the 400x300 framebuffer (BGR888). */
 SDL_Texture* vid_texture;
 
+/** Number of frames plotted by the emulation core (incremented on VSYNC). */
 uint32_t vid_counter;
+/** Number of frames already written to the video dump file. */
 uint32_t vid_counter_write;
+/** mcycles value recorded at the last frame swap, embedded in the dump. */
 uint64_t vid_mcycles;
 
+/** File handle for the raw video dump file. */
 FILE* vid_dump_file;
 
+/** Scratch framebuffer (ABGR) that Video_PlotVDP plots into. */
 uint32_t vid_workbuffer[VID_HEIGHT][VID_WIDTH];
+/** Completed framebuffer (ABGR) blitted to the screen and dumped. */
 uint32_t vid_currentbuffer[VID_HEIGHT][VID_WIDTH];
+/** BGR byte buffer used to serialize the framebuffer for the dump file. */
 uint8_t vid_filebuffer[VID_HEIGHT][VID_WIDTH][3];
+/** Mutex protecting the framebuffers shared between emulation and render threads. */
 SDL_mutex* vid_mutex;
 
+/** mcycles value at the start of the current frame. */
 uint64_t frame_mcycles;
 
+/**
+ * @brief Initializes SDL video output and opens the raw video dump file.
+ *
+ * Initializes the SDL video subsystem, creates the window (400x300 scaled 2x),
+ * renderer and streaming texture, opens @p videoout_filename for the raw dump
+ * and creates the framebuffer mutex.
+ *
+ * @param videoout_filename Path of the raw video dump file ("wb").
+ * @param ntsc Nonzero for NTSC video mode, zero for PAL.
+ */
 void Video_Init(char* videoout_filename, int ntsc)
 {
     vid_ntsc = ntsc;
@@ -75,12 +100,24 @@ void Video_Init(char* videoout_filename, int ntsc)
     vid_mutex = SDL_CreateMutex();
 }
 
+/**
+ * @brief Shuts down SDL video output.
+ *
+ * Closes the video dump file and quits the SDL video subsystem.
+ */
 void Video_Shutdown(void)
 {
     fclose(vid_dump_file);
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
+/**
+ * @brief Blits the completed framebuffer to the screen and optionally to the dump file.
+ *
+ * Updates the SDL texture from vid_currentbuffer, converts the framebuffer to
+ * BGR bytes and writes it to the dump file when a new frame is available, then
+ * renders and presents the texture.
+ */
 void Video_Blit(void)
 {
     SDL_LockMutex(vid_mutex);
@@ -113,6 +150,14 @@ void Video_Blit(void)
     SDL_RenderPresent(vid_renderer);
 }
 
+/**
+ * @brief Plots the VDP RGB output into the 400x300 work framebuffer.
+ *
+ * Tracks the VDP HSYNC/VSYNC signals to advance the plot position line by
+ * line; on a VSYNC falling edge the work framebuffer is swapped into the
+ * current framebuffer, the frame counter is incremented and the work buffer
+ * is cleared.
+ */
 void Video_PlotVDP(void)
 {
     static int ohsync;
@@ -159,6 +204,14 @@ void Video_PlotVDP(void)
     ovsync = ym.vdp.o_vsync != 0;
 }
 
+/**
+ * @brief Updates the window title with the current run time.
+ *
+ * Formats @p ms as minutes:seconds:milliseconds into "Nuked MD v<version>
+ * [mm:ss:mmm]" and sets it as the window title.
+ *
+ * @param ms Elapsed run time in milliseconds.
+ */
 void Video_UpdateTitle(uint64_t ms)
 {
     char buffer[100];

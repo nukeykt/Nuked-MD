@@ -22,28 +22,46 @@
  *
  */
 
+/** @file common.h @brief Shared transistor-cell primitives (counters, flip-flops, delay lines) used by all chips. */
+
 #pragma once
 
 #include <stdint.h>
 #include <stdlib.h>
 
+/** Emulator version string, used in the window title and the save file header. */
 #define VERSION "1.3"       // The emulator version in the main branch is ahead of the latest release 
 
+/** Tri-state logic values used by the cell models. */
 enum {
-    state_0 = 0,
-    state_1,
-    state_z,
-    state_test
+    state_0 = 0,    /**< Logic low. */
+    state_1,        /**< Logic high. */
+    state_z,        /**< High impedance. */
+    state_test      /**< Test state. */
 };
 
 #pragma pack(push, 1)
 typedef struct {
-    int l1;
-    int l2;
-    int cout;
+    int l1;     /**< Input latch (captured while clk is low). */
+    int l2;     /**< Output latch (follows l1 on the clock edge). */
+    int cout;   /**< Carry-out: l2 AND cin. */
 } staticcnt_t;
 #pragma pack(pop)
 
+/**
+ * @brief Updates a static counter cell.
+ *
+ * Computes the carry-out as cin && l2. While reset is low the cell is cleared
+ * (l1 = l2 = 0). Otherwise, on a low clock the input latch takes val (or
+ * l2 ^ cin when load is set) and on a high clock l2 follows l1.
+ *
+ * @param scnt Counter cell to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param load When nonzero, the captured bit is l2 ^ cin instead of val.
+ * @param val Input value captured when clk is low.
+ * @param cin Carry-in used for the carry-out and the load computation.
+ * @param reset When zero, clears the cell; must be high for normal operation.
+ */
 static inline void SCNT_Update(staticcnt_t* scnt, int clk, int load, int val, int cin, int reset)
 {
     scnt->cout = cin && scnt->l2;
@@ -68,6 +86,22 @@ static inline void SCNT_Update(staticcnt_t* scnt, int clk, int load, int val, in
     }
 }
 
+/**
+ * @brief Updates a wide static counter cell.
+ *
+ * Like SCNT_Update but operates on multi-bit values: the sum l2 + cin is
+ * computed, the carry-out is bit @p bits of the sum, and a loaded value is
+ * masked with @p mask.
+ *
+ * @param scnt Counter cell to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param load When nonzero, the captured bit is (l2 + cin) & mask instead of val.
+ * @param val Input value captured when clk is low.
+ * @param cin Carry-in.
+ * @param reset When zero, clears the cell; must be high for normal operation.
+ * @param mask Bit mask applied to the loaded sum.
+ * @param bits Bit position of the carry-out within the sum.
+ */
 static inline void SCNT_UpdateWide(staticcnt_t* scnt, int clk, int load, int val, int cin, int reset, int mask, int bits)
 {
     int sum = scnt->l2 + cin;
@@ -95,12 +129,22 @@ static inline void SCNT_UpdateWide(staticcnt_t* scnt, int clk, int load, int val
 
 #pragma pack(push, 1)
 typedef struct {
-    int l1;
-    int l2;
+    int l1;     /**< Input latch (captured while clk is low). */
+    int l2;     /**< Output latch (follows l1 on the clock edge). */
 } sdff_t;
 #pragma pack(pop)
 
 
+/**
+ * @brief Updates a D flip-flop.
+ *
+ * Edge-triggered behavior: on a low clock the input value is captured in l1,
+ * on a high clock l2 follows l1.
+ *
+ * @param dff Flip-flop to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param val Data input captured while clk is low.
+ */
 static inline void SDFF_Update(sdff_t *dff, int clk, int val)
 {
     if (!clk)
@@ -115,14 +159,25 @@ static inline void SDFF_Update(sdff_t *dff, int clk, int val)
 
 #pragma pack(push, 1)
 typedef struct {
-    int l1;
-    int l2;
-    int nq;
-    int q;
+    int l1;     /**< Input latch (captured while clk is low). */
+    int l2;     /**< Output latch (follows l1 on the clock edge). */
+    int nq;     /**< Inverted output (!l2). */
+    int q;      /**< Normal output (l2). */
 } sdffs_t;
 #pragma pack(pop)
 
 
+/**
+ * @brief Updates a D flip-flop with an active-low set input.
+ *
+ * While set is low the output latch is forced high (q = 1, nq = 0); otherwise
+ * the flip-flop behaves like SDFF_Update.
+ *
+ * @param dff Flip-flop to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param val Data input captured while clk is low.
+ * @param set Active-low set: when zero, forces the output high.
+ */
 static inline void SDFFS_Update(sdffs_t *dff, int clk, int val, int set)
 {
     if (!clk)
@@ -145,6 +200,18 @@ static inline void SDFFS_Update(sdffs_t *dff, int clk, int val, int set)
     dff->q = dff->l2;
 }
 
+/**
+ * @brief Updates a wide D flip-flop with an active-low set input.
+ *
+ * Like SDFFS_Update, but the set state and the inverted output are masked:
+ * set forces l1/l2 to @p mask and nq is computed as l2 ^ mask.
+ *
+ * @param dff Flip-flop to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param val Data input captured while clk is low.
+ * @param set Active-low set: when zero, forces the outputs to @p mask.
+ * @param mask Bit mask applied on set and to the inverted output.
+ */
 static inline void SDFFS_UpdateWide(sdffs_t* dff, int clk, int val, int set, int mask)
 {
     if (!clk)
@@ -169,14 +236,25 @@ static inline void SDFFS_UpdateWide(sdffs_t* dff, int clk, int val, int set, int
 
 #pragma pack(push, 1)
 typedef struct {
-    int l1;
-    int l2;
-    int nq;
-    int q;
+    int l1;     /**< Input latch (captured while clk is low). */
+    int l2;     /**< Output latch (follows l1 on the clock edge). */
+    int nq;     /**< Inverted output (!l2). */
+    int q;      /**< Normal output (l2). */
 } sdffr_t;
 #pragma pack(pop)
 
 
+/**
+ * @brief Updates a D flip-flop with an active-low reset input.
+ *
+ * While reset is low both latches are cleared (q = 0, nq = 1); otherwise the
+ * flip-flop behaves like SDFF_Update.
+ *
+ * @param dff Flip-flop to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param val Data input captured while clk is low.
+ * @param reset Active-low reset: when zero, clears the flip-flop.
+ */
 static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
 {
     if (!reset)
@@ -200,6 +278,18 @@ static inline void SDFFR_Update(sdffr_t* dff, int clk, int val, int reset)
 }
 
 
+/**
+ * @brief Updates a wide D flip-flop with an active-low reset input.
+ *
+ * Like SDFFR_Update, but the inverted output is masked: nq is computed as
+ * l2 ^ mask. Reset clears both latches to zero.
+ *
+ * @param dff Flip-flop to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param val Data input captured while clk is low.
+ * @param reset Active-low reset: when zero, clears the flip-flop.
+ * @param mask Bit mask applied to the inverted output.
+ */
 static inline void SDFFR_UpdateWide(sdffr_t* dff, int clk, int val, int reset, int mask)
 {
     if (!reset)
@@ -224,14 +314,29 @@ static inline void SDFFR_UpdateWide(sdffr_t* dff, int clk, int val, int reset, i
 
 #pragma pack(push, 1)
 typedef struct {
-    int l1;
-    int l2;
-    int nq;
-    int q;
+    int l1;     /**< Input latch (captured while clk is low). */
+    int l2;     /**< Output latch (follows l1 on the clock edge). */
+    int nq;     /**< Inverted output (!l2). */
+    int q;      /**< Normal output (l2). */
 } sdffsr_t;
 #pragma pack(pop)
 
 
+/**
+ * @brief Updates a D flip-flop with active-low set and reset inputs.
+ *
+ * Reset has priority over set on the input latch: while reset is low l1 is
+ * cleared, otherwise while set is low l1 is forced high, otherwise the input
+ * value is captured on a low clock. On the output side set forces l2 high,
+ * reset forces l2 low, otherwise l2 follows l1 on a high clock. When set and
+ * reset are both low both outputs are forced to zero.
+ *
+ * @param dff Flip-flop to update.
+ * @param clk Clock: low captures input, high transfers to the output latch.
+ * @param val Data input captured while clk is low.
+ * @param set Active-low set: when zero, forces the output high.
+ * @param reset Active-low reset: when zero, forces the output low.
+ */
 static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int reset)
 {
     if (!reset)
@@ -273,16 +378,23 @@ static inline void SDFFSR_Update(sdffsr_t *dff, int clk, int val, int set, int r
 }
 
 #pragma pack(push, 1)
+/** Maximum number of delay slots storable in a delaychain_t fifo. */
 #define MAX_DELAYCHAIN_DEPTH 10
 typedef struct {
-    uint64_t lastcycle;
-    int items;
-    int pos;
-    int lastval;
-    int fifo[MAX_DELAYCHAIN_DEPTH];
+    uint64_t lastcycle;                 /**< Cycle count at the last DELAY_Update call. */
+    int items;                          /**< Number of delay slots (delay cycles + 1). */
+    int pos;                            /**< Current write position in the fifo. */
+    int lastval;                        /**< Value pushed at the last update. */
+    int fifo[MAX_DELAYCHAIN_DEPTH];     /**< Circular delay buffer. */
 } delaychain_t;
 #pragma pack(pop)
 
+/**
+ * @brief Initializes a delay line for the given number of delay cycles.
+ *
+ * @param delay Delay line to initialize.
+ * @param delaycycles Number of cycles the signal is delayed by.
+ */
 static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
 {
     delay->lastcycle = 0;
@@ -290,10 +402,30 @@ static inline void DELAY_Init(delaychain_t *delay, int delaycycles)
     delay->pos = 0;
 }
 
+/**
+ * @brief Frees a delay line.
+ *
+ * The delay line uses a fixed-size embedded fifo, so this is a no-op kept for
+ * API symmetry.
+ *
+ * @param delay Delay line to free (unused).
+ */
 static inline void DELAY_Free(delaychain_t *delay)
 {
 }
 
+/**
+ * @brief Advances a delay line to @p cycles and pushes a new value.
+ *
+ * Advances the fifo position once per cycle from the last recorded cycle,
+ * storing the previously pushed value at each step, then pushes @p pushval
+ * and returns the value delayed by the configured number of cycles.
+ *
+ * @param delay Delay line to update.
+ * @param cycles Current emulated cycle count.
+ * @param pushval Signal value to push into the delay line.
+ * @return The delayed signal value.
+ */
 static inline int DELAY_Update(delaychain_t *delay, uint64_t cycles, int pushval)
 {
     if (!delay->fifo || delay->items < 1)

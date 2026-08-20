@@ -21,9 +21,18 @@
  *          TMPZ84C00 metal layer.
  */
 
+/** @file t84c00.c @brief Transistor-level, cycle-accurate TMPZ84C00 (CMOS Z80) simulation core. */
+
  // Z80(Toshiba CMOS)
 #include "t84c00.h"
 
+/**
+ * @brief Performs one clock step of the whole TMPZ84C00 chip (WIP: work in progress transistor-level, cycle-accurate CMOS Z80 emulation).
+ *
+ * The entire chip is simulated in this single clock function; this model is
+ * not yet part of the build.
+ * @param chip Pointer to the T84C00 state.
+ */
 void T84C00_Clock(t84c00_t* chip)
 {
     int bu1 = 0;

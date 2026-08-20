@@ -23,61 +23,74 @@
  *          help & support.
  *
  */
+
+/** @file 68k.h @brief State structures of the transistor-level NMOS 68000 CPU emulation. */
 #pragma once
 
 #include "common.h"
 
 #pragma pack(push, 1)
 
+/**
+ * @brief Registered input pins of the 68000, sampled each clock phase.
+ */
 typedef struct {
-    int i_clk_phase;
-    int i_vpa;
-    int i_br;
-    int i_bgack;
-    int i_reset;
-    int i_halt;
-    int i_ipl0;
-    int i_ipl1;
-    int i_ipl2;
-    int i_dtack;
-    int i_berr;
-    int i_data;
-    int i_vpa_test;
+    int i_clk_phase; /**< Current clock phase (1 or 2). */
+    int i_vpa; /**< Valid peripheral address input. */
+    int i_br; /**< Bus request input. */
+    int i_bgack; /**< Bus grant acknowledge input. */
+    int i_reset; /**< Reset input. */
+    int i_halt; /**< Halt input. */
+    int i_ipl0; /**< Interrupt priority level bit 0 input. */
+    int i_ipl1; /**< Interrupt priority level bit 1 input. */
+    int i_ipl2; /**< Interrupt priority level bit 2 input. */
+    int i_dtack; /**< Data transfer acknowledge input. */
+    int i_berr; /**< Bus error input. */
+    int i_data; /**< Data bus input. */
+    int i_vpa_test; /**< VPA test flag (set when `i_vpa` equals `state_test`). */
 } m68k_input_t;
 
+/**
+ * @brief State of one bus line: the 16-bit value currently pulled on that line.
+ */
 typedef struct {
-    int val;
+    int val; /**< Current pulled value of the bus line. */
 } busstate_t;
 
+/**
+ * @brief Complete state of the 68000 model: pins, internal buses, registers, wires, latches, microcode and PLA tables.
+ */
 typedef struct {
-    m68k_input_t input;
-    int input_clk_phase_o;
-    int input_vpa_test_o;
+    m68k_input_t input; /**< Registered input pins. */
+    int input_clk_phase_o; /**< Last seen clock phase (used for input change detection). */
+    int input_vpa_test_o; /**< Last seen VPA test flag (used for input change detection). */
 
-    int o_e;
-    int o_bg;
-    int o_reset;
-    int o_halt;
-    int o_ipl0;
-    int o_ipl1;
-    int o_ipl2;
-    int o_berr;
-    int o_fc0;
-    int o_fc1;
-    int o_fc2;
-    int o_rw;
-    int o_data;
-    int o_data_z;
-    int o_address;
-    int o_address_z;
-    int o_as;
-    int o_lds;
-    int o_uds;
+    int o_e; /**< E clock output pin. */
+    int o_bg; /**< Bus grant output pin. */
+    int o_reset; /**< Reset output pin. */
+    int o_halt; /**< Halt output pin. */
+    int o_ipl0; /**< Interrupt priority level bit 0 output pin. */
+    int o_ipl1; /**< Interrupt priority level bit 1 output pin. */
+    int o_ipl2; /**< Interrupt priority level bit 2 output pin. */
+    int o_berr; /**< Bus error output pin. */
+    int o_fc0; /**< Function code bit 0 output pin. */
+    int o_fc1; /**< Function code bit 1 output pin. */
+    int o_fc2; /**< Function code bit 2 output pin. */
+    int o_rw; /**< Read/write output pin. */
+    int o_data; /**< Data bus output pin. */
+    int o_data_z; /**< Data bus output enable flag (0 = driving, 1 = floating). */
+    int o_address; /**< Address bus output pin. */
+    int o_address_z; /**< Address bus output enable flag (0 = driving, 1 = floating). */
+    int o_as; /**< Address strobe output pin. */
+    int o_lds; /**< Lower data strobe output pin. */
+    int o_uds; /**< Upper data strobe output pin. */
 
-    busstate_t b1[4];
-    busstate_t b2[4];
-    busstate_t b3[4];
+    /** Internal data buses; each of the four entries per bus holds the value pulled on one bus line pair (see `busstate_t`). */
+    busstate_t b1[4]; /**< ALU bus 1 line-pair states. */
+    busstate_t b2[4]; /**< ALU bus 2 line-pair states. */
+    busstate_t b3[4]; /**< ALU bus 3 line-pair states. */
 
+    /** Internal combinational wire nodes of the 68k datapath; names follow the die schematic. `w###` are wires, `l###` are latches, `r#` are registers. */
     int w1;
     int l1;
     int l2;
@@ -184,8 +197,8 @@ typedef struct {
     int w106;
     int w107;
     int w108;
-    int r1[18];
-    int r2;
+    int r1[18]; /**< Register latches driven from bus `b1` (18 entries). */
+    int r2; /**< Register latch driven from bus `b1`. */
     int w109;
     int w110;
     int w111;
@@ -200,7 +213,7 @@ typedef struct {
     int w120;
     int w121;
     int w122;
-    int r3;
+    int r3; /**< Register latch driven from bus `b1`. */
     int w123;
     int w124;
     int w125;
@@ -237,7 +250,7 @@ typedef struct {
     int w155;
     int w156;
     int w157;
-    int r4;
+    int r4; /**< Register latch driven from bus `b2`. */
     int w158;
     int w159;
     int w160;
@@ -262,7 +275,7 @@ typedef struct {
     int w179;
     int w180;
     int w181;
-    int r5;
+    int r5; /**< Register latch driven from bus `b2`. */
     //int w182;
     int w183;
     int w184;
@@ -339,7 +352,7 @@ typedef struct {
     int w255;
     int w256;
     int w257;
-    int r6[10];
+    int r6[10]; /**< Register latches driven from bus `b2` (10 entries). */
 
     int w258;
     int w259[2];
@@ -414,16 +427,17 @@ typedef struct {
     int w327;
     int w328;
     int w329;
-    int c1_l;
-    int c1;
-    int c2_l;
-    int c2;
-    int c3_l;
-    int c3;
-    int c4_l;
-    int c4;
-    int c5_l;
-    int c5;
+    /** Internal clock phase signals derived from the two external clock phases; `c#_l` are the delayed low-phase copies. */
+    int c1_l; /**< Delayed copy of clock phase 1. */
+    int c1; /**< Internal clock phase 1. */
+    int c2_l; /**< Delayed copy of clock phase 2. */
+    int c2; /**< Internal clock phase 2. */
+    int c3_l; /**< Delayed copy of clock phase 3. */
+    int c3; /**< Internal clock phase 3. */
+    int c4_l; /**< Delayed copy of clock phase 4. */
+    int c4; /**< Internal clock phase 4. */
+    int c5_l; /**< Delayed copy of clock phase 5. */
+    int c5; /**< Internal clock phase 5. */
     int w330;
     int w331;
     int w332;
@@ -539,7 +553,7 @@ typedef struct {
     int w442[2];
     int w443[2];
     int w444;
-    int w445; // 10 bit
+    int w445; /**< 10 bit */
     int w446;
     int w447;
     int w448;
@@ -558,8 +572,8 @@ typedef struct {
     int w461;
     int w462[11];
     int w463;
-    int w464; // 10 bit
-    int codebus; // 10 bit
+    int w464; /**< 10 bit */
+    int codebus; /**< 10 bit */
     int w465[5];
     int w466;
     int w467;
@@ -615,6 +629,7 @@ typedef struct {
     int w516;
     int w517;
     int w518;
+    /** Microcode and PLA tables: `w519`/`w520`/`w521`/`w528`/`w529` are decoded microcode signals, `w522`/`w523` the microcode output register, `a0_pla`/`a2_pla`/`ird_pla1..4` the PLA term outputs and `irdbus` the instruction register bus. */
     int w519[118];
     int w520[118];
     int w521[68];
@@ -628,19 +643,19 @@ typedef struct {
     int w529[68];
     int w530;
     int a0_pla[171];
-    int w531;//10 bit
+    int w531; /**< 10 bit */
     int w532;
     int w533;
     int a2_pla[150];
     int a2_pla_g1;
     int a2_pla_g2;
     int a2_pla_g3;
-    int w534; // 10bit
-    int w535; // 10bit
+    int w534; /**< 10bit */
+    int w535; /**< 10bit */
     int w536;
     int w537;
-    int w538; //16 bit
-    unsigned int irdbus; // 32 bit
+    int w538; /**< 16 bit */
+    unsigned int irdbus; /**< 32 bit */
     int w539;
     int w540;
     int w541;
@@ -675,7 +690,7 @@ typedef struct {
     int ird_pla2[32];
     int ird_pla3[30];
     int ird_pla4[22];
-    int w569; // 15 bits
+    int w569; /**< 15 bits */
     int w570;
     int w571;
     int w572;
@@ -689,7 +704,7 @@ typedef struct {
     int w580;
     int w581;
     int w582;
-    int w583; // grounded
+    int w583; /**< grounded */
     int w584;
     int w585;
     int w586;
@@ -697,7 +712,7 @@ typedef struct {
     int w588;
     int w589;
     int w590;
-    int w591; // 16 bits
+    int w591; /**< 16 bits */
     int w592;
     int w593;
     int w594;
@@ -708,7 +723,7 @@ typedef struct {
     int w599;
     int w600;
     int w601;
-    int alu_io; // 16 bits
+    int alu_io; /**< 16 bits */
     int w602;
     int w603;
     int w604;
@@ -723,12 +738,12 @@ typedef struct {
     int w613;
     int w614;
     int w615;
-    int w616; // 5 bits
+    int w616; /**< 5 bits */
     int w617;
     int w618;
     int w619;
-    int w620; // 4 bits
-    int w621; // 4 bits
+    int w620; /**< 4 bits */
+    int w621; /**< 4 bits */
     int w622;
     int w623;
     int w624;
@@ -754,8 +769,8 @@ typedef struct {
     int w644;
     int w645;
     int w646;
-    int c2_delay[3];
-    int c6;
+    int c2_delay[3]; /**< Delay chain of clock phase 2 used to derive `c6`. */
+    int c6; /**< Derived clock phase used by the ALU bus logic. */
     int w647;
     int w648;
     int w649;
@@ -1053,18 +1068,18 @@ typedef struct {
     int w941;
     int w942;
     int w943;
-    int r7[9];
-    int w944; // 5 bits
+    int r7[9]; /**< Register latches driven from bus `b3` (9 entries). */
+    int w944; /**< 5 bits */
     int w945;
     int w946;
-    int w947; // 16 bits
-    int w948; // 16 bits
-    int data_io; // 16 bits
-    int w949; // 16 bits
-    int w950; // 16 bits
-    int w951; // 16 bits
-    int w952; // 16 bits
-    int w953; // 16 bits
+    int w947; /**< 16 bits */
+    int w948; /**< 16 bits */
+    int data_io; /**< 16 bits */
+    int w949; /**< 16 bits */
+    int w950; /**< 16 bits */
+    int w951; /**< 16 bits */
+    int w952; /**< 16 bits */
+    int w953; /**< 16 bits */
     int w954[19];
     int w955;
     int w956;
@@ -1072,11 +1087,11 @@ typedef struct {
     int w958;
     int w959;
     int w960;
-    int w961; // 16 bits
-    int w962; // 16 bits
-    int r8;
-    int w963; // 16 bits
-    int w964; // 16 bits
+    int w961; /**< 16 bits */
+    int w962; /**< 16 bits */
+    int r8; /**< Register latch driven from bus `b3`. */
+    int w963; /**< 16 bits */
+    int w964; /**< 16 bits */
     int w965;
     int w966;
     int w967;
@@ -1092,11 +1107,11 @@ typedef struct {
     int w977;
     int w978;
     int w979;
-    int w980; // 16 bits
-    int w981; // 16 bits
+    int w980; /**< 16 bits */
+    int w981; /**< 16 bits */
     int w982;
     int w983;
-    int w984; // 16 bits
+    int w984; /**< 16 bits */
     int w985;
     int w986;
     int w987;
@@ -1105,21 +1120,23 @@ typedef struct {
     int w990;
     int w991;
     int w992;
-    int data_l;
-    int address_mux;
-    int as_l1;
-    int as_l2;
-    int as_l3;
-    int uds_l1;
-    int uds_l2;
-    int uds_l3;
-    int lds_l1;
-    int lds_l2;
-    int lds_l3;
-    int rw_l;
+    /** Latched external bus control signals. */
+    int data_l; /**< Latched data bus input. */
+    int address_mux; /**< Multiplexed address value driven to `o_address`. */
+    int as_l1; /**< Address strobe latch, stage 1. */
+    int as_l2; /**< Address strobe latch, stage 2. */
+    int as_l3; /**< Address strobe latch, stage 3. */
+    int uds_l1; /**< Upper data strobe latch, stage 1. */
+    int uds_l2; /**< Upper data strobe latch, stage 2. */
+    int uds_l3; /**< Upper data strobe latch, stage 3. */
+    int lds_l1; /**< Lower data strobe latch, stage 1. */
+    int lds_l2; /**< Lower data strobe latch, stage 2. */
+    int lds_l3; /**< Lower data strobe latch, stage 3. */
+    int rw_l; /**< Read/write latch. */
 
-    int dbg_ucode_last;
-    int dbg_alucode;
+    /** Debug helpers (not part of the emulated hardware). */
+    int dbg_ucode_last; /**< Last decoded microcode row index (debug). */
+    int dbg_alucode; /**< Current ALU opcode (debug). */
 } m68k_t;
 
 #pragma pack(pop)

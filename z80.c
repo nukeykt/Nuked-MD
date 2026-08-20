@@ -23,22 +23,39 @@
  *          help & support.
  */
 
+/** @file z80.c @brief Transistor-level, cycle-accurate Zilog Z80 (NMOS) CPU core implementation. */
+
 // Z80(NMOS)
 #include <stdint.h>
 #include <string.h>
 #include "z80.h"
 
 
+/**
+ * @brief Writes the external data bus input value.
+ * @param chip Pointer to the Z80 state.
+ * @param data Data bus input value (masked to 8 bits).
+ */
 void Z80_SetData(z80_t *chip, int data)
 {
     chip->input.ext_data_i = data & 255;
 }
 
+/**
+ * @brief Returns the current external data bus output value.
+ * @param chip Pointer to the Z80 state.
+ * @return The 8-bit data bus output.
+ */
 int Z80_GetData(z80_t *chip)
 {
     return chip->ext_data_o;
 }
 
+/**
+ * @brief Computes the clocked latch-enable signals used by the register logic.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_ClkLatches(z80_t *chip, int clk)
 {
     chip->w304 = !clk && chip->w303 && chip->pla[95];
@@ -48,6 +65,11 @@ void Z80_ClkLatches(z80_t *chip, int clk)
     chip->w331 = !clk && !chip->w326 && chip->w327;
 }
 
+/**
+ * @brief Implements the RESET input logic and generates the internal reset signal.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_ResetLogic(z80_t *chip, int clk)
 {
     chip->w52 = !clk && chip->l19;
@@ -67,6 +89,11 @@ void Z80_ResetLogic(z80_t *chip, int clk)
         chip->w56 = 1;
 }
 
+/**
+ * @brief Generates the T-state and M-cycle sequencing signals (t1-t6, m1-m6).
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_StateLogic(z80_t* chip, int clk)
 {
     chip->w132 = !clk && chip->l36;
@@ -146,6 +173,11 @@ void Z80_StateLogic(z80_t* chip, int clk)
         chip->l20 = !(chip->w131 && chip->w114);
 }
 
+/**
+ * @brief Samples the NMI and INT pins and generates the interrupt request signals.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_InterruptLogic(z80_t *chip, int clk)
 {
     chip->w16 = chip->l4 && !clk;
@@ -191,6 +223,11 @@ void Z80_InterruptLogic(z80_t *chip, int clk)
     chip->w35 = !(!chip->w37 && chip->w131 && chip->w18);
 }
 
+/**
+ * @brief Generates the bus control outputs MREQ, IORQ, RD, WR, M1 and RFSH.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_IOLogic(z80_t *chip, int clk)
 {
     if (!clk)
@@ -275,6 +312,11 @@ void Z80_IOLogic(z80_t *chip, int clk)
 
 }
 
+/**
+ * @brief Controls the internal data bus (bus 1) and the data-pad data-latch (dp_dl) signal.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_BusLogic(z80_t *chip, int clk)
 {
     chip->w15 = !(!chip->w114 || chip->w202 || chip->w201);
@@ -317,6 +359,11 @@ void Z80_BusLogic(z80_t *chip, int clk)
     }
 }
 
+/**
+ * @brief Latches the opcode from the data bus during the opcode fetch cycle.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_OpcodeFetch(z80_t *chip, int clk)
 {
     // opcode fetch
@@ -338,6 +385,11 @@ void Z80_OpcodeFetch(z80_t *chip, int clk)
         chip->w147 = chip->w146 ^ 255;
 }
 
+/**
+ * @brief Implements the HALT state and drives the HALT output.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_HaltLogic(z80_t *chip, int clk)
 {
     chip->pla[3] = chip->w147 == 0x76 && chip->w90; // halt
@@ -350,6 +402,11 @@ void Z80_HaltLogic(z80_t *chip, int clk)
     chip->o_halt = chip->halt;
 }
 
+/**
+ * @brief Implements the interrupt enable flip-flops IFF1/IFF2 and the interrupt mode latches.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_InterruptFlipFlops(z80_t *chip, int clk)
 {
     chip->w71 = !clk && !chip->l26;
@@ -388,6 +445,11 @@ void Z80_InterruptFlipFlops(z80_t *chip, int clk)
     }
 }
 
+/**
+ * @brief Decodes the opcode via the PLA and generates the instruction control signals.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_OpcodeDecode(z80_t *chip, int clk)
 {
     // prefix logic
@@ -1176,6 +1238,11 @@ void Z80_OpcodeDecode(z80_t *chip, int clk)
     chip->w480 = !clk && !chip->l77;
 }
 
+/**
+ * @brief Generates interrupt control signals (EI/DI, IM, RETI/RETN) and the interrupt acknowledge logic.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_InterruptLogic2(z80_t *chip, int clk)
 {
     if (clk)
@@ -1208,6 +1275,11 @@ void Z80_InterruptLogic2(z80_t *chip, int clk)
     chip->w193 = (chip->w144 && chip->w14) || chip->w205;
 }
 
+/**
+ * @brief Selects the register addressed by the opcode and computes the register-file control signals.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_RegistersLogic(z80_t* chip, int clk)
 {
     chip->w315 = ((chip->w147 & 4) == 0 && chip->w183) || (!chip->w183 && (chip->w147 & 32) == 0);
@@ -1408,6 +1480,11 @@ void Z80_RegistersLogic(z80_t* chip, int clk)
     chip->w519 = !chip->w418;
 }
 
+/**
+ * @brief Generates the ALU control signals and the ALU result bus value (bus 2).
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_AluControlLogic(z80_t *chip, int clk)
 {
     if (clk)
@@ -1499,6 +1576,10 @@ void Z80_AluControlLogic(z80_t *chip, int clk)
     chip->w446 = !chip->w442 && !chip->w433;
 }
 
+/**
+ * @brief Computes the ALU result and carry/overflow outputs for a 4-bit slice using ripple carry.
+ * @param chip Pointer to the Z80 state.
+ */
 void Z80_CalcAlu(z80_t *chip)
 {
     int o1, o2, t, t2, c;
@@ -1556,6 +1637,11 @@ void Z80_CalcAlu(z80_t *chip)
     chip->alu_calc = 1;
 }
 
+/**
+ * @brief Applies the ALU operation to the ALU bus inputs and produces the ALU result.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_AluLogic(z80_t *chip, int clk)
 {
     if (clk)
@@ -1580,6 +1666,11 @@ void Z80_AluLogic(z80_t *chip, int clk)
     }
 }
 
+/**
+ * @brief Reads the register file onto the internal buses and computes the address bus value.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_RegistersLogic2(z80_t* chip, int clk)
 {
     chip->pull1[0] = 0;
@@ -1758,6 +1849,11 @@ void Z80_RegistersLogic2(z80_t* chip, int clk)
     }
 }
 
+/**
+ * @brief Merges the internal data buses (bus 1/bus 2/bus 3) and drives the external data output.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_BusLogic2(z80_t *chip, int clk)
 {
     {
@@ -1816,6 +1912,11 @@ void Z80_BusLogic2(z80_t *chip, int clk)
     }
 }
 
+/**
+ * @brief Computes the ALU result, the flag bits and the condition inputs from the ALU buses.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_AluLogic2(z80_t *chip, int clk)
 {
     if (clk)
@@ -2035,6 +2136,11 @@ void Z80_AluLogic2(z80_t *chip, int clk)
     }
 }
 
+/**
+ * @brief Writes the register file back from the internal buses.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_RegistersLogic3(z80_t *chip, int clk)
 {
     if (!clk)
@@ -2095,6 +2201,11 @@ void Z80_RegistersLogic3(z80_t *chip, int clk)
     }
 }
 
+/**
+ * @brief Evaluates the condition-code flags and marks the end of the current instruction.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_ConditionLogic(z80_t *chip, int clk)
 {
     chip->w494 = !(((chip->w484 & 64) != 0 && chip->w409)
@@ -2116,6 +2227,11 @@ void Z80_ConditionLogic(z80_t *chip, int clk)
         chip->l4 = !(chip->w55 || !chip->w97 || !chip->w118 || chip->w133);
 }
 
+/**
+ * @brief Runs one full clock phase by executing all logic blocks in sequence.
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_Clock(z80_t *chip, int clk)
 {
     chip->bu1 = 0;
@@ -2145,6 +2261,11 @@ void Z80_Clock(z80_t *chip, int clk)
 }
 
 
+/**
+ * @brief Registers the clock edge and runs the CPU only when the inputs changed (two phases per edge).
+ * @param chip Pointer to the Z80 state.
+ * @param clk Clock input.
+ */
 void Z80_Clock2(z80_t *chip, int clk)
 {
     chip->input.clk = clk;

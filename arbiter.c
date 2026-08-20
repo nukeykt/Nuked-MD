@@ -22,6 +22,11 @@
  *
  */
 
+/**
+ * @file arbiter.c
+ * @brief Transistor-level, cycle-accurate emulation of the YM6045C (FC1004) bus arbiter.
+ */
+
 // FC1004 bus arbiter
 #include <stdio.h>
 #include <string.h>
@@ -37,6 +42,10 @@
 
 #define DELAY_RATIO 6
 
+/**
+ * @brief Initialize the arbiter state and its delay chains `d1`..`d8`.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_Init(arbiter_t *chip)
 {
     DELAY_Init(&chip->d1, 6 / DELAY_RATIO); // z80 m1
@@ -49,6 +58,10 @@ void ARB_Init(arbiter_t *chip)
     DELAY_Init(&chip->d8, 6 / DELAY_RATIO); // m3
 }
 
+/**
+ * @brief Free the internal storage of the delay chains `d1`..`d8`.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_Destroy(arbiter_t *chip)
 {
     DELAY_Free(&chip->d1);
@@ -61,6 +74,11 @@ void ARB_Destroy(arbiter_t *chip)
     DELAY_Free(&chip->d8);
 }
 
+/**
+ * @brief Advance the delay chains `d1`..`d8` by `cycles` and store their outputs.
+ * @param chip Pointer to the arbiter state.
+ * @param cycles Number of clock cycles to advance the delay chains by.
+ */
 void ARB_UpdateDelays(arbiter_t *chip, uint64_t cycles)
 {
     chip->input.d1_out = DELAY_Update(&chip->d1, cycles, chip->input.ext_m1);
@@ -73,6 +91,10 @@ void ARB_UpdateDelays(arbiter_t *chip, uint64_t cycles)
     chip->input.d8_out = DELAY_Update(&chip->d8, cycles, chip->input.ext_m3);
 }
 
+/**
+ * @brief Clock the Z80-to-68k (V-side) transfer logic: 68k access detection, bus request (`ext_br`) and grant handshake, and the 68k strobe/direction outputs.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockZToV(arbiter_t *chip)
 {
     chip->w143 = !chip->input.ext_m3 || chip->w220 || !chip->za15_in; // 68k bank access
@@ -119,6 +141,10 @@ void ARB_ClockZToV(arbiter_t *chip)
     chip->w48 = !chip->w45;
 }
 
+/**
+ * @brief Clock the EDCLK divider sub-block that divides the master clock to produce the dot clock `ext_edclk`.
+ * @param chip Pointer to the EDCLK sub-block state.
+ */
 void ARB_ClockEDCLK(arbiter_edclk_t *chip)
 {
     int sres = chip->input.sres;
@@ -143,6 +169,10 @@ void ARB_ClockEDCLK(arbiter_edclk_t *chip)
     SDFFS_Update(&chip->dff8, chip->w2, chip->w5, sres);
 }
 
+/**
+ * @brief Clock the M3-synchronous logic: VDP /MREQ handling, NMI generation and the reset synchronizer chain.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockM3(arbiter_t *chip)
 {
 
@@ -175,6 +205,10 @@ void ARB_ClockM3(arbiter_t *chip)
     chip->w328 = !(!chip->dff58.l2 || chip->w334);
 }
 
+/**
+ * @brief Clock the Z80 bus control logic: /M1 and /IORQ sampling, the NMI output and the refresh signal.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockZ80(arbiter_t *chip)
 {
     chip->w113 = chip->input.ext_iorq || chip->input.ext_m3 || !chip->input.ext_m1;
@@ -198,6 +232,10 @@ void ARB_ClockZ80(arbiter_t *chip)
     chip->ext_ref = !chip->w318;
 }
 
+/**
+ * @brief Clock the 68k-to-Z80 transfer logic: Z80 bus request/acknowledge, /MREQ output and Z80 RAM DTACK.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockVToZ(arbiter_t *chip)
 {
     // ts1
@@ -240,6 +278,10 @@ void ARB_ClockVToZ(arbiter_t *chip)
     SDFF_Update(&chip->dff70, !chip->input.ext_vclk, chip->w339);
 }
 
+/**
+ * @brief Clock the interrupt acknowledge logic (`ext_intak`) and the 68k /VPA output.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockInterrupt(arbiter_t *chip)
 {
 
@@ -251,6 +293,10 @@ void ARB_ClockInterrupt(arbiter_t *chip)
     chip->ext_vpa = chip->input.ext_as_in || chip->w249;
 }
 
+/**
+ * @brief Clock the cartridge interface logic: /CE0, /ROM, /RAS2, /CAS2, /ASEL and DRAM refresh.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockCart(arbiter_t *chip)
 {
 
@@ -336,6 +382,10 @@ void ARB_ClockCart(arbiter_t *chip)
     chip->w70 = chip->w27 && chip->w71; // refresh???
 }
 
+/**
+ * @brief Clock the VCLK divider that produces the derived clocks `w287` and `w356`.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockVCLKDivider(arbiter_t *chip)
 {
     chip->w286 = !(chip->w287 || !chip->sres_syncv.l2);
@@ -364,6 +414,10 @@ void ARB_ClockVCLKDivider(arbiter_t *chip)
     SDFFR_Update(&chip->dff23, !chip->w59, chip->dff33.nq, chip->dff33.nq);
 }
 
+/**
+ * @brief Clock the 68k work RAM output-enable logic producing `ext_noe` and `ext_eoe`.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_ClockRAMOE(arbiter_t *chip)
 {
     chip->w279 = !chip->input.ext_bgack_in;
@@ -392,6 +446,14 @@ void ARB_ClockRAMOE(arbiter_t *chip)
     SDFFR_Update(&chip->dff62, chip->input.ext_vclk, chip->dff61.l2, chip->dff51.l2);
 }
 
+/**
+ * @brief Clock the whole arbiter: latch inputs, decode 68k/Z80 address ranges and generate the control outputs.
+ *
+ * Runs all sub-block clock functions: `ARB_ClockZToV`, `ARB_ClockM3`, `ARB_ClockZ80`,
+ * `ARB_ClockVToZ`, `ARB_ClockInterrupt`, `ARB_ClockCart`, `ARB_ClockVCLKDivider`,
+ * `ARB_ClockRAMOE`.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_Clock(arbiter_t *chip)
 {
 
@@ -705,6 +767,14 @@ void ARB_Clock(arbiter_t *chip)
     ARB_ClockRAMOE(chip);
 }
 
+/**
+ * @brief Clock the EDCLK divider for one master clock cycle.
+ *
+ * Latches `mclk` and, if any input changed, runs `ARB_ClockEDCLK` three times to
+ * settle both latch phases before saving `input_old`.
+ * @param chip Pointer to the EDCLK sub-block state.
+ * @param mclk Master clock input value.
+ */
 void ARB_ClockEDCLK2(arbiter_edclk_t *chip, int mclk)
 {
     chip->input.mclk = mclk;
@@ -717,6 +787,13 @@ void ARB_ClockEDCLK2(arbiter_edclk_t *chip, int mclk)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Clock the whole arbiter for one system cycle.
+ *
+ * If any input changed, runs `ARB_Clock` five times to settle all latch phases
+ * before saving `input_old`.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_Clock2(arbiter_t* chip)
 {
     if (!memcmp(&chip->input, &chip->input_old, sizeof(chip->input)))
@@ -730,6 +807,10 @@ void ARB_Clock2(arbiter_t* chip)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Drive the shared data and 68k address output buses from the arbitration state.
+ * @param chip Pointer to the arbiter state.
+ */
 void ARB_UpdateOutputBus(arbiter_t *chip)
 {
     if (!chip->w12)

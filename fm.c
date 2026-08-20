@@ -22,6 +22,11 @@
  *
  */
 
+/**
+ * @file fm.c
+ * @brief Transistor-level, cycle-accurate YM2612/YM3438 FM sound core.
+ */
+
 // YM3438/YM2612 core
 
 #include <stdio.h>
@@ -29,6 +34,7 @@
 
 #include "fm.h"
 
+/** Envelope generator state machine states. */
 enum {
     eg_state_attack = 0,
     eg_state_decay,
@@ -36,6 +42,10 @@ enum {
     eg_state_release
 };
 
+/**
+ * @brief FM algorithm (connection) lookup table: modulator and output
+ * selection per algorithm and operator slot.
+ */
 static const int fm_algorithm[4][6][8] = {
     {
         { 1, 1, 1, 1, 1, 1, 1, 1 }, /* OP1_0         */
@@ -73,6 +83,10 @@ static const int fm_algorithm[4][6][8] = {
 
 void FM_ClockPhase1(fm_t *chip);
 
+/**
+ * @brief Advances the master clock prescaler and IC detection latches.
+ * @param chip Pointer to the prescaler state.
+ */
 void FM_Prescaler(fm_prescaler_t *chip)
 {
     if (!chip->input.phi)
@@ -103,6 +117,11 @@ void FM_Prescaler(fm_prescaler_t *chip)
     }
 }
 
+/**
+ * @brief Handles the CPU interface: decodes read/write strobes, latches the
+ * data bus and address bank, and clocks the IO state on phi1.
+ * @param chip Pointer to the FM state.
+ */
 void FM_HandleIO(fm_t *chip)
 {
     int write_data = chip->input.cs && chip->input.wr && (chip->input.address & 1) == 1 && !chip->input.ic;
@@ -135,6 +154,11 @@ void FM_HandleIO(fm_t *chip)
     }
 }
 
+/**
+ * @brief Returns the data bus value the chip drives on a read.
+ * @param chip Pointer to the FM state.
+ * @return Latched data bus value, or 0 when the chip is not driving the bus.
+ */
 int FM_GetBus(fm_t *chip)
 {
     int data = 0;
@@ -147,6 +171,11 @@ int FM_GetBus(fm_t *chip)
     return data;
 }
 
+/**
+ * @brief Sets the test pin input and clocks the state on phi1.
+ * @param chip Pointer to the FM state.
+ * @param test Test pin value.
+ */
 void FM_SetTest(fm_t *chip, int test)
 {
     chip->input.test = test;
@@ -154,6 +183,11 @@ void FM_SetTest(fm_t *chip, int test)
         FM_ClockPhase1(chip);
 }
 
+/**
+ * @brief Reads the test-pin debug output.
+ * @param chip Pointer to the FM state.
+ * @return Current FSM select when test register 0x2c bit 7 is set, else 0.
+ */
 int FM_ReadTest(fm_t *chip)
 {
     if (chip->mode_test_2c[1] & 128)
@@ -161,6 +195,11 @@ int FM_ReadTest(fm_t *chip)
     return 0; // FIXME: high impedance
 }
 
+/**
+ * @brief Reads the status register (busy and timer flags, or test data).
+ * @param chip Pointer to the FM state.
+ * @return Status byte, or 0 when the chip is not selected for a read.
+ */
 int FM_ReadStatus(fm_t *chip)
 {
     int io_dir = chip->input.cs && chip->input.rd && !chip->input.ic;
@@ -201,6 +240,11 @@ int FM_ReadStatus(fm_t *chip)
     return status;
 }
 
+/**
+ * @brief Sets the IC reset input and propagates it through the core.
+ * @param chip Pointer to the FM state.
+ * @param ic IC reset value.
+ */
 void FM_SetIC(fm_t *chip, int ic)
 {
     chip->input.ic = ic & 1;
@@ -208,36 +252,66 @@ void FM_SetIC(fm_t *chip, int ic)
     FM_HandleIO(chip);
 }
 
+/**
+ * @brief Sets the write strobe input.
+ * @param chip Pointer to the FM state.
+ * @param wr Write strobe value.
+ */
 void FM_SetWrite(fm_t *chip, int wr)
 {
     chip->input.wr = wr & 1;
     FM_HandleIO(chip);
 }
 
+/**
+ * @brief Sets the read strobe input.
+ * @param chip Pointer to the FM state.
+ * @param rd Read strobe value.
+ */
 void FM_SetRead(fm_t *chip, int rd)
 {
     chip->input.rd = rd & 1;
     FM_HandleIO(chip);
 }
 
+/**
+ * @brief Sets the chip select input.
+ * @param chip Pointer to the FM state.
+ * @param cs Chip select value.
+ */
 void FM_SetCS(fm_t *chip, int cs)
 {
     chip->input.cs = cs & 1;
     FM_HandleIO(chip);
 }
 
+/**
+ * @brief Sets the address bus input.
+ * @param chip Pointer to the FM state.
+ * @param address Address value (bits A0-A1).
+ */
 void FM_SetAddress(fm_t *chip, int address)
 {
     chip->input.address = address & 3;
     FM_HandleIO(chip);
 }
 
+/**
+ * @brief Sets the data bus input.
+ * @param chip Pointer to the FM state.
+ * @param data Data value (8-bit).
+ */
 void FM_SetData(fm_t *chip, int data)
 {
     chip->input.data = data & 255;
     FM_HandleIO(chip);
 }
 
+/**
+ * @brief Advances the FSM counters and computes the latched YM2612 FSM
+ * outputs and algorithm selections.
+ * @param chip Pointer to the FM state.
+ */
 void FM_FSM1(fm_t *chip)
 {
     int i;
@@ -317,6 +391,11 @@ void FM_FSM1(fm_t *chip)
     }
 }
 
+/**
+ * @brief Registers the FSM counters and derives the FSM table outputs and
+ * algorithm selections (YM3438 decode or YM2612 latched values).
+ * @param chip Pointer to the FM state.
+ */
 void FM_FSM2(fm_t *chip)
 {
     int i, connect = 0;
@@ -442,6 +521,11 @@ void FM_FSM2(fm_t *chip)
     }
 }
 
+/**
+ * @brief Combinational IO stage: synchronizes the write triggers and computes
+ * the busy counter and IC latch.
+ * @param chip Pointer to the FM state.
+ */
 void FM_HandleIO1(fm_t *chip)
 {
     int write_data_en = !chip->write_data_sr[1] && chip->write_data_dlatch;
@@ -460,6 +544,11 @@ void FM_HandleIO1(fm_t *chip)
     chip->io_ic_latch[0] = chip->input.ic;
 }
 
+/**
+ * @brief Registered IO stage: D-latches the write triggers and shifts the IO
+ * state into the registered stage.
+ * @param chip Pointer to the FM state.
+ */
 void FM_HandleIO2(fm_t *chip)
 {
     chip->write_addr_dlatch = chip->write_addr_trig_sync;
@@ -475,6 +564,12 @@ void FM_HandleIO2(fm_t *chip)
     chip->io_ic_latch[1] = chip->io_ic_latch[0] & 1;
 }
 
+/**
+ * @brief Rotates the slot and channel register shift registers for one
+ * pipeline stage.
+ * @param chip Pointer to the FM state.
+ * @param sel Stage select (0 = combinational, 1 = registered).
+ */
 void FM_DoShiftRegisters(fm_t *chip, int sel)
 {
     int i, j;
@@ -553,6 +648,11 @@ void FM_DoShiftRegisters(fm_t *chip, int sel)
 #undef CH_ROTATE
 }
 
+/**
+ * @brief Combinational FM register stage: decodes address/data writes into
+ * the mode, slot and channel registers.
+ * @param chip Pointer to the FM state.
+ */
 void FM_FMRegisters1(fm_t *chip)
 {
     int i, j;
@@ -966,6 +1066,11 @@ void FM_FMRegisters1(fm_t *chip)
     }
 }
 
+/**
+ * @brief Registered FM register stage: copies the combinational stage values
+ * into the registered stage.
+ * @param chip Pointer to the FM state.
+ */
 void FM_FMRegisters2(fm_t *chip)
 {
     chip->write_fm_address[1] = chip->write_fm_address[0];
@@ -1007,6 +1112,11 @@ void FM_FMRegisters2(fm_t *chip)
     chip->mode_kon[3][1] = chip->mode_kon[3][0];
 }
 
+/**
+ * @brief Advances the register scan counters and resets them on `fsm_sel23`
+ * or IC reset.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Misc1(fm_t *chip)
 {
     chip->reg_cnt1[0] = chip->reg_cnt1[1] + 1;
@@ -1023,12 +1133,21 @@ void FM_Misc1(fm_t *chip)
     }
 }
 
+/**
+ * @brief Registers the register scan counters.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Misc2(fm_t *chip)
 {
     chip->reg_cnt1[1] = chip->reg_cnt1[0] & 3;
     chip->reg_cnt2[1] = chip->reg_cnt2[0] & 7;
 }
 
+/**
+ * @brief Combinational LFO stage: advances the LFO counters and computes the
+ * LFO increment and load signals.
+ * @param chip Pointer to the FM state.
+ */
 void FM_LFO1(fm_t *chip)
 {
     static const int lfo_cycles[8] = {
@@ -1053,6 +1172,11 @@ void FM_LFO1(fm_t *chip)
     chip->lfo_dlatch_load = chip->lfo_inc_latch[1];
 }
 
+/**
+ * @brief Registered LFO stage: latches the LFO counters and updates the LFO
+ * output D-latch.
+ * @param chip Pointer to the FM state.
+ */
 void FM_LFO2(fm_t *chip)
 {
     chip->lfo_cnt1[1] = chip->lfo_cnt1[0] & 127;
@@ -1062,6 +1186,11 @@ void FM_LFO2(fm_t *chip)
         chip->lfo_dlatch = chip->lfo_cnt2[1];
 }
 
+/**
+ * @brief Combinational phase generator stage: computes frequency, key code,
+ * detune and phase increment for the current operator.
+ * @param chip Pointer to the FM state.
+ */
 void FM_PhaseGenerator1(fm_t *chip)
 {
     // Note table
@@ -1238,6 +1367,11 @@ void FM_PhaseGenerator1(fm_t *chip)
     }
 }
 
+/**
+ * @brief Registered phase generator stage: advances the pipeline and updates
+ * the phase accumulators.
+ * @param chip Pointer to the FM state.
+ */
 void FM_PhaseGenerator2(fm_t *chip)
 {
     int i;
@@ -1269,6 +1403,12 @@ void FM_PhaseGenerator2(fm_t *chip)
     chip->pg_debug[1] = chip->pg_debug[0];
 }
 
+/**
+ * @brief Combinational envelope generator stage: computes envelope rate,
+ * level, key events, SSG-EG behaviour and the next envelope state for the
+ * current operator.
+ * @param chip Pointer to the FM state.
+ */
 void FM_EnvelopeGenerator1(fm_t *chip)
 {
     int i;
@@ -1665,6 +1805,11 @@ void FM_EnvelopeGenerator1(fm_t *chip)
         chip->eg_debug[0] |= chip->eg_out_total;
 }
 
+/**
+ * @brief Registered envelope generator stage: advances the pipeline and
+ * computes the envelope output level.
+ * @param chip Pointer to the FM state.
+ */
 void FM_EnvelopeGenerator2(fm_t *chip)
 {
     int i;
@@ -1770,6 +1915,11 @@ void FM_EnvelopeGenerator2(fm_t *chip)
     chip->eg_key[1] = chip->eg_key[0];
 }
 
+/**
+ * @brief Combinational operator stage: computes the operator output via the
+ * log-sine and power tables, modulation and feedback.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Operator1(fm_t *chip)
 {
     int i;
@@ -1962,6 +2112,10 @@ void FM_Operator1(fm_t *chip)
     }
 }
 
+/**
+ * @brief Registered operator stage: registers the operator pipeline values.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Operator2(fm_t *chip)
 {
     int i;
@@ -1991,6 +2145,11 @@ void FM_Operator2(fm_t *chip)
     chip->op_dofeedback[1] = chip->op_dofeedback[0];
 }
 
+/**
+ * @brief Combinational accumulator stage: sums the operator output into the
+ * channel accumulator and captures the channel output.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Accumulator1(fm_t *chip)
 {
     int i;
@@ -2036,6 +2195,11 @@ void FM_Accumulator1(fm_t *chip)
     chip->ch_out_debug[0] = chip->ch_out_dlatch;
 }
 
+/**
+ * @brief Registered accumulator stage: latches the DAC value and drives the
+ * left/right channel outputs.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Accumulator2(fm_t* chip)
 {
     int i;
@@ -2130,6 +2294,11 @@ void FM_Accumulator2(fm_t* chip)
     chip->ch_out_debug[1] = chip->ch_out_debug[0];
 }
 
+/**
+ * @brief Combinational timer stage: advances timer A and timer B counters and
+ * computes their status flags.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Timers1(fm_t *chip)
 {
     int time;
@@ -2197,6 +2366,11 @@ void FM_Timers1(fm_t *chip)
     chip->timer_dlatch = chip->fsm_clock_timers;
 }
 
+/**
+ * @brief Registered timer stage: latches the timer state and updates the load
+ * D-latches and status.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Timers2(fm_t *chip)
 {
     int read_enable = chip->input.cs && chip->input.rd && !chip->input.ic;
@@ -2225,6 +2399,11 @@ void FM_Timers2(fm_t *chip)
     }
 }
 
+/**
+ * @brief Runs the first (combinational) half of a clock cycle: all `*1`
+ * pipeline stages.
+ * @param chip Pointer to the FM state.
+ */
 void FM_ClockPhase1(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 0);
@@ -2240,6 +2419,11 @@ void FM_ClockPhase1(fm_t *chip)
     FM_Timers1(chip);
 }
 
+/**
+ * @brief Runs the second (registered) half of a clock cycle: all `*2`
+ * pipeline stages.
+ * @param chip Pointer to the FM state.
+ */
 void FM_ClockPhase2(fm_t *chip)
 {
     FM_DoShiftRegisters(chip, 1);
@@ -2255,6 +2439,11 @@ void FM_ClockPhase2(fm_t *chip)
     FM_Timers2(chip);
 }
 
+/**
+ * @brief Clocks the chip: handles IO and runs the phase 1/2 pipelines on the
+ * active phi phases.
+ * @param chip Pointer to the FM state.
+ */
 void FM_Clock(fm_t *chip)
 {
 #if 0
@@ -2277,6 +2466,12 @@ void FM_Clock(fm_t *chip)
     }
 }
 
+/**
+ * @brief Clocks the master clock prescaler, skipping the update when the
+ * registered inputs are unchanged.
+ * @param chip Pointer to the prescaler state.
+ * @param clk Current phi clock level.
+ */
 void FM_Prescaler2(fm_prescaler_t *chip, int clk)
 {
     chip->input.phi = clk;
@@ -2286,6 +2481,13 @@ void FM_Prescaler2(fm_prescaler_t *chip, int clk)
     chip->input_old = chip->input;
 }
 
+/**
+ * @brief Clocks the chip for the given phi phases, skipping the update when
+ * the registered inputs are unchanged.
+ * @param chip Pointer to the FM state.
+ * @param phi1 Phi1 clock phase level.
+ * @param phi2 Phi2 clock phase level.
+ */
 void FM_Clock2(fm_t *chip, int phi1, int phi2)
 {
     if (phi1)
@@ -2302,6 +2504,10 @@ void FM_Clock2(fm_t *chip, int phi1, int phi2)
 
 
 #if 0
+/**
+ * @brief Standalone test entry point (disabled by the surrounding `#if 0`
+ * guard): exercises the FM core and prints LFO counter debug values.
+ */
 void main(void)
 {
     int i;

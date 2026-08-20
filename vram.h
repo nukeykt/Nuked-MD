@@ -17,30 +17,32 @@
  *
  */
 
+/** @file vram.h @brief VRAM high-level emulation: bank input/output structures and update/save/load API. */
+
 #pragma once
 
 #pragma pack(push, 1)
 
 typedef struct {
-    int ras;
-    int cas;
-    int we0;
-    int oe1;
-    int sc;
-    int se0;
-    int ad;
-    int rd;
+    int ras;        /**< Row address strobe input. */
+    int cas;        /**< Column address strobe input. */
+    int we0;        /**< Write enable input. */
+    int oe1;        /**< Output enable input. */
+    int sc;         /**< Serial clock input. */
+    int se0;        /**< Serial output enable input. */
+    int ad;         /**< Address input (latched on RAS/CAS edges). */
+    int rd;         /**< Read data output (bank 1) / address echo (bank 0). */
 } vram_input_t;
 
 typedef struct {
-    vram_input_t vram_input, vram_input_o;
-    int vram[64 * 1024];
-    int vram_page[256];
-    int vram_addr;
-    int vram_dt;
-    int vram_addr_ser;
-    int vram_ser;
-    int vram_addr_o;
+    vram_input_t vram_input, vram_input_o;  /**< Current input signals; vram_input_o holds the previous set for edge detection. */
+    int vram[64 * 1024];        /**< Bank memory array (64K entries, one int per address). */
+    int vram_page[256];         /**< Cached 256-entry page of vram used for serial access. */
+    int vram_addr;              /**< Current latched row/column address within the bank. */
+    int vram_dt;                /**< Data transfer flag (latched from OE on the RAS falling edge). */
+    int vram_addr_ser;          /**< Serial address counter for the shift-register read. */
+    int vram_ser;               /**< Serial output value (shift-register data). */
+    int vram_addr_o;            /**< Previous address latch (part of the serialized state). */
 } vram_bank_t;
 
 #pragma pack(pop)

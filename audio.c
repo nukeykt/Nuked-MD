@@ -1,3 +1,5 @@
+/** @file audio.c @brief SDL audio output: FM/PSG mixing, decimation for sound-card playback and raw audio dumping. */
+
 #include <stdio.h>
 #include <string.h>
 #define SDL_MAIN_HANDLED
@@ -12,35 +14,57 @@ extern fc1004_t ym;
 extern uint64_t mcycles;
 
 // FM/PSG Mixer internals
+/** Accumulator for PSG output (scaled by 16) between PSG sample updates. */
 float psg_sum;
+/** Left/right accumulators for FM output between FM sample updates. */
 int fm_sum[2];
+/** Latest left/right FM samples produced by the FM divide stage. */
 int fm_sample[2];
+/** Latest PSG sample produced by the PSG divide stage. */
 int psg_sample;
 
+/** File handle for the raw audio dump file (16-bit stereo little-endian samples at the FM/PSG mixer frequency). */
 FILE* audio_out;
 
+/** Decimation factor: one output sample is taken every DecimateEach mixer samples. */
 int DecimateEach;
+/** Counts mixer samples since the last decimated output sample. */
 int DecimateCounter;
+/** Frequency for playback on a real device (sound card). */
 int OutputSampleRate;		// Frequency for playback on a real device (sound card)
 
+/** Buffer for audio playback at the OutputSampleRate frequency. */
 int16_t* SampleBuf;         // Buffer for audio playback at the OutputSampleRate frequency
+/** Write index into SampleBuf, in stereo-samples. */
 int SampleBuf_Ptr;          // in stereo-samples
+/** Capacity of SampleBuf, in stereo-samples. */
 int SampleBuf_Size;         // in stereo-samples
 
+/** Buffer for the raw dump at the FM/PSG mixer frequency. */
 int16_t DumpBuf[16 * 1024];         // Buffer for dump to file on FM/PSG mixer frequency
+/** Write index into DumpBuf, in shorts. */
 int DumpBufCnt = 0;             // in shorts
+/** Capacity of DumpBuf, in shorts. */
 int DumpBufSize = sizeof(DumpBuf) / sizeof(int16_t);	// in shorts
 
+/** Flag: when set, the SDL audio callback mixes SampleBuf into the output stream. */
 int Dma = 0;
 
+/** Requested SDL audio specification (see spec_obtainted for the one actually obtained). */
 SDL_AudioSpec spec;
+/** SDL audio specification actually obtained from the audio device. */
 SDL_AudioSpec spec_obtainted;
 
+/** SDL audio device ID used for playback. */
 SDL_AudioDeviceID dev_id;
 
-/// <summary>
-/// If you change the sampling frequency of the sound source or output frequency, you must recalculate the decimation factor.
-/// </summary>
+/**
+ * @brief Recalculates the decimation factor and output sample rate for a video mode.
+ *
+ * If you change the sampling frequency of the sound source or output frequency, you must recalculate the decimation factor.
+ *
+ * @param ntsc Nonzero for NTSC (223722 Hz source), zero for PAL (221681 Hz source).
+ */
 static void Redecimate(int ntsc)
 {
 	int SampleRate = ntsc ? 223722 : 221681;
@@ -50,6 +74,17 @@ static void Redecimate(int ntsc)
 	DecimateCounter = 0;
 }
 
+/**
+ * @brief SDL audio callback: fills the output stream with the recorded audio.
+ *
+ * When the Dma flag is set the recorded SampleBuf is mixed into @p stream at
+ * maximum volume and Dma is cleared; otherwise SampleBuf is zeroed and the
+ * audio device is paused.
+ *
+ * @param thisptr Unused userdata pointer.
+ * @param stream Output buffer to fill with audio data.
+ * @param len Length of the output buffer in bytes.
+ */
 static void SoundOutput_Mixer(void* thisptr, Uint8* stream, int len)
 {
 	if (Dma) {
@@ -62,6 +97,16 @@ static void SoundOutput_Mixer(void* thisptr, Uint8* stream, int len)
 	}
 }
 
+/**
+ * @brief Initializes SDL audio output and opens the raw audio dump file.
+ *
+ * Opens @p audioout_filename for the raw dump, computes the decimation
+ * parameters, allocates the playback buffer, initializes the SDL audio
+ * subsystem and opens the audio device with SoundOutput_Mixer as callback.
+ *
+ * @param audioout_filename Path of the raw audio dump file ("wb").
+ * @param ntsc Nonzero for NTSC video mode, zero for PAL.
+ */
 void Audio_Init(char* audioout_filename, int ntsc)
 {
 	audio_out = fopen(audioout_filename, "wb");
@@ -89,6 +134,12 @@ void Audio_Init(char* audioout_filename, int ntsc)
 	SDL_PauseAudioDevice(dev_id, 1);
 }
 
+/**
+ * @brief Shuts down SDL audio output and releases all audio resources.
+ *
+ * Closes the dump file, closes the audio device, quits the SDL audio
+ * subsystem and frees the playback buffer.
+ */
 void Audio_Shutdown(void)
 {
 	fclose(audio_out);
@@ -98,6 +149,12 @@ void Audio_Shutdown(void)
 	free (SampleBuf);
 }
 
+/**
+ * @brief Starts playback of one recorded second of audio.
+ *
+ * Sets the Dma flag so the next audio callback mixes SampleBuf into the
+ * output stream, unpauses the audio device and resets the buffer write index.
+ */
 static void Playback()
 {
 	printf("Play 1 second\n");
@@ -106,6 +163,15 @@ static void Playback()
 	SampleBuf_Ptr = 0;
 }
 
+/**
+ * @brief Feeds one mixed sample into the decimated playback buffer.
+ *
+ * Every DecimateEach-th call stores the stereo pair into SampleBuf; once the
+ * buffer is full, Playback() is invoked to replay the recorded second.
+ *
+ * @param l Left channel sample.
+ * @param r Right channel sample.
+ */
 static void FeedSampleForPlayback(int l, int r)
 {
 	DecimateCounter++;
@@ -123,6 +189,14 @@ static void FeedSampleForPlayback(int l, int r)
 	}
 }
 
+/**
+ * @brief Appends one mixed stereo sample to the raw audio dump buffer.
+ *
+ * When DumpBuf is full its contents are written to the dump file and flushed.
+ *
+ * @param suml Left channel sample.
+ * @param sumr Right channel sample.
+ */
 static void FeedSampleForDump(int suml, int sumr)
 {
 	DumpBuf[DumpBufCnt] = suml;
@@ -140,6 +214,14 @@ static void FeedSampleForDump(int suml, int sumr)
 	}
 }
 
+/**
+ * @brief Mixes one emulated cycle of FM and PSG output into the audio chain.
+ *
+ * Accumulates the FM left/right output every cycle and produces a sample every
+ * fm_div cycles; accumulates the PSG output (scaled by 16) and every psg_div
+ * cycles sums the FM and PSG samples, clamps them to 16-bit range and feeds the
+ * result both to the playback buffer and to the dump file.
+ */
 void Audio_Update(void)
 {
 	// Divisors are multiples of each other and multiples regardless of NTSC/PAL

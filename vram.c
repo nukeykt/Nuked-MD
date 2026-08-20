@@ -17,6 +17,7 @@
  *
  */
 
+/** @file vram.c @brief VRAM high-level emulation: cycle-accurate bank model, flat CPU view and save/load support. */
 
 #include <stdio.h>
 #include <string.h>
@@ -27,9 +28,23 @@
 
 extern fc1004_t ym;
 
+/** VRAM bank 0 (first 64K) and bank 1 (second 64K) high-level models. */
 static vram_bank_t bank0, bank1;
+/** Flat, unscrambled 128K view of the combined VRAM as seen by the CPU. */
 static int vram_flat[128 * 1024];
 
+/**
+ * @brief Updates one VRAM bank from the VDP's current output signals.
+ *
+ * Latches the VDP RAS/CAS/WE/OE/SC/SE/AD signals into @p bank and emulates the
+ * DRAM timing: row/column address latching, page caching, reads driving
+ * i_vram_ad/i_vram_rd, writes updating the bank memory and the flat
+ * (unscrambled) view, and serial/shift-register access driving i_vram_sd.
+ *
+ * @param bank The VRAM bank to update.
+ * @param id Bank id: 0 uses the VDP o_vram_we0/o_vram_ad signals, 1 uses
+ *            o_vram_we1/o_vram_se1/o_vram_rd.
+ */
 void update_vram_bank(vram_bank_t *bank, int id)
 {
     int cas, wr, rd, owr, ord;
@@ -144,12 +159,21 @@ void update_vram_bank(vram_bank_t *bank, int id)
 }
 
 
+/**
+ * @brief Updates both VRAM banks (0 and 1) from the VDP output signals.
+ */
 void update_vram()
 {
     update_vram_bank(&bank0, 0);
     update_vram_bank(&bank1, 1);
 }
 
+/**
+ * @brief Serializes both VRAM banks and the flat view to a file.
+ *
+ * @param f Open file to write to.
+ * @return 0 on success, -1 on write failure.
+ */
 int vram_save(FILE* f)
 {
     if (save_blob(&bank0, sizeof(bank0), f))
@@ -161,6 +185,12 @@ int vram_save(FILE* f)
     return 0;
 }
 
+/**
+ * @brief Restores both VRAM banks and the flat view from a file.
+ *
+ * @param f Open file to read from.
+ * @return 0 on success, -1 on read failure.
+ */
 int vram_load(FILE* f)
 {
     if (load_blob(&bank0, sizeof(bank0), f))

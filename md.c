@@ -22,6 +22,8 @@
  *          dummy TMSS rom
  */
 
+/** @file md.c @brief Mega Drive motherboard: emulator runtime, component initialization and the emulation worker thread. */
+
 #include <stdio.h>
 #include <string.h>
 #include <string.h>
@@ -39,22 +41,34 @@
 #include "md.h"
 #include "savestate.h"
 
+/** @brief 68000 CPU state. */
 m68k_t m68k;
+/** @brief Z80 CPU state. */
 z80_t z80;
+/** @brief FC1004 (FM+VDP+arbiter+IO+TMSS) chip state. */
 fc1004_t ym;
 
+/** @brief 68000 main RAM (64 KB). */
 unsigned char ram[0x10000];
+/** @brief Z80 RAM (8 KB). */
 unsigned char zram[8192];
 
+/** @brief Motherboard interconnect state. */
 md_state md;
+/** @brief Global cycle counter. */
 uint64_t mcycles;
 
+/** @brief Work thread run flag; used internally and does not require serialization. */
 static int work_thread_run;         // It is used internally and does not require serialization
 
-// Used to initiate the save/load state process
+/** @brief Set to initiate the save state process. */
 int pending_save_state;
+/** @brief Set to initiate the load state process. */
 int pending_load_state;
 
+/**
+ * @brief Zeroes the 68000, Z80 and FC1004 chip states.
+ */
 void init_chips(void)
 {
     memset(&m68k, 0, sizeof(m68k));
@@ -62,6 +76,11 @@ void init_chips(void)
     memset(&ym, 0, sizeof(ym));
 }
 
+/**
+ * @brief SDL worker thread running the main emulation loop: resolves tri-state busses between the CPUs and the FC1004, clocks all chips, services save/load state requests and updates audio/video.
+ * @param data Unused thread data pointer.
+ * @return Always 0.
+ */
 int SDLCALL work_thread(void *data)
 {
     int i;
@@ -315,6 +334,12 @@ int SDLCALL work_thread(void *data)
     return 0;
 }
 
+/**
+ * @brief Emulator entry point: parses command-line options (-a audioout, -v videoout, -t tmss, -pal, -jap, -m3), loads the TMSS and cartridge ROMs, initializes chips and SDL audio/video, starts the worker thread and runs the SDL event loop until quit.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return `EXIT_SUCCESS` on clean shutdown, `EXIT_FAILURE` on errors.
+ */
 int main(int argc, char *argv[])
 {
     int i;
